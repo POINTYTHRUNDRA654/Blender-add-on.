@@ -37,7 +37,7 @@ def test_endpoint(method, endpoint, data=None, description=""):
                 print(f"Response: {json.dumps(json_data, indent=2)}")
                 print("✅ Test passed")
                 return True
-            except:
+            except (json.JSONDecodeError, ValueError):
                 print(f"Response: {response.text}")
                 print("✅ Test passed (non-JSON response)")
                 return True

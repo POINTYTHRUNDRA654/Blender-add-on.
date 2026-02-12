@@ -7,11 +7,6 @@ Run this in Blender's scripting workspace.
 
 import bpy
 
-# Import helper modules
-# Note: When the add-on is installed, you can import from it
-# For this example, we'll show how to call operators instead
-import bpy
-
 # The add-on provides operators that you can call
 # This is the recommended way to use the add-on programmatically
 

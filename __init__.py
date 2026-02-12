@@ -1,0 +1,57 @@
+"""
+Blender Fallout 4 Tutorial Add-on
+A comprehensive tutorial and helper system for creating Fallout 4 mods in Blender
+"""
+
+bl_info = {
+    "name": "Fallout 4 Tutorial Helper",
+    "author": "Tutorial Team",
+    "version": (1, 0, 0),
+    "blender": (3, 0, 0),
+    "location": "View3D > Sidebar > Fallout 4 Tutorial",
+    "description": "Tutorial system and helpers for creating Fallout 4 mods",
+    "warning": "",
+    "doc_url": "",
+    "category": "3D View",
+}
+
+import bpy
+from . import ui_panels
+from . import operators
+from . import tutorial_system
+from . import mesh_helpers
+from . import texture_helpers
+from . import animation_helpers
+from . import export_helpers
+from . import notification_system
+
+modules = [
+    tutorial_system,
+    notification_system,
+    mesh_helpers,
+    texture_helpers,
+    animation_helpers,
+    export_helpers,
+    operators,
+    ui_panels,
+]
+
+def register():
+    """Register all add-on classes and handlers"""
+    for module in modules:
+        module.register()
+    
+    # Initialize the tutorial system
+    tutorial_system.initialize_tutorials()
+    
+    print("Fallout 4 Tutorial Helper registered successfully")
+
+def unregister():
+    """Unregister all add-on classes and handlers"""
+    for module in reversed(modules):
+        module.unregister()
+    
+    print("Fallout 4 Tutorial Helper unregistered")
+
+if __name__ == "__main__":
+    register()

@@ -79,7 +79,7 @@ def create_mesh_from_heightmap(name, heightmap_data, width, height,
         # Determine subdivisions
         if subdivisions is None:
             # Limit subdivisions for performance
-            max_subdivs = 200
+            max_subdivs = 256
             subdivs_x = min(width, max_subdivs)
             subdivs_y = min(height, max_subdivs)
         else:

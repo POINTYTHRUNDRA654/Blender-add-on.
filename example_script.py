@@ -8,20 +8,21 @@ Run this in Blender's scripting workspace.
 import bpy
 
 # Import helper modules
-# Note: These imports work when the add-on is installed and enabled
-try:
-    from Blender-add-on import mesh_helpers, texture_helpers, animation_helpers, export_helpers
-except ImportError:
-    print("Please ensure the Fallout 4 Tutorial Add-on is installed and enabled")
-    exit()
+# Note: When the add-on is installed, you can import from it
+# For this example, we'll show how to call operators instead
+import bpy
+
+# The add-on provides operators that you can call
+# This is the recommended way to use the add-on programmatically
 
 def create_simple_weapon():
-    """Example: Create a simple weapon mesh"""
+    """Example: Create a simple weapon mesh using operators"""
     
     print("Creating weapon mesh...")
     
-    # Create base mesh
-    obj = mesh_helpers.MeshHelpers.create_base_mesh()
+    # Use the add-on's operator to create base mesh
+    bpy.ops.fo4.create_base_mesh()
+    obj = bpy.context.active_object
     obj.name = "SimpleWeapon"
     
     # Enter edit mode and modify (simplified example)
@@ -29,102 +30,81 @@ def create_simple_weapon():
     bpy.ops.mesh.subdivide(number_cuts=1)
     bpy.ops.object.mode_set(mode='OBJECT')
     
-    # Optimize for FO4
-    success, message = mesh_helpers.MeshHelpers.optimize_mesh(obj)
-    print(f"Optimization: {message}")
+    # Optimize for FO4 using operator
+    bpy.ops.fo4.optimize_mesh()
+    print("Mesh optimized")
     
-    # Validate mesh
-    success, issues = mesh_helpers.MeshHelpers.validate_mesh(obj)
-    if success:
-        print("Mesh validation: PASSED")
-    else:
-        print("Mesh validation issues:")
-        for issue in issues:
-            print(f"  - {issue}")
+    # Validate mesh using operator
+    bpy.ops.fo4.validate_mesh()
+    print("Mesh validated - check Blender console for results")
     
     return obj
 
 def setup_textures_for_object(obj, texture_dir):
-    """Example: Setup textures for an object"""
+    """Example: Setup textures for an object using operators"""
     
     import os
     
     print(f"Setting up textures for {obj.name}...")
     
-    # Create FO4 material
-    mat = texture_helpers.TextureHelpers.setup_fo4_material(obj)
-    print(f"Material created: {mat.name}")
+    # Select the object
+    bpy.context.view_layer.objects.active = obj
+    obj.select_set(True)
     
-    # Install textures (if files exist)
+    # Create FO4 material using operator
+    bpy.ops.fo4.setup_textures()
+    print("Material created")
+    
+    # Install textures (if files exist) using operators
     diffuse_path = os.path.join(texture_dir, "diffuse.png")
     normal_path = os.path.join(texture_dir, "normal.png")
     
     if os.path.exists(diffuse_path):
-        success, message = texture_helpers.TextureHelpers.install_texture(
-            obj, diffuse_path, 'DIFFUSE'
-        )
-        print(f"Diffuse texture: {message}")
+        # Note: Texture installation via operator requires file browser
+        # For scripting, you would access the helper functions directly
+        print(f"Diffuse texture available at: {diffuse_path}")
     
     if os.path.exists(normal_path):
-        success, message = texture_helpers.TextureHelpers.install_texture(
-            obj, normal_path, 'NORMAL'
-        )
-        print(f"Normal texture: {message}")
+        print(f"Normal texture available at: {normal_path}")
     
-    # Validate textures
-    success, issues = texture_helpers.TextureHelpers.validate_textures(obj)
-    if success:
-        print("Texture validation: PASSED")
-    else:
-        print("Texture validation issues:")
-        for issue in issues:
-            print(f"  - {issue}")
+    # Validate textures using operator
+    bpy.ops.fo4.validate_textures()
+    print("Texture validation completed - check console for results")
 
 def create_simple_armature():
-    """Example: Create and validate an armature"""
+    """Example: Create and validate an armature using operators"""
     
     print("Creating armature...")
     
-    # Create FO4 armature
-    armature_obj = animation_helpers.AnimationHelpers.setup_fo4_armature()
+    # Create FO4 armature using operator
+    bpy.ops.fo4.setup_armature()
+    armature_obj = bpy.context.active_object
     print(f"Armature created: {armature_obj.name}")
     
-    # Validate armature
-    success, issues = animation_helpers.AnimationHelpers.validate_animation(armature_obj)
-    if success:
-        print("Armature validation: PASSED")
-    else:
-        print("Armature validation issues:")
-        for issue in issues:
-            print(f"  - {issue}")
+    # Validate armature using operator
+    bpy.ops.fo4.validate_animation()
+    print("Armature validation completed - check console for results")
     
     return armature_obj
 
 def export_mod_assets(output_dir):
-    """Example: Export all assets in the scene"""
+    """Example: Export using the add-on's export operator"""
     
     print(f"Exporting mod to {output_dir}...")
     
-    scene = bpy.context.scene
+    # Note: Export operators typically require file browser interaction
+    # For batch operations, you would call export functions directly
+    # Here we show the operator approach
     
-    # Export complete mod
-    success, results = export_helpers.ExportHelpers.export_complete_mod(
-        scene, output_dir
-    )
+    # Validate before export
+    bpy.ops.fo4.validate_export()
     
-    if success:
-        print("Export completed successfully!")
-        print(f"Meshes exported: {len(results['meshes'])}")
-        print(f"Animations: {len(results['animations'])}")
-        if results['errors']:
-            print("Errors encountered:")
-            for error in results['errors']:
-                print(f"  - {error}")
-    else:
-        print("Export failed!")
+    print("Export validation completed - check console")
+    print("Use the Export panel in the UI to complete export")
+    print(f"Target directory: {output_dir}")
 
 def complete_workflow_example():
-    """Complete example workflow"""
+    """Complete example workflow using operators"""
     
     print("=" * 60)
     print("Fallout 4 Mod Creation - Complete Workflow Example")
@@ -138,27 +118,23 @@ def complete_workflow_example():
     print("\n1. Creating mesh...")
     weapon = create_simple_weapon()
     
-    # Step 2: Setup materials (using dummy paths)
+    # Step 2: Setup materials
     print("\n2. Setting up materials...")
-    mat = texture_helpers.TextureHelpers.setup_fo4_material(weapon)
-    print(f"Material setup complete: {mat.name}")
+    bpy.ops.fo4.setup_textures()
+    print("Material setup complete")
     
     # Step 3: Validate before export
     print("\n3. Validating for export...")
-    success, issues = export_helpers.ExportHelpers.validate_before_export(weapon)
-    if success:
-        print("Validation: PASSED - Ready for export!")
-    else:
-        print("Validation issues found:")
-        for issue in issues:
-            print(f"  - {issue}")
+    bpy.ops.fo4.validate_export()
+    print("Validation complete - check console for details")
     
-    # Step 4: Export (uncomment to actually export)
-    # export_path = "/tmp/fo4_mod_output"
-    # export_mod_assets(export_path)
+    # Step 4: Export information
+    print("\n4. Ready to export!")
+    print("Use the Export panel in the UI to complete the export process")
     
     print("\n" + "=" * 60)
     print("Workflow example completed!")
+    print("Check the Blender console for validation results")
     print("=" * 60)
 
 # Run the complete workflow example

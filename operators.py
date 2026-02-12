@@ -405,10 +405,10 @@ class FO4_OT_ImageToMesh(Operator):
     
     subdivisions: bpy.props.IntProperty(
         name="Subdivisions",
-        description="Number of subdivisions (0 = auto based on image)",
+        description="Number of subdivisions (0 = auto based on image, max 256)",
         default=0,
         min=0,
-        max=500
+        max=256
     )
     
     def execute(self, context):

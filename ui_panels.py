@@ -91,10 +91,11 @@ class FO4_PT_ImageToMeshPanel(Panel):
         
         # Info box
         info_box = layout.box()
-        info_box.label(text="How to use:", icon='INFO')
-        info_box.label(text="• Load grayscale image")
-        info_box.label(text="• Bright = high, dark = low")
-        info_box.label(text="• Adjust strength as needed")
+        info_box.label(text="Quick Guide:", icon='INFO')
+        info_box.label(text="• Formats: PNG, JPG, BMP, TIFF, TGA")
+        info_box.label(text="• Grayscale: Bright=high, Dark=low")
+        info_box.label(text="• Requires: PIL/Pillow & NumPy")
+        info_box.label(text="• See README for install instructions")
 
 class FO4_PT_AnimationPanel(Panel):
     """Animation helpers panel"""

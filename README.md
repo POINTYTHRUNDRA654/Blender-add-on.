@@ -198,6 +198,32 @@ You can also use the add-on's functionality through Python scripts in Blender's 
 5. **Export** - Use "Export to FO4" to package your mod
 6. **Testing** - Test in Creation Kit or game
 
+## Best Free Resources for Image to Mesh
+
+### For Creating/Editing Height Maps
+
+**Image Editors:**
+- **GIMP** (gimp.org) - Professional image editor for creating and editing height maps
+- **Blender** - Use Blender's own texture painting to create height maps
+
+**Height Map Generators:**
+- **terrain.party** - Generate real-world terrain height maps from any location
+- **tangrams.github.io/heightmapper** - Create height maps from map data
+- **NASA Earth Observatory** - Download real terrain data
+
+**Texture Libraries with Height Maps:**
+- **polyhaven.com** - High-quality PBR textures including height maps
+- **cgbookcase.com** - Free PBR textures with displacement maps
+- **3dtextures.me** - Free seamless textures
+
+### Tips for Best Results
+
+1. **Use square images** (512x512, 1024x1024, 2048x2048) for best results
+2. **Higher contrast** = more dramatic terrain
+3. **Grayscale images** work best (bright = high, dark = low)
+4. **Start with lower resolution** to test, then increase for final mesh
+5. **See TUTORIALS.md** for detailed guide on using these resources
+
 ## Troubleshooting
 
 ### Common Issues
@@ -214,6 +240,22 @@ You can also use the add-on's functionality through Python scripts in Blender's 
 
 **"No UV map found"**
 - Solution: Enter Edit mode (Tab), press U, and select "Unwrap"
+
+### Image to Mesh Issues
+
+**"PIL/Pillow not installed" or "NumPy not installed"**
+- Solution: Install dependencies in Blender's Python (see Prerequisites section above)
+
+**"Mesh looks flat or has no detail"**
+- Solution: Increase "Displacement Strength" parameter
+- Ensure your image has good contrast (not all one color)
+
+**"Mesh has too many polygons"**
+- Solution: Use smaller "Subdivisions" value or let it auto-calculate (set to 0)
+- Use a smaller resolution image
+
+**"Unsupported image format"**
+- Solution: Convert your image to PNG, JPG, BMP, TIFF, or TGA format
 
 ## Version History
 

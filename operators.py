@@ -5,7 +5,7 @@ Operators for the Fallout 4 Tutorial Add-on
 import bpy
 from bpy.types import Operator
 from bpy.props import StringProperty, EnumProperty
-from . import tutorial_system, mesh_helpers, texture_helpers, animation_helpers, export_helpers, notification_system
+from . import tutorial_system, mesh_helpers, texture_helpers, animation_helpers, export_helpers, notification_system, image_to_mesh_helpers
 
 # Tutorial Operators
 
@@ -369,6 +369,144 @@ class FO4_OT_ValidateExport(Operator):
         
         return {'FINISHED'}
 
+# Image to Mesh Operators
+
+class FO4_OT_ImageToMesh(Operator):
+    """Create a mesh from an image using height map"""
+    bl_idname = "fo4.image_to_mesh"
+    bl_label = "Image to Mesh"
+    bl_options = {'REGISTER', 'UNDO'}
+    
+    filepath: StringProperty(subtype='FILE_PATH')
+    
+    mesh_width: bpy.props.FloatProperty(
+        name="Mesh Width",
+        description="Physical width of the mesh",
+        default=2.0,
+        min=0.1,
+        max=100.0
+    )
+    
+    mesh_height: bpy.props.FloatProperty(
+        name="Mesh Height", 
+        description="Physical height of the mesh",
+        default=2.0,
+        min=0.1,
+        max=100.0
+    )
+    
+    displacement_strength: bpy.props.FloatProperty(
+        name="Displacement Strength",
+        description="Strength of the height displacement",
+        default=0.5,
+        min=0.0,
+        max=10.0
+    )
+    
+    subdivisions: bpy.props.IntProperty(
+        name="Subdivisions",
+        description="Number of subdivisions (0 = auto based on image)",
+        default=0,
+        min=0,
+        max=500
+    )
+    
+    def execute(self, context):
+        # Validate file
+        if not image_to_mesh_helpers.ImageToMeshHelpers.validate_image_file(self.filepath):
+            self.report({'ERROR'}, "Unsupported image format. Use PNG, JPG, BMP, TIFF, or TGA")
+            return {'CANCELLED'}
+        
+        # Load image as height map
+        success, data, width, height = image_to_mesh_helpers.load_image_as_heightmap(self.filepath)
+        
+        if not success:
+            self.report({'ERROR'}, data)  # data contains error message
+            notification_system.FO4_NotificationSystem.notify(data, 'ERROR')
+            return {'CANCELLED'}
+        
+        # Get object name from file
+        import os
+        obj_name = os.path.splitext(os.path.basename(self.filepath))[0]
+        
+        # Determine subdivisions
+        subdivs = self.subdivisions if self.subdivisions > 0 else None
+        
+        # Create mesh
+        success, result = image_to_mesh_helpers.create_mesh_from_heightmap(
+            obj_name,
+            data,
+            width,
+            height,
+            self.mesh_width,
+            self.mesh_height,
+            self.displacement_strength,
+            subdivs
+        )
+        
+        if success:
+            self.report({'INFO'}, f"Created mesh from image: {result.name}")
+            notification_system.FO4_NotificationSystem.notify(
+                f"Created mesh from {os.path.basename(self.filepath)}", 'INFO'
+            )
+        else:
+            self.report({'ERROR'}, result)  # result contains error message
+            notification_system.FO4_NotificationSystem.notify(result, 'ERROR')
+            return {'CANCELLED'}
+        
+        return {'FINISHED'}
+    
+    def invoke(self, context, event):
+        context.window_manager.fileselect_add(self)
+        return {'RUNNING_MODAL'}
+
+class FO4_OT_ApplyDisplacementMap(Operator):
+    """Apply a displacement/height map to an existing mesh"""
+    bl_idname = "fo4.apply_displacement_map"
+    bl_label = "Apply Displacement Map"
+    bl_options = {'REGISTER', 'UNDO'}
+    
+    filepath: StringProperty(subtype='FILE_PATH')
+    
+    strength: bpy.props.FloatProperty(
+        name="Strength",
+        description="Displacement strength",
+        default=0.5,
+        min=0.0,
+        max=10.0
+    )
+    
+    def execute(self, context):
+        obj = context.active_object
+        
+        if not obj or obj.type != 'MESH':
+            self.report({'ERROR'}, "No mesh object selected")
+            return {'CANCELLED'}
+        
+        # Validate file
+        if not image_to_mesh_helpers.ImageToMeshHelpers.validate_image_file(self.filepath):
+            self.report({'ERROR'}, "Unsupported image format. Use PNG, JPG, BMP, TIFF, or TGA")
+            return {'CANCELLED'}
+        
+        # Apply displacement
+        success, message = image_to_mesh_helpers.apply_displacement_to_mesh(
+            obj, self.filepath, self.strength
+        )
+        
+        if success:
+            self.report({'INFO'}, message)
+            notification_system.FO4_NotificationSystem.notify(message, 'INFO')
+        else:
+            self.report({'ERROR'}, message)
+            notification_system.FO4_NotificationSystem.notify(message, 'ERROR')
+            return {'CANCELLED'}
+        
+        return {'FINISHED'}
+    
+    def invoke(self, context, event):
+        context.window_manager.fileselect_add(self)
+        return {'RUNNING_MODAL'}
+
 # Register all operators
 
 classes = (
@@ -386,6 +524,8 @@ classes = (
     FO4_OT_ExportMesh,
     FO4_OT_ExportAll,
     FO4_OT_ValidateExport,
+    FO4_OT_ImageToMesh,
+    FO4_OT_ApplyDisplacementMap,
 )
 
 def register():

@@ -68,6 +68,34 @@ class FO4_PT_TexturePanel(Panel):
         box.operator("fo4.install_texture", text="Install Texture", icon='FILE_IMAGE')
         box.operator("fo4.validate_textures", text="Validate Textures", icon='CHECKMARK')
 
+class FO4_PT_ImageToMeshPanel(Panel):
+    """Image to Mesh helpers panel"""
+    bl_label = "Image to Mesh"
+    bl_idname = "FO4_PT_image_to_mesh_panel"
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'UI'
+    bl_category = 'Fallout 4'
+    bl_parent_id = "FO4_PT_main_panel"
+    bl_options = {'DEFAULT_CLOSED'}
+    
+    def draw(self, context):
+        layout = self.layout
+        
+        box = layout.box()
+        box.label(text="Create Mesh from Image", icon='IMAGE_DATA')
+        box.operator("fo4.image_to_mesh", text="Image to Mesh (Height Map)", icon='MESH_GRID')
+        
+        box = layout.box()
+        box.label(text="Displacement Map", icon='MOD_DISPLACE')
+        box.operator("fo4.apply_displacement_map", text="Apply Displacement Map", icon='TEXTURE')
+        
+        # Info box
+        info_box = layout.box()
+        info_box.label(text="How to use:", icon='INFO')
+        info_box.label(text="• Load grayscale image")
+        info_box.label(text="• Bright = high, dark = low")
+        info_box.label(text="• Adjust strength as needed")
+
 class FO4_PT_AnimationPanel(Panel):
     """Animation helpers panel"""
     bl_label = "Animation Helpers"
@@ -109,6 +137,7 @@ classes = (
     FO4_PT_MainPanel,
     FO4_PT_MeshPanel,
     FO4_PT_TexturePanel,
+    FO4_PT_ImageToMeshPanel,
     FO4_PT_AnimationPanel,
     FO4_PT_ExportPanel,
 )

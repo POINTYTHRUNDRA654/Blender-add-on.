@@ -281,6 +281,151 @@ After completing these tutorials:
 4. Study Creation Kit for mod integration
 5. Join Fallout 4 modding communities
 
+## Tutorial 4: Creating Meshes from Images (Height Maps)
+
+### Objective
+Learn to convert images into 3D meshes using height map techniques with free resources.
+
+### Prerequisites
+You must first install PIL/Pillow and NumPy in Blender's Python environment. See the README for installation instructions.
+
+### What You'll Need
+- A grayscale image to use as a height map (PNG, JPG, BMP, TIFF, or TGA)
+- Brighter pixels = higher elevation
+- Darker pixels = lower elevation
+
+### Free Resources for Creating Height Maps
+
+1. **GIMP (Free Image Editor)**
+   - Download from: https://www.gimp.org/
+   - Create height maps from photos using filters
+   - Convert images to grayscale
+   - Adjust brightness/contrast for better results
+
+2. **Blender Itself**
+   - Use Blender's texture painting to create height maps
+   - Paint in grayscale mode
+   - Export as PNG
+
+3. **Free Online Height Map Generators**
+   - terrain.party - Generate real-world terrain height maps
+   - tangrams.github.io/heightmapper - Create height maps from map data
+   - NASA's Earth Observatory - Real terrain data
+
+4. **Free Texture Sites with Height Maps**
+   - polyhaven.com - High-quality PBR textures with height maps
+   - cgbookcase.com - Free PBR textures
+   - 3dtextures.me - Free seamless textures
+
+### Method 1: Image to Mesh (Height Map)
+
+#### Step 1: Prepare Your Image
+1. Open your image in GIMP or another editor
+2. Convert to grayscale: `Image > Mode > Grayscale`
+3. Adjust contrast: `Colors > Brightness-Contrast`
+4. Save as PNG or JPG
+
+#### Step 2: Load Image as Mesh
+1. Press `N` to open the sidebar
+2. Click the "Fallout 4" tab
+3. Expand "Image to Mesh" panel
+4. Click "Image to Mesh (Height Map)"
+5. Select your prepared image file
+
+#### Step 3: Adjust Parameters
+In the file browser, you'll see options:
+- **Mesh Width**: Physical width of the mesh (default: 2.0)
+- **Mesh Height**: Physical height of the mesh (default: 2.0)
+- **Displacement Strength**: How much the height affects Z-axis (default: 0.5)
+- **Subdivisions**: Resolution of the mesh (0 = auto, based on image size)
+
+#### Step 4: Create the Mesh
+1. Adjust parameters as needed
+2. Click "Image to Mesh (Height Map)" button
+3. The mesh will be created with:
+   - Proper vertex positions based on height
+   - UV mapping automatically applied
+   - Name based on your image filename
+
+#### Step 5: Further Refinement
+1. Switch to Edit Mode (`Tab`)
+2. Use standard Blender tools to refine
+3. Apply modifiers if needed (Smooth, Subdivision Surface, etc.)
+4. Click "Optimize for FO4" when done
+5. Click "Validate Mesh" to check compatibility
+
+### Method 2: Apply Displacement Map to Existing Mesh
+
+#### Step 1: Create or Select a Mesh
+1. Create a base mesh or select an existing one
+2. Ensure it has sufficient geometry for displacement
+3. Add a Subdivision Surface modifier for more detail (optional)
+
+#### Step 2: Apply Displacement Map
+1. Select your mesh
+2. In "Image to Mesh" panel, click "Apply Displacement Map"
+3. Select your height map image
+4. Adjust "Strength" parameter (default: 0.5)
+
+#### Step 3: Render to See Results
+1. The displacement is set up in material nodes
+2. Switch to rendered view (`Z` > "Rendered")
+3. Adjust strength if needed by re-applying with different value
+
+### Tips and Best Practices
+
+#### Creating Good Height Maps
+- Use high contrast for dramatic terrain
+- Use subtle gradients for smooth surfaces
+- Avoid pure black or white (use 5-250 range in 0-255)
+- Square images work best (power of 2: 512, 1024, 2048)
+
+#### Performance Considerations
+- Larger images = more polygons
+- The add-on automatically limits subdivisions to 256 for performance
+- For very detailed meshes, use displacement maps instead
+- Displacement maps only show in rendered view but don't add geometry until rendered
+
+#### Recommended Workflows
+
+**For Terrain:**
+1. Get height map from terrain.party or heightmapper
+2. Edit in GIMP to adjust levels
+3. Use "Image to Mesh" with high displacement strength (1.0-2.0)
+4. Optimize and export
+
+**For Surface Details:**
+1. Create or find detail height map (scratches, dents, etc.)
+2. Apply to existing mesh using "Apply Displacement Map"
+3. Keep strength low (0.1-0.3) for subtle detail
+
+**For Sculpted Objects:**
+1. Paint height map in Blender or GIMP
+2. Convert to mesh with medium subdivisions (128-256)
+3. Further sculpt in Sculpt Mode if needed
+
+### Troubleshooting
+
+**"PIL/Pillow not installed" Error**
+- Solution: Install Pillow in Blender's Python (see README)
+
+**"NumPy not installed" Error**
+- Solution: Install NumPy in Blender's Python (see README)
+
+**Mesh looks flat**
+- Solution: Increase "Displacement Strength" parameter
+- Make sure your image has good contrast
+
+**Mesh has too many polygons**
+- Solution: Reduce "Subdivisions" parameter
+- Use a smaller image
+- Use Decimate modifier after creation
+
+**Mesh looks blocky**
+- Solution: Increase "Subdivisions" parameter
+- Apply Smooth Shading (`Right-click > Shade Smooth`)
+- Add Subdivision Surface modifier
+
 ## Resources
 
 - Fallout 4 Creation Kit Wiki

@@ -25,7 +25,14 @@ A comprehensive Blender add-on that provides a desktop tutorial system and helpe
 - UV mapping checks
 - Collision mesh generation
 
-### 🖼️ Texture Installation
+### 🖼️ Image to Mesh Conversion
+- Convert images to 3D meshes using height maps
+- Support for common image formats (PNG, JPG, BMP, TIFF, TGA)
+- Adjustable displacement strength and mesh resolution
+- Apply displacement maps to existing meshes
+- Uses free resources: PIL/Pillow and NumPy
+
+### 🎨 Texture Installation
 - FO4-compatible material setup
 - Easy texture loading (diffuse, normal, specular)
 - Texture validation
@@ -42,6 +49,39 @@ A comprehensive Blender add-on that provides a desktop tutorial system and helpe
 - Complete mod package export
 - Pre-export validation
 - Automatic mod directory structure creation
+
+## Prerequisites for Image to Mesh Feature
+
+To use the Image to Mesh functionality, you need to install the following free Python packages in Blender's Python environment:
+
+1. **PIL/Pillow** - For image processing
+2. **NumPy** - For numerical operations
+
+### Installing Dependencies
+
+**On Windows:**
+```bash
+# Open command prompt as administrator
+cd "C:\Program Files\Blender Foundation\Blender X.X\X.X\python\bin"
+python.exe -m pip install Pillow numpy
+```
+
+**On macOS:**
+```bash
+# Open terminal
+cd /Applications/Blender.app/Contents/Resources/X.X/python/bin
+./python3.xx -m pip install Pillow numpy
+```
+
+**On Linux:**
+```bash
+# Open terminal
+cd /path/to/blender/X.X/python/bin
+./python3.xx -m pip install Pillow numpy
+```
+
+Note: Replace `X.X` with your Blender version number (e.g., 3.6).
+
 
 ## Installation
 
@@ -81,7 +121,22 @@ After installation, find the add-on in the 3D Viewport sidebar:
 4. Click "Validate Textures" to check compatibility
 ```
 
-#### 4. Create Animations (Optional)
+#### 4. Create Mesh from Image (New!)
+```
+1. Click "Image to Mesh (Height Map)" in the Image to Mesh panel
+2. Select a grayscale image (bright areas = high, dark areas = low)
+3. Adjust mesh width, height, and displacement strength
+4. The mesh will be created automatically with proper UV mapping
+```
+OR
+```
+1. Select an existing mesh
+2. Click "Apply Displacement Map"
+3. Choose your height map image
+4. Adjust displacement strength
+```
+
+#### 5. Create Animations (Optional)
 ```
 1. Click "Setup FO4 Armature" to create a skeleton
 2. Parent your mesh to the armature
@@ -89,7 +144,7 @@ After installation, find the add-on in the 3D Viewport sidebar:
 4. Click "Validate Animation" to check for issues
 ```
 
-#### 5. Export Your Mod
+#### 6. Export Your Mod
 ```
 1. Select your object(s)
 2. Click "Validate Before Export" to check everything

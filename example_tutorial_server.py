@@ -3,9 +3,7 @@ Example Desktop Tutorial Server
 A simple server that demonstrates integration with the Blender add-on
 """
 
-import socket
 import json
-import threading
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from datetime import datetime
 

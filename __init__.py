@@ -18,9 +18,6 @@ bl_info = {
 import bpy
 from bpy.types import Operator, Panel, AddonPreferences
 from bpy.props import StringProperty, IntProperty, BoolProperty
-import socket
-import json
-import threading
 
 
 # Preferences

@@ -96,7 +96,6 @@ class FO4_NotificationSystem:
 
 def register():
     """Register notification classes"""
-    bpy.types.Scene.fo4_notifications = CollectionProperty(type=FO4_NotificationItem)
     bpy.types.Scene.fo4_notifications = []
 
 def unregister():

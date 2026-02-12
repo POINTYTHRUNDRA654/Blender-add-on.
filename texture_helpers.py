@@ -43,9 +43,7 @@ class TextureHelpers:
         normal_tex.name = "Normal"
         normal_tex.label = "Normal Map"
         normal_tex.location = (-400, 0)
-        normal_tex.image = None
-        if normal_tex.image:
-            normal_tex.image.colorspace_settings.name = 'Non-Color'
+        # Colorspace will be set when image is loaded in install_texture
         
         # Normal map node
         normal_map = nodes.new(type='ShaderNodeNormalMap')
@@ -56,8 +54,7 @@ class TextureHelpers:
         specular_tex.name = "Specular"
         specular_tex.label = "Specular"
         specular_tex.location = (-400, -300)
-        if specular_tex.image:
-            specular_tex.image.colorspace_settings.name = 'Non-Color'
+        # Colorspace will be set when image is loaded in install_texture
         
         # Connect nodes
         links = mat.node_tree.links

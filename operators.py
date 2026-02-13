@@ -4,7 +4,7 @@ Operators for the Fallout 4 Tutorial Add-on
 
 import bpy
 from bpy.types import Operator
-from bpy.props import StringProperty, EnumProperty
+from bpy.props import StringProperty, EnumProperty, IntProperty
 from . import tutorial_system, mesh_helpers, texture_helpers, animation_helpers, export_helpers, notification_system, image_to_mesh_helpers, hunyuan3d_helpers
 
 # Tutorial Operators
@@ -521,7 +521,7 @@ class FO4_OT_GenerateMeshFromText(Operator):
         default="A medieval sword with a golden hilt"
     )
     
-    resolution: bpy.props.IntProperty(
+    resolution: IntProperty(
         name="Resolution",
         description="Resolution of the generated mesh",
         default=256,
@@ -577,7 +577,7 @@ class FO4_OT_GenerateMeshFromImageAI(Operator):
     
     filepath: StringProperty(subtype='FILE_PATH')
     
-    resolution: bpy.props.IntProperty(
+    resolution: IntProperty(
         name="Resolution",
         description="Resolution of the generated mesh",
         default=256,

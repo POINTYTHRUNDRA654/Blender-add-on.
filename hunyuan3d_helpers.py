@@ -89,14 +89,25 @@ def generate_mesh_from_text(prompt, output_path=None, resolution=256):
         return False, f"Hunyuan3D-2 not available: {message}"
     
     try:
-        # This is a placeholder for the actual Hunyuan3D-2 integration
-        # The real implementation would call the Hunyuan3D-2 inference code
+        # PLACEHOLDER IMPLEMENTATION
+        # This is a stub that requires actual integration with Hunyuan3D-2's inference code.
+        # To integrate:
+        #   1. Import Hunyuan3D-2's inference modules
+        #   2. Load the model weights
+        #   3. Call their text-to-3D inference API
+        #   4. Save/import the generated mesh
+        # See: https://github.com/Tencent-Hunyuan/Hunyuan3D-2 for API documentation
         
         return False, (
-            "Text-to-3D generation not yet implemented.\n"
-            "This feature requires integration with Hunyuan3D-2's inference pipeline.\n"
-            f"Prompt: '{prompt}'\n"
-            "See documentation for manual usage instructions."
+            "Text-to-3D generation is a PLACEHOLDER - requires manual integration.\n"
+            "This feature needs Hunyuan3D-2's inference code to be integrated.\n"
+            f"Prompt: '{prompt}'\n\n"
+            "To use now:\n"
+            "1. Open terminal in Hunyuan3D-2 directory\n"
+            "2. Run: python infer.py --prompt \"your text\" --output model.obj\n"
+            "   (Check their docs for exact arguments)\n"
+            "3. Import the generated .obj file in Blender\n\n"
+            "See HUNYUAN3D_GUIDE.md for detailed instructions."
         )
         
     except Exception as e:
@@ -124,14 +135,25 @@ def generate_mesh_from_image(image_path, output_path=None, resolution=256):
         return False, f"Image file not found: {image_path}"
     
     try:
-        # This is a placeholder for the actual Hunyuan3D-2 integration
-        # The real implementation would call the Hunyuan3D-2 inference code
+        # PLACEHOLDER IMPLEMENTATION
+        # This is a stub that requires actual integration with Hunyuan3D-2's inference code.
+        # To integrate:
+        #   1. Import Hunyuan3D-2's inference modules
+        #   2. Load the model weights
+        #   3. Call their image-to-3D inference API
+        #   4. Save/import the generated mesh
+        # See: https://github.com/Tencent-Hunyuan/Hunyuan3D-2 for API documentation
         
         return False, (
-            "Image-to-3D generation not yet implemented.\n"
-            "This feature requires integration with Hunyuan3D-2's inference pipeline.\n"
-            f"Image: '{image_path}'\n"
-            "See documentation for manual usage instructions."
+            "Image-to-3D generation is a PLACEHOLDER - requires manual integration.\n"
+            "This feature needs Hunyuan3D-2's inference code to be integrated.\n"
+            f"Image: '{image_path}'\n\n"
+            "To use now:\n"
+            "1. Open terminal in Hunyuan3D-2 directory\n"
+            "2. Run: python infer.py --image \"your_image.jpg\" --output model.obj\n"
+            "   (Check their docs for exact arguments)\n"
+            "3. Import the generated .obj file in Blender\n\n"
+            "See HUNYUAN3D_GUIDE.md for detailed instructions."
         )
         
     except Exception as e:

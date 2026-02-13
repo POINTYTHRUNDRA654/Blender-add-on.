@@ -25,7 +25,38 @@ A comprehensive Blender add-on that provides a desktop tutorial system and helpe
 - UV mapping checks
 - Collision mesh generation
 
-### 🖼️ Texture Installation
+### 🖼️ Image to Mesh Conversion
+- Convert images to 3D meshes using height maps
+- Support for common image formats (PNG, JPG, BMP, TIFF, TGA)
+- Adjustable displacement strength and mesh resolution
+- Apply displacement maps to existing meshes
+- Uses free resources: PIL/Pillow and NumPy
+
+### 🤖 AI-Powered Generation (Optional)
+- **NEW**: Generate 3D meshes from text descriptions using AI
+- **NEW**: Create full 3D models from 2D images (not just height maps)
+- Powered by Tencent's Hunyuan3D-2 model
+- Completely optional - add-on works perfectly without it
+- Requires: GPU, PyTorch, and Hunyuan3D-2 installation
+- See installation guide for setup instructions
+
+### 🎬 Motion Generation (Optional)
+- **NEW**: Generate character animations from text descriptions
+- **NEW**: Create motion sequences using AI
+- Powered by Tencent's HY-Motion-1.0 model
+- Import and apply motion data to Blender armatures
+- Requires: git-lfs, PyTorch, and HY-Motion-1.0 installation
+- Completely optional feature
+
+### 🌐 Web Interface (Optional)
+- **NEW**: Browser-based UI for AI generation powered by Gradio
+- Easy-to-use interface (no command-line knowledge needed)
+- Start/stop web server from Blender
+- Access from any device on your network
+- Text-to-3D and Image-to-3D generation via web browser
+- Completely optional - install with `pip install gradio`
+
+### 🎨 Texture Installation
 - FO4-compatible material setup
 - Easy texture loading (diffuse, normal, specular)
 - Texture validation
@@ -42,6 +73,183 @@ A comprehensive Blender add-on that provides a desktop tutorial system and helpe
 - Complete mod package export
 - Pre-export validation
 - Automatic mod directory structure creation
+
+## Prerequisites for Image to Mesh Feature
+
+To use the Image to Mesh functionality, you need to install the following free Python packages in Blender's Python environment:
+
+1. **PIL/Pillow** - For image processing
+2. **NumPy** - For numerical operations
+
+### Installing Dependencies
+
+**On Windows:**
+```bash
+# Open command prompt as administrator
+cd "C:\Program Files\Blender Foundation\Blender X.X\X.X\python\bin"
+python.exe -m pip install Pillow numpy
+```
+
+**On macOS:**
+```bash
+# Open terminal
+cd /Applications/Blender.app/Contents/Resources/X.X/python/bin
+./python3.xx -m pip install Pillow numpy
+```
+
+**On Linux:**
+```bash
+# Open terminal
+cd /path/to/blender/X.X/python/bin
+./python3.xx -m pip install Pillow numpy
+```
+
+Note: Replace `X.X` with your Blender version number (e.g., 3.6).
+
+## Optional: AI Generation with Hunyuan3D-2
+
+The add-on supports AI-powered 3D generation using Tencent's Hunyuan3D-2 model. This is **completely optional** - the add-on works perfectly without it.
+
+### What is Hunyuan3D-2?
+
+Hunyuan3D-2 is a powerful AI model that can:
+- Generate 3D meshes from text descriptions
+- Convert 2D images into full 3D models (not just height maps)
+- Create textured, game-ready assets
+
+### Prerequisites for AI Features
+
+**Hardware Requirements:**
+- NVIDIA GPU with CUDA support (8GB+ VRAM recommended)
+- 20GB+ free disk space (for models and dependencies)
+- 16GB+ RAM recommended
+
+**Software Requirements:**
+- PyTorch with CUDA support
+- Hunyuan3D-2 repository and model weights
+
+### Installation Steps
+
+1. **Install PyTorch** (in Blender's Python environment):
+```bash
+# Windows
+cd "C:\Program Files\Blender Foundation\Blender X.X\X.X\python\bin"
+python.exe -m pip install torch torchvision --index-url https://download.pytorch.org/whl/cu118
+
+# macOS/Linux
+cd /path/to/blender/X.X/python/bin
+./python3.xx -m pip install torch torchvision
+```
+
+2. **Clone Hunyuan3D-2 repository**:
+```bash
+# Using GitHub CLI (recommended)
+gh repo clone Tencent-Hunyuan/Hunyuan3D-2
+
+# Or using git
+git clone https://github.com/Tencent-Hunyuan/Hunyuan3D-2.git
+```
+
+3. **Install Hunyuan3D-2 dependencies**:
+```bash
+cd Hunyuan3D-2
+pip install -r requirements.txt
+```
+
+4. **Download model weights**:
+Follow the instructions in the Hunyuan3D-2 README to download the model weights.
+
+5. **Restart Blender**
+
+The add-on will automatically detect if Hunyuan3D-2 is installed and enable the AI features.
+
+### Using AI Features
+
+Once installed, you'll see an "AI Generation (Optional)" panel in the Fallout 4 sidebar:
+
+- **Text to 3D**: Enter a description and generate a 3D model
+- **Image to 3D**: Upload an image and get a full 3D model (not just height map)
+- **Status Indicator**: Shows if Hunyuan3D-2 is available
+
+### Note on AI Features
+
+- AI generation is **experimental** and may require manual integration
+- Model inference can be slow on CPU (GPU recommended)
+- Generated meshes may need optimization for Fallout 4
+- This is a beta feature - traditional methods work more reliably
+
+## Optional: Gradio Web Interface
+
+For an easy-to-use browser interface for AI generation, install Gradio:
+
+```bash
+# In Blender's Python environment
+pip install gradio
+```
+
+Then in Blender:
+1. Go to "AI Generation (Optional)" panel
+2. Click "Start Web UI"
+3. Open your browser to http://localhost:7860
+4. Use the web interface for AI generation
+
+**Benefits:**
+- No command-line knowledge required
+- User-friendly interface
+- Works on any device with a browser
+- Can create a shareable public link (optional)
+
+## Optional: HY-Motion-1.0 for Motion Generation
+
+For AI-powered animation and motion generation, install HY-Motion-1.0:
+
+### Prerequisites
+- git-lfs (Large File Storage)
+- PyTorch
+- Several GB of disk space
+
+### Installation Steps
+
+1. **Install git-lfs**:
+```bash
+# Windows (with Chocolatey)
+choco install git-lfs
+
+# macOS
+brew install git-lfs
+
+# Linux (Ubuntu/Debian)
+sudo apt-get install git-lfs
+
+# Initialize git-lfs
+git lfs install
+```
+
+2. **Clone HY-Motion-1.0**:
+```bash
+git clone https://github.com/Tencent-Hunyuan/HY-Motion-1.0.git
+cd HY-Motion-1.0/
+```
+
+3. **Pull model weights with git-lfs**:
+```bash
+git lfs pull
+```
+
+4. **Install dependencies**:
+```bash
+pip install -r requirements.txt
+```
+
+5. **Restart Blender**
+
+The add-on will automatically detect HY-Motion-1.0 and enable motion features.
+
+**Features:**
+- Generate animations from text descriptions
+- Import motion files (.bvh, .fbx)
+- Apply motion to Blender armatures
+- Create character animations with AI
 
 ## Installation
 
@@ -81,7 +289,36 @@ After installation, find the add-on in the 3D Viewport sidebar:
 4. Click "Validate Textures" to check compatibility
 ```
 
-#### 4. Create Animations (Optional)
+#### 4. Create Mesh from Image (New!)
+```
+1. Click "Image to Mesh (Height Map)" in the Image to Mesh panel
+2. Select a grayscale image (bright areas = high, dark areas = low)
+3. Adjust mesh width, height, and displacement strength
+4. The mesh will be created automatically with proper UV mapping
+```
+OR
+```
+1. Select an existing mesh
+2. Click "Apply Displacement Map"
+3. Choose your height map image
+4. Adjust displacement strength
+```
+
+#### 5. Generate with AI (Optional - Requires Hunyuan3D-2)
+```
+1. Install Hunyuan3D-2 (see AI Generation section below)
+2. Expand "AI Generation (Optional)" panel
+3. For text-to-3D:
+   - Click "Generate from Text"
+   - Enter description (e.g., "medieval sword")
+   - Click OK to generate
+4. For image-to-3D:
+   - Click "Generate from Image (AI)"
+   - Select your image
+   - Full 3D model will be created (not just height map)
+```
+
+#### 6. Create Animations (Optional)
 ```
 1. Click "Setup FO4 Armature" to create a skeleton
 2. Parent your mesh to the armature
@@ -89,7 +326,7 @@ After installation, find the add-on in the 3D Viewport sidebar:
 4. Click "Validate Animation" to check for issues
 ```
 
-#### 5. Export Your Mod
+#### 7. Export Your Mod
 ```
 1. Select your object(s)
 2. Click "Validate Before Export" to check everything
@@ -143,6 +380,32 @@ You can also use the add-on's functionality through Python scripts in Blender's 
 5. **Export** - Use "Export to FO4" to package your mod
 6. **Testing** - Test in Creation Kit or game
 
+## Best Free Resources for Image to Mesh
+
+### For Creating/Editing Height Maps
+
+**Image Editors:**
+- **GIMP** (gimp.org) - Professional image editor for creating and editing height maps
+- **Blender** - Use Blender's own texture painting to create height maps
+
+**Height Map Generators:**
+- **terrain.party** - Generate real-world terrain height maps from any location
+- **tangrams.github.io/heightmapper** - Create height maps from map data
+- **NASA Earth Observatory** - Download real terrain data
+
+**Texture Libraries with Height Maps:**
+- **polyhaven.com** - High-quality PBR textures including height maps
+- **cgbookcase.com** - Free PBR textures with displacement maps
+- **3dtextures.me** - Free seamless textures
+
+### Tips for Best Results
+
+1. **Use square images** (512x512, 1024x1024, 2048x2048) for best results
+2. **Higher contrast** = more dramatic terrain
+3. **Grayscale images** work best (bright = high, dark = low)
+4. **Start with lower resolution** to test, then increase for final mesh
+5. **See TUTORIALS.md** for detailed guide on using these resources
+
 ## Troubleshooting
 
 ### Common Issues
@@ -159,6 +422,80 @@ You can also use the add-on's functionality through Python scripts in Blender's 
 
 **"No UV map found"**
 - Solution: Enter Edit mode (Tab), press U, and select "Unwrap"
+
+### Image to Mesh Issues
+
+**"PIL/Pillow not installed" or "NumPy not installed"**
+- Solution: Install dependencies in Blender's Python (see Prerequisites section above)
+
+**"Mesh looks flat or has no detail"**
+- Solution: Increase "Displacement Strength" parameter
+- Ensure your image has good contrast (not all one color)
+
+**"Mesh has too many polygons"**
+- Solution: Use smaller "Subdivisions" value or let it auto-calculate (set to 0)
+- Use a smaller resolution image
+
+**"Unsupported image format"**
+- Solution: Convert your image to PNG, JPG, BMP, TIFF, or TGA format
+
+### AI Generation Issues
+
+**"Hunyuan3D-2 not available"**
+- Solution: Install Hunyuan3D-2 following the instructions in the "Optional: AI Generation" section
+- Check that PyTorch is installed in Blender's Python environment
+- Verify the Hunyuan3D-2 repository is cloned in a standard location
+
+**"PyTorch not installed"**
+- Solution: Install PyTorch in Blender's Python environment:
+  ```bash
+  python -m pip install torch torchvision
+  ```
+
+**"Hunyuan3D-2 not found"**
+- Solution: Clone the repository:
+  ```bash
+  gh repo clone Tencent-Hunyuan/Hunyuan3D-2
+  ```
+- Place it in your home directory or Projects folder
+- Restart Blender after installation
+
+**AI features grayed out**
+- This is normal if Hunyuan3D-2 is not installed
+- AI features are optional - other features work without it
+- Click "Installation Info" for setup instructions
+
+**"Text-to-3D generation not yet implemented"**
+- The AI integration is in beta/placeholder state
+- Manual integration with Hunyuan3D-2 inference code required
+- See their documentation for direct usage
+- Traditional mesh creation methods work reliably
+
+### Motion Generation Issues
+
+**"HY-Motion-1.0 not available"**
+- Solution: Install HY-Motion-1.0 following the instructions above
+- Check that git-lfs is installed: `git lfs version`
+- Verify PyTorch is installed in Blender's Python
+- Check the repository is cloned and lfs files pulled
+
+**"git-lfs not installed"**
+- Solution: Install git-lfs for your platform
+  - Windows: `choco install git-lfs` or download from git-lfs.github.com
+  - macOS: `brew install git-lfs`
+  - Linux: `sudo apt-get install git-lfs`
+- Run `git lfs install` after installation
+
+**"Motion generation not yet implemented"**
+- The motion integration is in placeholder state
+- Manual integration with HY-Motion-1.0's inference code required
+- See their documentation for direct usage
+- Generated animations can be imported as .bvh or .fbx files
+
+**"Import motion file failed"**
+- Check file format (.bvh or .fbx supported)
+- Verify file path is correct
+- Try importing manually: File → Import → Motion Capture (.bvh)
 
 ## Version History
 

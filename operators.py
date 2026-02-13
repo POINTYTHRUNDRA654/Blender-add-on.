@@ -5,7 +5,7 @@ Operators for the Fallout 4 Tutorial Add-on
 import bpy
 from bpy.types import Operator
 from bpy.props import StringProperty, EnumProperty, IntProperty
-from . import tutorial_system, mesh_helpers, texture_helpers, animation_helpers, export_helpers, notification_system, image_to_mesh_helpers, hunyuan3d_helpers
+from . import tutorial_system, mesh_helpers, texture_helpers, animation_helpers, export_helpers, notification_system, image_to_mesh_helpers, hunyuan3d_helpers, gradio_helpers
 
 # Tutorial Operators
 
@@ -637,6 +637,139 @@ class FO4_OT_ShowHunyuan3DInfo(Operator):
         
         return {'FINISHED'}
 
+# Gradio Web Interface Operators
+
+class FO4_OT_StartGradioServer(Operator):
+    """Start Gradio web interface for AI generation"""
+    bl_idname = "fo4.start_gradio_server"
+    bl_label = "Start Web UI"
+    bl_options = {'REGISTER'}
+    
+    share: bpy.props.BoolProperty(
+        name="Create Public Link",
+        description="Create a shareable public link (optional)",
+        default=False
+    )
+    
+    port: IntProperty(
+        name="Port",
+        description="Port to run the server on",
+        default=7860,
+        min=1024,
+        max=65535
+    )
+    
+    def execute(self, context):
+        # Check if Gradio is available
+        if not gradio_helpers.GradioHelpers.is_available():
+            self.report({'ERROR'}, "Gradio not installed")
+            self.report({'INFO'}, "Install with: pip install gradio")
+            notification_system.FO4_NotificationSystem.notify(
+                "Gradio not installed. See console for instructions.", 'ERROR'
+            )
+            return {'CANCELLED'}
+        
+        # Check if server already running
+        if gradio_helpers.GradioHelpers.is_server_running():
+            self.report({'WARNING'}, "Gradio server is already running")
+            return {'CANCELLED'}
+        
+        # Start server
+        success, message = gradio_helpers.start_gradio_server(
+            share=self.share,
+            port=self.port
+        )
+        
+        if success:
+            self.report({'INFO'}, message)
+            notification_system.FO4_NotificationSystem.notify(
+                "Gradio web UI started. Check console for URL.", 'INFO'
+            )
+            print("\n" + "="*70)
+            print("GRADIO WEB INTERFACE")
+            print("="*70)
+            print(message)
+            print("\nOpen your browser and visit the URL above.")
+            print("="*70 + "\n")
+        else:
+            self.report({'ERROR'}, message)
+            notification_system.FO4_NotificationSystem.notify(message, 'ERROR')
+            return {'CANCELLED'}
+        
+        return {'FINISHED'}
+    
+    def invoke(self, context, event):
+        return context.window_manager.invoke_props_dialog(self)
+    
+    def draw(self, context):
+        layout = self.layout
+        layout.prop(self, "port")
+        layout.prop(self, "share")
+        if self.share:
+            layout.label(text="⚠️ Public link will be accessible by anyone", icon='ERROR')
+
+
+class FO4_OT_StopGradioServer(Operator):
+    """Stop Gradio web interface"""
+    bl_idname = "fo4.stop_gradio_server"
+    bl_label = "Stop Web UI"
+    bl_options = {'REGISTER'}
+    
+    def execute(self, context):
+        if not gradio_helpers.GradioHelpers.is_server_running():
+            self.report({'WARNING'}, "Gradio server is not running")
+            return {'CANCELLED'}
+        
+        success, message = gradio_helpers.stop_gradio_server()
+        
+        if success:
+            self.report({'INFO'}, message)
+            notification_system.FO4_NotificationSystem.notify(
+                "Gradio web UI stopped.", 'INFO'
+            )
+        else:
+            self.report({'ERROR'}, message)
+            notification_system.FO4_NotificationSystem.notify(message, 'ERROR')
+            return {'CANCELLED'}
+        
+        return {'FINISHED'}
+
+
+class FO4_OT_ShowGradioInfo(Operator):
+    """Show information about Gradio web interface"""
+    bl_idname = "fo4.show_gradio_info"
+    bl_label = "About Gradio Web UI"
+    
+    def execute(self, context):
+        status = gradio_helpers.GradioHelpers.get_status_message()
+        self.report({'INFO'}, status)
+        
+        if not gradio_helpers.GradioHelpers.is_available():
+            instructions = gradio_helpers.GradioHelpers.get_installation_instructions()
+            print("\n" + "="*70)
+            print("GRADIO INSTALLATION INSTRUCTIONS")
+            print("="*70)
+            print(instructions)
+            print("="*70)
+            self.report({'INFO'}, "Installation instructions printed to console")
+        else:
+            print("\n" + "="*70)
+            print("GRADIO WEB INTERFACE")
+            print("="*70)
+            print("Gradio is installed and ready to use!")
+            print("\nTo start the web interface:")
+            print("1. Click 'Start Web UI' button")
+            print("2. Wait for the server to start")
+            print("3. Open your browser to http://localhost:7860")
+            print("\nThe web interface provides:")
+            print("- Easy text-to-3D generation")
+            print("- Simple image-to-3D generation")
+            print("- User-friendly browser interface")
+            print("- No command-line knowledge required")
+            print("="*70 + "\n")
+        
+        return {'FINISHED'}
+
 # Register all operators
 
 classes = (
@@ -659,6 +792,9 @@ classes = (
     FO4_OT_GenerateMeshFromText,
     FO4_OT_GenerateMeshFromImageAI,
     FO4_OT_ShowHunyuan3DInfo,
+    FO4_OT_StartGradioServer,
+    FO4_OT_StopGradioServer,
+    FO4_OT_ShowGradioInfo,
 )
 
 def register():

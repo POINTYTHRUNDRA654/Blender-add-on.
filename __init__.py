@@ -26,6 +26,7 @@ from . import export_helpers
 from . import notification_system
 from . import image_to_mesh_helpers
 from . import hunyuan3d_helpers
+from . import gradio_helpers
 
 modules = [
     tutorial_system,
@@ -36,6 +37,7 @@ modules = [
     export_helpers,
     image_to_mesh_helpers,
     hunyuan3d_helpers,
+    gradio_helpers,
     operators,
     ui_panels,
 ]

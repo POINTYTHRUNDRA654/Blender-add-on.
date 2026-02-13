@@ -513,6 +513,210 @@ if success:
 
 ---
 
+## Image to Mesh Module
+
+### Operators
+
+#### `bpy.ops.fo4.image_to_mesh()`
+Convert an image to a 3D mesh using height map technique.
+
+**Parameters:**
+- `filepath` (string): Path to the image file
+- `mesh_width` (float): Physical width of the mesh (default: 2.0)
+- `mesh_height` (float): Physical height of the mesh (default: 2.0)
+- `displacement_strength` (float): Z-axis displacement strength (default: 0.5)
+- `subdivisions` (int): Number of subdivisions, 0=auto (default: 0)
+
+**Supported Formats:** PNG, JPG, JPEG, BMP, TIFF, TIF, TGA
+
+**Example:**
+```python
+import bpy
+
+# Create mesh from height map
+bpy.ops.fo4.image_to_mesh(
+    filepath="/path/to/heightmap.png",
+    mesh_width=10.0,
+    mesh_height=10.0,
+    displacement_strength=2.0,
+    subdivisions=128
+)
+
+# Get the created object
+obj = bpy.context.active_object
+```
+
+#### `bpy.ops.fo4.apply_displacement_map()`
+Apply a displacement/height map to an existing mesh.
+
+**Parameters:**
+- `filepath` (string): Path to the displacement map image
+- `strength` (float): Displacement strength (default: 0.5)
+
+**Example:**
+```python
+import bpy
+
+# Select your mesh
+obj = bpy.data.objects['MyMesh']
+bpy.context.view_layer.objects.active = obj
+
+# Apply displacement
+bpy.ops.fo4.apply_displacement_map(
+    filepath="/path/to/displacement.png",
+    strength=1.0
+)
+```
+
+### Helper Functions
+
+#### `image_to_mesh_helpers.load_image_as_heightmap(filepath)`
+Load an image file and convert it to height map data.
+
+**Returns:** `(success, data/error_message, width, height)`
+
+**Example:**
+```python
+from image_to_mesh_helpers import load_image_as_heightmap
+
+success, data, width, height = load_image_as_heightmap("/path/to/image.png")
+if success:
+    print(f"Loaded {width}x{height} height map")
+else:
+    print(f"Error: {data}")
+```
+
+#### `image_to_mesh_helpers.create_mesh_from_heightmap(name, heightmap_data, width, height, ...)`
+Create a mesh from height map data.
+
+**Parameters:**
+- `name` (string): Name for the mesh object
+- `heightmap_data` (numpy.ndarray): 2D array with height values (0-1)
+- `width` (int): Width in pixels
+- `height` (int): Height in pixels
+- `mesh_width` (float): Physical mesh width (default: 2.0)
+- `mesh_height` (float): Physical mesh height (default: 2.0)
+- `displacement_strength` (float): Z displacement strength (default: 1.0)
+- `subdivisions` (int): Subdivisions, None=auto (default: None)
+
+**Returns:** `(success, object/error_message)`
+
+**Example:**
+```python
+from image_to_mesh_helpers import load_image_as_heightmap, create_mesh_from_heightmap
+
+# Load height map
+success, data, width, height = load_image_as_heightmap("/path/to/heightmap.png")
+
+if success:
+    # Create mesh
+    success, obj = create_mesh_from_heightmap(
+        "TerrainMesh",
+        data,
+        width,
+        height,
+        mesh_width=10.0,
+        mesh_height=10.0,
+        displacement_strength=2.0,
+        subdivisions=128
+    )
+    
+    if success:
+        print(f"Created mesh: {obj.name}")
+```
+
+#### `image_to_mesh_helpers.apply_displacement_to_mesh(obj, filepath, strength)`
+Apply displacement map to existing mesh.
+
+**Parameters:**
+- `obj` (bpy.types.Object): The mesh object
+- `filepath` (string): Path to displacement map
+- `strength` (float): Displacement strength
+
+**Returns:** `(success, message)`
+
+**Example:**
+```python
+from image_to_mesh_helpers import apply_displacement_to_mesh
+
+obj = bpy.context.active_object
+success, message = apply_displacement_to_mesh(
+    obj,
+    "/path/to/displacement.png",
+    0.5
+)
+print(message)
+```
+
+#### `ImageToMeshHelpers.validate_image_file(filepath)`
+Validate if file is a supported image format.
+
+**Returns:** `bool`
+
+#### `ImageToMeshHelpers.get_recommended_subdivisions(width, height)`
+Get recommended subdivision count based on image dimensions.
+
+**Returns:** `int`
+
+### Complete Image to Mesh Example
+
+```python
+import bpy
+from image_to_mesh_helpers import (
+    load_image_as_heightmap,
+    create_mesh_from_heightmap,
+    ImageToMeshHelpers
+)
+
+# Path to your height map
+image_path = "/path/to/terrain_heightmap.png"
+
+# Validate image format
+if not ImageToMeshHelpers.validate_image_file(image_path):
+    print("Unsupported image format!")
+else:
+    # Load height map
+    success, data, width, height = load_image_as_heightmap(image_path)
+    
+    if success:
+        # Get recommended subdivisions
+        subdivs = ImageToMeshHelpers.get_recommended_subdivisions(width, height)
+        print(f"Using {subdivs} subdivisions for {width}x{height} image")
+        
+        # Create mesh
+        success, obj = create_mesh_from_heightmap(
+            "Terrain",
+            data,
+            width,
+            height,
+            mesh_width=20.0,
+            mesh_height=20.0,
+            displacement_strength=3.0,
+            subdivisions=subdivs
+        )
+        
+        if success:
+            print(f"Created terrain mesh: {obj.name}")
+            
+            # Optimize for FO4
+            bpy.ops.fo4.optimize_mesh()
+            
+            # Validate
+            bpy.ops.fo4.validate_mesh()
+    else:
+        print(f"Error loading image: {data}")
+```
+
+### Prerequisites
+
+The image to mesh functionality requires:
+- **PIL/Pillow**: `python -m pip install Pillow`
+- **NumPy**: `python -m pip install numpy`
+
+Install these in Blender's Python environment. See README for detailed instructions.
+
+---
+
 ## Error Handling
 
 All functions that can fail return a tuple of `(success, message/issues)`. Always check the success status:

@@ -5,7 +5,7 @@ Operators for the Fallout 4 Tutorial Add-on
 import bpy
 from bpy.types import Operator
 from bpy.props import StringProperty, EnumProperty
-from . import tutorial_system, mesh_helpers, texture_helpers, animation_helpers, export_helpers, notification_system, image_to_mesh_helpers
+from . import tutorial_system, mesh_helpers, texture_helpers, animation_helpers, export_helpers, notification_system, image_to_mesh_helpers, hunyuan3d_helpers
 
 # Tutorial Operators
 
@@ -507,6 +507,136 @@ class FO4_OT_ApplyDisplacementMap(Operator):
         context.window_manager.fileselect_add(self)
         return {'RUNNING_MODAL'}
 
+# AI Generation Operators (Hunyuan3D-2)
+
+class FO4_OT_GenerateMeshFromText(Operator):
+    """Generate a 3D mesh from text description using Hunyuan3D-2 AI"""
+    bl_idname = "fo4.generate_mesh_from_text"
+    bl_label = "Generate from Text (AI)"
+    bl_options = {'REGISTER', 'UNDO'}
+    
+    prompt: StringProperty(
+        name="Description",
+        description="Text description of the 3D model to generate",
+        default="A medieval sword with a golden hilt"
+    )
+    
+    resolution: bpy.props.IntProperty(
+        name="Resolution",
+        description="Resolution of the generated mesh",
+        default=256,
+        min=128,
+        max=512
+    )
+    
+    def execute(self, context):
+        # Check if Hunyuan3D is available
+        if not hunyuan3d_helpers.Hunyuan3DHelpers.is_available():
+            self.report({'ERROR'}, "Hunyuan3D-2 not available")
+            self.report({'INFO'}, hunyuan3d_helpers.Hunyuan3DHelpers.get_status_message())
+            notification_system.FO4_NotificationSystem.notify(
+                "Hunyuan3D-2 not installed. See documentation.", 'ERROR'
+            )
+            return {'CANCELLED'}
+        
+        if not self.prompt.strip():
+            self.report({'ERROR'}, "Please enter a description")
+            return {'CANCELLED'}
+        
+        # Generate mesh from text
+        success, result = hunyuan3d_helpers.generate_mesh_from_text(
+            self.prompt,
+            resolution=self.resolution
+        )
+        
+        if success:
+            self.report({'INFO'}, f"Generated mesh: {result.name}")
+            notification_system.FO4_NotificationSystem.notify(
+                f"AI generated: {result.name}", 'INFO'
+            )
+        else:
+            self.report({'WARNING'}, result)  # result contains error message
+            notification_system.FO4_NotificationSystem.notify(result, 'WARNING')
+        
+        return {'FINISHED'}
+    
+    def invoke(self, context, event):
+        return context.window_manager.invoke_props_dialog(self, width=400)
+    
+    def draw(self, context):
+        layout = self.layout
+        layout.prop(self, "prompt")
+        layout.prop(self, "resolution")
+
+
+class FO4_OT_GenerateMeshFromImageAI(Operator):
+    """Generate a full 3D mesh from an image using Hunyuan3D-2 AI"""
+    bl_idname = "fo4.generate_mesh_from_image_ai"
+    bl_label = "Generate from Image (AI)"
+    bl_options = {'REGISTER', 'UNDO'}
+    
+    filepath: StringProperty(subtype='FILE_PATH')
+    
+    resolution: bpy.props.IntProperty(
+        name="Resolution",
+        description="Resolution of the generated mesh",
+        default=256,
+        min=128,
+        max=512
+    )
+    
+    def execute(self, context):
+        # Check if Hunyuan3D is available
+        if not hunyuan3d_helpers.Hunyuan3DHelpers.is_available():
+            self.report({'ERROR'}, "Hunyuan3D-2 not available")
+            self.report({'INFO'}, hunyuan3d_helpers.Hunyuan3DHelpers.get_status_message())
+            notification_system.FO4_NotificationSystem.notify(
+                "Hunyuan3D-2 not installed. See documentation.", 'ERROR'
+            )
+            return {'CANCELLED'}
+        
+        # Generate full 3D mesh from image
+        success, result = hunyuan3d_helpers.generate_mesh_from_image(
+            self.filepath,
+            resolution=self.resolution
+        )
+        
+        if success:
+            self.report({'INFO'}, f"Generated 3D model: {result.name}")
+            notification_system.FO4_NotificationSystem.notify(
+                f"AI generated 3D model from image", 'INFO'
+            )
+        else:
+            self.report({'WARNING'}, result)  # result contains error message
+            notification_system.FO4_NotificationSystem.notify(result, 'WARNING')
+        
+        return {'FINISHED'}
+    
+    def invoke(self, context, event):
+        context.window_manager.fileselect_add(self)
+        return {'RUNNING_MODAL'}
+
+
+class FO4_OT_ShowHunyuan3DInfo(Operator):
+    """Show information about Hunyuan3D-2 AI integration"""
+    bl_idname = "fo4.show_hunyuan3d_info"
+    bl_label = "About Hunyuan3D-2"
+    
+    def execute(self, context):
+        status = hunyuan3d_helpers.Hunyuan3DHelpers.get_status_message()
+        self.report({'INFO'}, status)
+        
+        if not hunyuan3d_helpers.Hunyuan3DHelpers.is_available():
+            instructions = hunyuan3d_helpers.Hunyuan3DHelpers.get_installation_instructions()
+            print("\n" + "="*70)
+            print("HUNYUAN3D-2 INSTALLATION INSTRUCTIONS")
+            print("="*70)
+            print(instructions)
+            print("="*70)
+            self.report({'INFO'}, "Installation instructions printed to console")
+        
+        return {'FINISHED'}
+
 # Register all operators
 
 classes = (
@@ -526,6 +656,9 @@ classes = (
     FO4_OT_ValidateExport,
     FO4_OT_ImageToMesh,
     FO4_OT_ApplyDisplacementMap,
+    FO4_OT_GenerateMeshFromText,
+    FO4_OT_GenerateMeshFromImageAI,
+    FO4_OT_ShowHunyuan3DInfo,
 )
 
 def register():

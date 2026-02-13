@@ -25,6 +25,7 @@ from . import animation_helpers
 from . import export_helpers
 from . import notification_system
 from . import image_to_mesh_helpers
+from . import hunyuan3d_helpers
 
 modules = [
     tutorial_system,
@@ -34,6 +35,7 @@ modules = [
     animation_helpers,
     export_helpers,
     image_to_mesh_helpers,
+    hunyuan3d_helpers,
     operators,
     ui_panels,
 ]

@@ -4,7 +4,7 @@ UI Panels for the Fallout 4 Tutorial Add-on
 
 import bpy
 from bpy.types import Panel
-from . import hunyuan3d_helpers
+from . import hunyuan3d_helpers, gradio_helpers
 
 class FO4_PT_MainPanel(Panel):
     """Main tutorial panel in the 3D View sidebar"""
@@ -143,6 +143,30 @@ class FO4_PT_AIGenerationPanel(Panel):
         info_box.label(text="• Generates full 3D meshes")
         info_box.label(text="• Requires GPU & model download")
         info_box.label(text="• Completely optional feature")
+        
+        # Gradio Web UI section
+        gradio_available = gradio_helpers.GradioHelpers.is_available()
+        server_running = gradio_helpers.GradioHelpers.is_server_running()
+        
+        layout.separator()
+        web_box = layout.box()
+        web_box.label(text="Web Interface (Gradio)", icon='URL')
+        
+        if gradio_available:
+            if server_running:
+                web_box.label(text="Server: Running ✓", icon='CHECKMARK')
+                web_box.operator("fo4.stop_gradio_server", text="Stop Web UI", icon='CANCEL')
+            else:
+                web_box.label(text="Server: Stopped", icon='RADIOBUT_OFF')
+                web_box.operator("fo4.start_gradio_server", text="Start Web UI", icon='PLAY')
+        else:
+            web_box.label(text="Gradio: Not Installed ✗", icon='ERROR')
+        
+        web_box.operator("fo4.show_gradio_info", text="Web UI Info", icon='INFO')
+        
+        if gradio_available:
+            web_box.label(text="Open: http://localhost:7860")
+
 
 class FO4_PT_AnimationPanel(Panel):
     """Animation helpers panel"""

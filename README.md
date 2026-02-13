@@ -40,6 +40,14 @@ A comprehensive Blender add-on that provides a desktop tutorial system and helpe
 - Requires: GPU, PyTorch, and Hunyuan3D-2 installation
 - See installation guide for setup instructions
 
+### 🌐 Web Interface (Optional)
+- **NEW**: Browser-based UI for AI generation powered by Gradio
+- Easy-to-use interface (no command-line knowledge needed)
+- Start/stop web server from Blender
+- Access from any device on your network
+- Text-to-3D and Image-to-3D generation via web browser
+- Completely optional - install with `pip install gradio`
+
 ### 🎨 Texture Installation
 - FO4-compatible material setup
 - Easy texture loading (diffuse, normal, specular)
@@ -161,6 +169,27 @@ Once installed, you'll see an "AI Generation (Optional)" panel in the Fallout 4 
 - Model inference can be slow on CPU (GPU recommended)
 - Generated meshes may need optimization for Fallout 4
 - This is a beta feature - traditional methods work more reliably
+
+## Optional: Gradio Web Interface
+
+For an easy-to-use browser interface for AI generation, install Gradio:
+
+```bash
+# In Blender's Python environment
+pip install gradio
+```
+
+Then in Blender:
+1. Go to "AI Generation (Optional)" panel
+2. Click "Start Web UI"
+3. Open your browser to http://localhost:7860
+4. Use the web interface for AI generation
+
+**Benefits:**
+- No command-line knowledge required
+- User-friendly interface
+- Works on any device with a browser
+- Can create a shareable public link (optional)
 
 ## Installation
 

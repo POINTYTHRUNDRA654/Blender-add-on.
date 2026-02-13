@@ -32,6 +32,14 @@ A comprehensive Blender add-on that provides a desktop tutorial system and helpe
 - Apply displacement maps to existing meshes
 - Uses free resources: PIL/Pillow and NumPy
 
+### 🤖 AI-Powered Generation (Optional)
+- **NEW**: Generate 3D meshes from text descriptions using AI
+- **NEW**: Create full 3D models from 2D images (not just height maps)
+- Powered by Tencent's Hunyuan3D-2 model
+- Completely optional - add-on works perfectly without it
+- Requires: GPU, PyTorch, and Hunyuan3D-2 installation
+- See installation guide for setup instructions
+
 ### 🎨 Texture Installation
 - FO4-compatible material setup
 - Easy texture loading (diffuse, normal, specular)
@@ -82,6 +90,77 @@ cd /path/to/blender/X.X/python/bin
 
 Note: Replace `X.X` with your Blender version number (e.g., 3.6).
 
+## Optional: AI Generation with Hunyuan3D-2
+
+The add-on supports AI-powered 3D generation using Tencent's Hunyuan3D-2 model. This is **completely optional** - the add-on works perfectly without it.
+
+### What is Hunyuan3D-2?
+
+Hunyuan3D-2 is a powerful AI model that can:
+- Generate 3D meshes from text descriptions
+- Convert 2D images into full 3D models (not just height maps)
+- Create textured, game-ready assets
+
+### Prerequisites for AI Features
+
+**Hardware Requirements:**
+- NVIDIA GPU with CUDA support (8GB+ VRAM recommended)
+- 20GB+ free disk space (for models and dependencies)
+- 16GB+ RAM recommended
+
+**Software Requirements:**
+- PyTorch with CUDA support
+- Hunyuan3D-2 repository and model weights
+
+### Installation Steps
+
+1. **Install PyTorch** (in Blender's Python environment):
+```bash
+# Windows
+cd "C:\Program Files\Blender Foundation\Blender X.X\X.X\python\bin"
+python.exe -m pip install torch torchvision --index-url https://download.pytorch.org/whl/cu118
+
+# macOS/Linux
+cd /path/to/blender/X.X/python/bin
+./python3.xx -m pip install torch torchvision
+```
+
+2. **Clone Hunyuan3D-2 repository**:
+```bash
+# Using GitHub CLI (recommended)
+gh repo clone Tencent-Hunyuan/Hunyuan3D-2
+
+# Or using git
+git clone https://github.com/Tencent-Hunyuan/Hunyuan3D-2.git
+```
+
+3. **Install Hunyuan3D-2 dependencies**:
+```bash
+cd Hunyuan3D-2
+pip install -r requirements.txt
+```
+
+4. **Download model weights**:
+Follow the instructions in the Hunyuan3D-2 README to download the model weights.
+
+5. **Restart Blender**
+
+The add-on will automatically detect if Hunyuan3D-2 is installed and enable the AI features.
+
+### Using AI Features
+
+Once installed, you'll see an "AI Generation (Optional)" panel in the Fallout 4 sidebar:
+
+- **Text to 3D**: Enter a description and generate a 3D model
+- **Image to 3D**: Upload an image and get a full 3D model (not just height map)
+- **Status Indicator**: Shows if Hunyuan3D-2 is available
+
+### Note on AI Features
+
+- AI generation is **experimental** and may require manual integration
+- Model inference can be slow on CPU (GPU recommended)
+- Generated meshes may need optimization for Fallout 4
+- This is a beta feature - traditional methods work more reliably
 
 ## Installation
 
@@ -136,7 +215,21 @@ OR
 4. Adjust displacement strength
 ```
 
-#### 5. Create Animations (Optional)
+#### 5. Generate with AI (Optional - Requires Hunyuan3D-2)
+```
+1. Install Hunyuan3D-2 (see AI Generation section below)
+2. Expand "AI Generation (Optional)" panel
+3. For text-to-3D:
+   - Click "Generate from Text"
+   - Enter description (e.g., "medieval sword")
+   - Click OK to generate
+4. For image-to-3D:
+   - Click "Generate from Image (AI)"
+   - Select your image
+   - Full 3D model will be created (not just height map)
+```
+
+#### 6. Create Animations (Optional)
 ```
 1. Click "Setup FO4 Armature" to create a skeleton
 2. Parent your mesh to the armature
@@ -144,7 +237,7 @@ OR
 4. Click "Validate Animation" to check for issues
 ```
 
-#### 6. Export Your Mod
+#### 7. Export Your Mod
 ```
 1. Select your object(s)
 2. Click "Validate Before Export" to check everything
@@ -256,6 +349,38 @@ You can also use the add-on's functionality through Python scripts in Blender's 
 
 **"Unsupported image format"**
 - Solution: Convert your image to PNG, JPG, BMP, TIFF, or TGA format
+
+### AI Generation Issues
+
+**"Hunyuan3D-2 not available"**
+- Solution: Install Hunyuan3D-2 following the instructions in the "Optional: AI Generation" section
+- Check that PyTorch is installed in Blender's Python environment
+- Verify the Hunyuan3D-2 repository is cloned in a standard location
+
+**"PyTorch not installed"**
+- Solution: Install PyTorch in Blender's Python environment:
+  ```bash
+  python -m pip install torch torchvision
+  ```
+
+**"Hunyuan3D-2 not found"**
+- Solution: Clone the repository:
+  ```bash
+  gh repo clone Tencent-Hunyuan/Hunyuan3D-2
+  ```
+- Place it in your home directory or Projects folder
+- Restart Blender after installation
+
+**AI features grayed out**
+- This is normal if Hunyuan3D-2 is not installed
+- AI features are optional - other features work without it
+- Click "Installation Info" for setup instructions
+
+**"Text-to-3D generation not yet implemented"**
+- The AI integration is in beta/placeholder state
+- Manual integration with Hunyuan3D-2 inference code required
+- See their documentation for direct usage
+- Traditional mesh creation methods work reliably
 
 ## Version History
 

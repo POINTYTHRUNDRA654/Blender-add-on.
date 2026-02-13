@@ -426,6 +426,257 @@ In the file browser, you'll see options:
 - Apply Smooth Shading (`Right-click > Shade Smooth`)
 - Add Subdivision Surface modifier
 
+## Tutorial 5: AI-Powered Mesh Generation (Optional - Advanced)
+
+### Objective
+Learn to generate 3D meshes using AI with Hunyuan3D-2 (optional feature for advanced users).
+
+### Important Note
+This tutorial is for **optional** AI features. The add-on works perfectly without AI. This is for advanced users who want to experiment with AI generation.
+
+### Prerequisites
+- Completed previous tutorials
+- Powerful GPU (8GB+ VRAM recommended)
+- 20GB+ free disk space
+- Hunyuan3D-2 installed (see HUNYUAN3D_GUIDE.md)
+- PyTorch installed in Blender's Python
+
+### Step 1: Verify AI Availability
+
+1. Press `N` to open sidebar
+2. Go to "Fallout 4" tab
+3. Expand "AI Generation (Optional)" panel
+4. Check status indicator:
+   - ✓ "Status: Available" = Ready to go
+   - ✗ "Status: Not Installed" = Need to install
+
+5. If not installed, click "Installation Info"
+6. Follow the console instructions or see HUNYUAN3D_GUIDE.md
+
+### Step 2: Generate Mesh from Text Description
+
+#### Understanding Text-to-3D
+- AI creates 3D models from text descriptions
+- More flexible than traditional modeling
+- Results vary based on prompt quality
+- Generation takes 30 seconds to several minutes
+
+#### Creating Your First AI Mesh
+
+1. Click "Generate from Text" button
+2. Enter a description in the prompt field:
+   - Example 1: "a rusty medieval sword"
+   - Example 2: "wooden barrel with metal bands"
+   - Example 3: "stone pillar with ancient carvings"
+
+3. Set resolution (start with 256)
+4. Click OK
+5. Wait for generation (watch console for progress)
+
+#### Tips for Good Prompts
+- **Be specific**: "iron sword" vs "sword"
+- **Include materials**: wood, metal, stone, fabric
+- **Add details**: rusty, ornate, battle-worn, ancient
+- **Specify style**: medieval, sci-fi, fantasy
+- **Keep it simple**: One object per prompt
+
+Good examples:
+- "medieval iron longsword with leather-wrapped handle"
+- "weathered wooden crate with metal corners"
+- "ancient stone statue covered in moss"
+
+Bad examples:
+- "cool sword" (too vague)
+- "sword and shield and armor" (too many objects)
+- Very long descriptions (keep under 20 words)
+
+### Step 3: Generate Mesh from Image (AI Method)
+
+#### Difference from Height Maps
+- **Height Map**: Creates terrain/surfaces (previous tutorial)
+- **AI Image-to-3D**: Creates full 3D objects from photos
+
+#### Preparing Your Image
+
+Best results with:
+- Clear, well-lit photos
+- Single object in frame
+- Solid or simple background
+- Object centered
+- Multiple angles if possible
+- High resolution (1024x1024+)
+
+#### Generating from Image
+
+1. Prepare your image file
+2. Click "Generate from Image (AI)"
+3. Select your image file
+4. Set resolution (256 recommended for first try)
+5. Click OK
+6. Wait for generation
+
+#### Example Workflow
+
+1. Take photo of a real object (toy, tool, etc.)
+2. Crop to center the object
+3. Remove background in GIMP (optional but helps)
+4. Save as PNG
+5. Use AI generation
+6. Refine the result in Blender
+
+### Step 4: Post-Processing AI-Generated Meshes
+
+AI meshes often need cleanup:
+
+#### Check Polygon Count
+1. Select generated mesh
+2. Look at stats (top right of 3D view)
+3. If too high (>65,535), use Decimate modifier
+
+#### Optimize for FO4
+1. Click "Optimize for FO4"
+2. This will:
+   - Triangulate faces
+   - Remove doubles
+   - Recalculate normals
+
+#### Scale Adjustment
+1. AI meshes may be wrong scale
+2. Press `S` to scale
+3. Type target size (e.g., `2` for 2x)
+4. Press Enter
+
+#### Apply Transformations
+1. Press `Ctrl+A`
+2. Select "All Transforms"
+3. This applies scale/rotation
+
+### Step 5: Complete FO4 Workflow
+
+#### Add Materials
+1. Click "Setup FO4 Materials"
+2. Load diffuse texture
+3. Optionally add normal/specular maps
+
+#### Validate
+1. Click "Validate Mesh"
+2. Address any warnings
+3. Check poly count is under 65,535
+
+#### Export
+1. Click "Validate Before Export"
+2. Fix any issues
+3. Click "Export Mesh (.nif)"
+4. Test in game!
+
+### Common Issues and Solutions
+
+#### "Hunyuan3D-2 not available"
+- Install following HUNYUAN3D_GUIDE.md
+- Check PyTorch is installed
+- Verify repository is cloned
+- Restart Blender
+
+#### Generation is Very Slow
+- Ensure GPU is being used (check CUDA)
+- Reduce resolution to 128 or 256
+- Close other GPU applications
+- Check GPU temperature (may throttle if hot)
+
+#### Poor Quality Results
+- Improve prompt specificity
+- Try different wordings
+- Use higher resolution (512)
+- Provide better input images
+- Be patient - AI has learning curve
+
+#### Out of Memory Errors
+- Reduce resolution
+- Restart Blender
+- Close other applications
+- Check GPU VRAM (need 8GB+)
+
+#### Generated Mesh Too Complex
+- Use Decimate modifier
+- Reduce resolution in generation
+- Manually retopologize
+- Use Remesh modifier
+
+### Alternative Workflow: Direct Hunyuan3D-2 Use
+
+If integration doesn't work, use Hunyuan3D-2 directly:
+
+1. Open terminal/command prompt
+2. Navigate to Hunyuan3D-2 directory
+3. Run inference:
+   ```bash
+   python infer.py --prompt "your description" --output model.obj
+   ```
+4. In Blender: File → Import → Wavefront (.obj)
+5. Continue with FO4 optimization workflow
+
+### Best Practices
+
+#### When to Use AI Generation
+- **Good for**: Concept exploration, base meshes, unique assets
+- **Not ideal for**: Final game assets (need manual refinement)
+- **Best use**: Generate base → Refine in Blender → Optimize
+
+#### Combining Methods
+1. Generate base with AI
+2. Sculpt details in Blender
+3. Retopologize for optimization
+4. Use traditional texturing
+5. Result: Best of both worlds
+
+#### Performance Tips
+- Start with low resolution (128-256)
+- Increase only if needed
+- Keep prompts simple
+- Use GPU, not CPU
+- Be patient with generation time
+
+### Advanced Techniques
+
+#### Batch Generation
+1. Generate multiple variations
+2. Pick best result
+3. Combine elements from different generations
+
+#### Iterative Refinement
+1. Generate initial mesh
+2. Identify what needs improvement
+3. Refine prompt
+4. Regenerate
+5. Repeat until satisfied
+
+#### Hybrid Approach
+1. Generate with AI
+2. Import to Blender
+3. Use traditional modeling to enhance
+4. Sculpt fine details
+5. Optimize for FO4
+
+### Summary
+
+**Pros of AI Generation:**
+- Fast concept exploration
+- Unique, organic shapes
+- Good for inspiration
+- Can save modeling time
+
+**Cons:**
+- Requires powerful hardware
+- Results unpredictable
+- Often needs manual cleanup
+- Not always FO4-optimized
+
+**Recommendation:**
+- Experiment if you have the hardware
+- Don't rely solely on AI
+- Traditional methods are more reliable
+- Use AI for inspiration and base meshes
+
 ## Resources
 
 - Fallout 4 Creation Kit Wiki

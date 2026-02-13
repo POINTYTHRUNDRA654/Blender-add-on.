@@ -4,7 +4,7 @@ UI Panels for the Fallout 4 Tutorial Add-on
 
 import bpy
 from bpy.types import Panel
-from . import hunyuan3d_helpers, gradio_helpers
+from . import hunyuan3d_helpers, gradio_helpers, hymotion_helpers
 
 class FO4_PT_MainPanel(Panel):
     """Main tutorial panel in the 3D View sidebar"""
@@ -166,6 +166,22 @@ class FO4_PT_AIGenerationPanel(Panel):
         
         if gradio_available:
             web_box.label(text="Open: http://localhost:7860")
+        
+        # HY-Motion-1.0 section
+        hymotion_available = hymotion_helpers.HyMotionHelpers.is_available()
+        
+        layout.separator()
+        motion_box = layout.box()
+        motion_box.label(text="Motion Generation (HY-Motion)", icon='ANIM')
+        
+        if hymotion_available:
+            motion_box.label(text="Status: Available ✓", icon='CHECKMARK')
+            motion_box.operator("fo4.generate_motion_from_text", text="Generate Motion", icon='ANIM_DATA')
+            motion_box.operator("fo4.import_motion_file", text="Import Motion File", icon='IMPORT')
+        else:
+            motion_box.label(text="Status: Not Installed ✗", icon='ERROR')
+        
+        motion_box.operator("fo4.show_hymotion_info", text="Motion Info", icon='INFO')
 
 
 class FO4_PT_AnimationPanel(Panel):

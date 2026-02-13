@@ -5,7 +5,7 @@ Operators for the Fallout 4 Tutorial Add-on
 import bpy
 from bpy.types import Operator
 from bpy.props import StringProperty, EnumProperty, IntProperty
-from . import tutorial_system, mesh_helpers, texture_helpers, animation_helpers, export_helpers, notification_system, image_to_mesh_helpers, hunyuan3d_helpers, gradio_helpers
+from . import tutorial_system, mesh_helpers, texture_helpers, animation_helpers, export_helpers, notification_system, image_to_mesh_helpers, hunyuan3d_helpers, gradio_helpers, hymotion_helpers
 
 # Tutorial Operators
 
@@ -770,6 +770,138 @@ class FO4_OT_ShowGradioInfo(Operator):
         
         return {'FINISHED'}
 
+# HY-Motion-1.0 Operators
+
+class FO4_OT_GenerateMotionFromText(Operator):
+    """Generate character animation from text using HY-Motion-1.0"""
+    bl_idname = "fo4.generate_motion_from_text"
+    bl_label = "Generate Motion (AI)"
+    bl_options = {'REGISTER', 'UNDO'}
+    
+    prompt: StringProperty(
+        name="Motion Description",
+        description="Text description of the motion/animation",
+        default="character walking forward"
+    )
+    
+    duration: bpy.props.FloatProperty(
+        name="Duration (seconds)",
+        description="Length of the animation",
+        default=5.0,
+        min=0.5,
+        max=60.0
+    )
+    
+    fps: IntProperty(
+        name="FPS",
+        description="Frames per second",
+        default=30,
+        min=24,
+        max=60
+    )
+    
+    def execute(self, context):
+        # Check if HY-Motion is available
+        if not hymotion_helpers.HyMotionHelpers.is_available():
+            self.report({'ERROR'}, "HY-Motion-1.0 not available")
+            self.report({'INFO'}, hymotion_helpers.HyMotionHelpers.get_status_message())
+            notification_system.FO4_NotificationSystem.notify(
+                "HY-Motion-1.0 not installed. See documentation.", 'ERROR'
+            )
+            return {'CANCELLED'}
+        
+        if not self.prompt.strip():
+            self.report({'ERROR'}, "Please enter a motion description")
+            return {'CANCELLED'}
+        
+        # Generate motion from text
+        success, result = hymotion_helpers.generate_motion_from_text(
+            self.prompt,
+            duration=self.duration,
+            fps=self.fps
+        )
+        
+        if success:
+            self.report({'INFO'}, f"Generated motion: {result}")
+            notification_system.FO4_NotificationSystem.notify(
+                "Motion generated successfully", 'INFO'
+            )
+        else:
+            self.report({'WARNING'}, result)
+            notification_system.FO4_NotificationSystem.notify(result, 'WARNING')
+        
+        return {'FINISHED'}
+    
+    def invoke(self, context, event):
+        return context.window_manager.invoke_props_dialog(self, width=400)
+    
+    def draw(self, context):
+        layout = self.layout
+        layout.prop(self, "prompt")
+        layout.prop(self, "duration")
+        layout.prop(self, "fps")
+
+
+class FO4_OT_ImportMotionFile(Operator):
+    """Import motion file from HY-Motion-1.0"""
+    bl_idname = "fo4.import_motion_file"
+    bl_label = "Import Motion File"
+    bl_options = {'REGISTER', 'UNDO'}
+    
+    filepath: StringProperty(subtype='FILE_PATH')
+    
+    filter_glob: StringProperty(
+        default="*.bvh;*.fbx",
+        options={'HIDDEN'}
+    )
+    
+    def execute(self, context):
+        # Import motion file
+        success, message = hymotion_helpers.import_motion_file(self.filepath)
+        
+        if success:
+            self.report({'INFO'}, message)
+            notification_system.FO4_NotificationSystem.notify(message, 'INFO')
+        else:
+            self.report({'ERROR'}, message)
+            notification_system.FO4_NotificationSystem.notify(message, 'ERROR')
+            return {'CANCELLED'}
+        
+        return {'FINISHED'}
+    
+    def invoke(self, context, event):
+        context.window_manager.fileselect_add(self)
+        return {'RUNNING_MODAL'}
+
+
+class FO4_OT_ShowHyMotionInfo(Operator):
+    """Show information about HY-Motion-1.0 integration"""
+    bl_idname = "fo4.show_hymotion_info"
+    bl_label = "About HY-Motion-1.0"
+    
+    def execute(self, context):
+        status = hymotion_helpers.HyMotionHelpers.get_status_message()
+        self.report({'INFO'}, status)
+        
+        if not hymotion_helpers.HyMotionHelpers.is_available():
+            instructions = hymotion_helpers.HyMotionHelpers.get_installation_instructions()
+            print("\n" + "="*70)
+            print("HY-MOTION-1.0 INSTALLATION INSTRUCTIONS")
+            print("="*70)
+            print(instructions)
+            print("="*70)
+            self.report({'INFO'}, "Installation instructions printed to console")
+        else:
+            print("\n" + "="*70)
+            print("HY-MOTION-1.0 STATUS")
+            print("="*70)
+            print("HY-Motion-1.0 is installed and ready!")
+            print("\nUse 'Generate Motion (AI)' to create animations from text.")
+            print("Or use 'Import Motion File' to load .bvh or .fbx animations.")
+            print("="*70 + "\n")
+        
+        return {'FINISHED'}
+
 # Register all operators
 
 classes = (
@@ -795,6 +927,9 @@ classes = (
     FO4_OT_StartGradioServer,
     FO4_OT_StopGradioServer,
     FO4_OT_ShowGradioInfo,
+    FO4_OT_GenerateMotionFromText,
+    FO4_OT_ImportMotionFile,
+    FO4_OT_ShowHyMotionInfo,
 )
 
 def register():

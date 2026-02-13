@@ -40,6 +40,14 @@ A comprehensive Blender add-on that provides a desktop tutorial system and helpe
 - Requires: GPU, PyTorch, and Hunyuan3D-2 installation
 - See installation guide for setup instructions
 
+### 🎬 Motion Generation (Optional)
+- **NEW**: Generate character animations from text descriptions
+- **NEW**: Create motion sequences using AI
+- Powered by Tencent's HY-Motion-1.0 model
+- Import and apply motion data to Blender armatures
+- Requires: git-lfs, PyTorch, and HY-Motion-1.0 installation
+- Completely optional feature
+
 ### 🌐 Web Interface (Optional)
 - **NEW**: Browser-based UI for AI generation powered by Gradio
 - Easy-to-use interface (no command-line knowledge needed)
@@ -190,6 +198,58 @@ Then in Blender:
 - User-friendly interface
 - Works on any device with a browser
 - Can create a shareable public link (optional)
+
+## Optional: HY-Motion-1.0 for Motion Generation
+
+For AI-powered animation and motion generation, install HY-Motion-1.0:
+
+### Prerequisites
+- git-lfs (Large File Storage)
+- PyTorch
+- Several GB of disk space
+
+### Installation Steps
+
+1. **Install git-lfs**:
+```bash
+# Windows (with Chocolatey)
+choco install git-lfs
+
+# macOS
+brew install git-lfs
+
+# Linux (Ubuntu/Debian)
+sudo apt-get install git-lfs
+
+# Initialize git-lfs
+git lfs install
+```
+
+2. **Clone HY-Motion-1.0**:
+```bash
+git clone https://github.com/Tencent-Hunyuan/HY-Motion-1.0.git
+cd HY-Motion-1.0/
+```
+
+3. **Pull model weights with git-lfs**:
+```bash
+git lfs pull
+```
+
+4. **Install dependencies**:
+```bash
+pip install -r requirements.txt
+```
+
+5. **Restart Blender**
+
+The add-on will automatically detect HY-Motion-1.0 and enable motion features.
+
+**Features:**
+- Generate animations from text descriptions
+- Import motion files (.bvh, .fbx)
+- Apply motion to Blender armatures
+- Create character animations with AI
 
 ## Installation
 
@@ -410,6 +470,32 @@ You can also use the add-on's functionality through Python scripts in Blender's 
 - Manual integration with Hunyuan3D-2 inference code required
 - See their documentation for direct usage
 - Traditional mesh creation methods work reliably
+
+### Motion Generation Issues
+
+**"HY-Motion-1.0 not available"**
+- Solution: Install HY-Motion-1.0 following the instructions above
+- Check that git-lfs is installed: `git lfs version`
+- Verify PyTorch is installed in Blender's Python
+- Check the repository is cloned and lfs files pulled
+
+**"git-lfs not installed"**
+- Solution: Install git-lfs for your platform
+  - Windows: `choco install git-lfs` or download from git-lfs.github.com
+  - macOS: `brew install git-lfs`
+  - Linux: `sudo apt-get install git-lfs`
+- Run `git lfs install` after installation
+
+**"Motion generation not yet implemented"**
+- The motion integration is in placeholder state
+- Manual integration with HY-Motion-1.0's inference code required
+- See their documentation for direct usage
+- Generated animations can be imported as .bvh or .fbx files
+
+**"Import motion file failed"**
+- Check file format (.bvh or .fbx supported)
+- Verify file path is correct
+- Try importing manually: File → Import → Motion Capture (.bvh)
 
 ## Version History
 

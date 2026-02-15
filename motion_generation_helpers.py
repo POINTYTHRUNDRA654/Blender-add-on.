@@ -5,11 +5,13 @@ Supports multiple motion generation systems:
 - MotionDiffuse: Text-driven human motion with diffusion model (original)
 - MotionDiffuse-SMPLX: Extended MotionDiffuse with SMPL-X support (face & hands)
 - ComfyUI-MotionDiff: ComfyUI implementation (MDM, MotionGPT, MotionDiffuse, etc.)
+- ComfyUI-BlenderAI-node: Complete ComfyUI integration in Blender (AI materials, animation)
 
 https://github.com/Tencent-Hunyuan/HY-Motion-1.0
 https://github.com/MotrixLab/MotionDiffuse
 https://github.com/ellemcfarlane/MotionDiffuse (SMPL-X extension)
 https://github.com/Fannovel16/ComfyUI-MotionDiff
+https://github.com/AIGODLIKE/ComfyUI-BlenderAI-node
 """
 
 import bpy
@@ -120,6 +122,38 @@ class MotionGenerationHelpers:
             return False, "PyTorch not installed"
         except Exception as e:
             return False, f"Error checking ComfyUI-MotionDiff: {str(e)}"
+    
+    @staticmethod
+    def check_comfyui_blenderai_available():
+        """Check if ComfyUI-BlenderAI-node is installed and available"""
+        try:
+            # Check if the Blender add-on is installed
+            # This would be in Blender's addons directory
+            import bpy
+            
+            # Check if ComfyUI-BlenderAI-node add-on is enabled
+            addon_name = "ComfyUI-BlenderAI-node"
+            if addon_name in bpy.context.preferences.addons:
+                return True, "ComfyUI-BlenderAI-node add-on is installed and enabled"
+            
+            # Check for repository in common locations
+            possible_paths = [
+                os.path.expanduser("~/ComfyUI-BlenderAI-node"),
+                os.path.expanduser("~/Projects/ComfyUI-BlenderAI-node"),
+                os.path.join(os.path.dirname(__file__), "ComfyUI-BlenderAI-node"),
+                "C:/ComfyUI-BlenderAI-node" if sys.platform == "win32" else "/opt/ComfyUI-BlenderAI-node"
+            ]
+            
+            for path in possible_paths:
+                if os.path.exists(path) and os.path.isdir(path):
+                    return False, f"ComfyUI-BlenderAI-node found at {path} but not installed as Blender add-on"
+            
+            return False, "ComfyUI-BlenderAI-node not found"
+                
+        except ImportError:
+            return False, "Not running in Blender environment"
+        except Exception as e:
+            return False, f"Error checking ComfyUI-BlenderAI-node: {str(e)}"
     
     @staticmethod
     def get_installation_instructions():
@@ -265,7 +299,104 @@ Follow instructions in the repository for dataset access
 
 ================================================================================
 
-## OPTION 3: ComfyUI-MotionDiff (Multiple Models)
+## OPTION 4: ComfyUI-BlenderAI-node (Complete Blender Integration)
+
+This is a complete Blender add-on that integrates ComfyUI directly into Blender.
+It's the most comprehensive solution for AI-powered workflows in Blender.
+
+### What It Does:
+- Converts ComfyUI nodes into Blender nodes
+- AI material creation and texture baking
+- Camera input as real-time source
+- AI animation interpolation (ToonCrafter)
+- Style transfer and composition
+- Import/replace AI-generated meshes
+- ControlNet integration
+- Pose characters using Blender bones
+
+### Prerequisites:
+- Blender 3.5, 3.6.X, or 4.0+
+- ComfyUI installation
+- EasyBakeNode add-on (for AI material baking)
+- ControlNet models (for material generation)
+
+### Installation Steps:
+
+#### Option A: Install as Blender Add-on (Recommended)
+
+1. **Clone repository**:
+```bash
+gh repo clone AIGODLIKE/ComfyUI-BlenderAI-node --recursive
+# OR
+git clone https://github.com/AIGODLIKE/ComfyUI-BlenderAI-node.git --recursive
+```
+
+2. **Install in Blender**:
+   - Download ZIP or use cloned folder
+   - In Blender: Edit > Preferences > Add-ons > Install
+   - Select the ComfyUI-BlenderAI-node folder or ZIP
+   - Enable "ComfyUI BlenderAI node"
+
+3. **Set ComfyUI path in preferences**:
+   - Point to your ComfyUI installation directory
+   - Set Python path if using virtual environment
+
+4. **Install EasyBakeNode** (for AI materials):
+```bash
+gh repo clone AIGODLIKE/EasyBakeNode
+```
+   - Install as Blender add-on same way
+
+5. **Download ControlNet models** (for AI materials):
+   - Get from https://huggingface.co/lllyasviel/ControlNet-v1-1
+   - Install comfyui_controlnet_aux: https://github.com/Fannovel16/comfyui_controlnet_aux
+
+6. **Restart Blender**
+
+#### Option B: Manual Installation
+
+```bash
+# Windows
+cd %USERPROFILE%\AppData\Roaming\Blender Foundation\blender\%version%\scripts\addons
+git clone https://github.com/AIGODLIKE/ComfyUI-BlenderAI-node.git --recursive
+
+# Linux
+cd ~/.config/blender/**VERSION**/scripts/addons
+git clone https://github.com/AIGODLIKE/ComfyUI-BlenderAI-node.git --recursive
+```
+
+Then enable in Blender preferences (Node category).
+
+### Features:
+- **Node Editor**: ComfyUI nodes as Blender nodes
+- **AI Materials**: Generate and bake AI materials
+- **Camera Input**: Use Blender camera as input source
+- **Animation**: AI animation interpolation and style transfer
+- **Live Preview**: Real-time sampling preview
+- **Mesh Import**: Import AI-generated 3D models
+- **ControlNet**: Full ControlNet integration
+- **Batch Processing**: Queue batch processing
+- **Presets**: Workflow and node group presets
+
+### Use Cases:
+- AI-powered texture generation for game assets
+- Real-time AI rendering with camera input
+- Animation interpolation and inbetweening
+- Style transfer for animations
+- ControlNet-based material creation
+- Pose-driven character generation
+
+### Integration with Other Systems:
+- **+ MotionDiffuse**: Use for motion generation, BlenderAI for materials
+- **+ RigNet**: Auto-rig with RigNet, animate with BlenderAI
+- **+ MediaPipe**: Track with MediaPipe, enhance with BlenderAI
+- **Complete Workflow**: Rig → Animate → Generate Materials → Render
+
+### Restart Blender after installation
+
+================================================================================
+
+## OPTION 5: ComfyUI-MotionDiff (Motion-Specific)
 
 This is a ComfyUI node implementation that includes:
 - MotionDiffuse
@@ -329,12 +460,21 @@ pip install -r requirements.txt
 - Best for: High-quality human motion
 - **SMPL-X variant**: Adds facial expressions and hand articulation
 
+**ComfyUI-BlenderAI-node (Complete Integration):**
+- Pros: Full Blender integration, most features, AI materials
+- Cons: Complex setup, requires ComfyUI + dependencies
+- Best for: Complete AI workflow in Blender
+
 **ComfyUI-MotionDiff:**
 - Pros: Multiple models, SMPL support, most features
 - Cons: More complex setup
 - Best for: Advanced users, multiple workflow needs
 
-**Recommendation:** Start with MotionDiffuse for simplicity, use ComfyUI-MotionDiff for advanced features
+**Recommendation:** 
+- Simple text-to-motion: MotionDiffuse
+- Facial expressions: MotionDiffuse-SMPLX
+- Multiple models: ComfyUI-MotionDiff
+- **Complete AI workflow: ComfyUI-BlenderAI-node** ⭐ (most comprehensive)
 
 ================================================================================
 
@@ -347,6 +487,9 @@ For more details:
   - Extension with face and hand support
   - Based on Motion-X dataset
 - ComfyUI-MotionDiff: https://github.com/Fannovel16/ComfyUI-MotionDiff
+- ComfyUI-BlenderAI-node: https://github.com/AIGODLIKE/ComfyUI-BlenderAI-node ⭐
+  - Complete ComfyUI integration in Blender
+  - AI materials, animation, rendering
 """
         return instructions
     

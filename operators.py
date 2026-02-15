@@ -1132,16 +1132,18 @@ class FO4_OT_CheckAllMotionSystems(Operator):
         hy_avail, hy_msg = motion_generation_helpers.MotionGenerationHelpers.check_hymotion_available()
         md_avail, md_msg = motion_generation_helpers.MotionGenerationHelpers.check_motiondiffuse_available()
         cf_avail, cf_msg = motion_generation_helpers.MotionGenerationHelpers.check_comfyui_motiondiff_available()
+        cb_avail, cb_msg = motion_generation_helpers.MotionGenerationHelpers.check_comfyui_blenderai_available()
         
         print("\n" + "="*70)
         print("MOTION GENERATION SYSTEMS STATUS")
         print("="*70)
-        print(f"HY-Motion-1.0:      {'✓ ' + hy_msg if hy_avail else '✗ ' + hy_msg}")
-        print(f"MotionDiffuse:      {'✓ ' + md_msg if md_avail else '✗ ' + md_msg}")
-        print(f"ComfyUI-MotionDiff: {'✓ ' + cf_msg if cf_avail else '✗ ' + cf_msg}")
+        print(f"HY-Motion-1.0:           {'✓ ' + hy_msg if hy_avail else '✗ ' + hy_msg}")
+        print(f"MotionDiffuse:           {'✓ ' + md_msg if md_avail else '✗ ' + md_msg}")
+        print(f"ComfyUI-MotionDiff:      {'✓ ' + cf_msg if cf_avail else '✗ ' + cf_msg}")
+        print(f"ComfyUI-BlenderAI-node:  {'✓ ' + cb_msg if cb_avail else '✗ ' + cb_msg}")
         print("="*70 + "\n")
         
-        if hy_avail or md_avail or cf_avail:
+        if hy_avail or md_avail or cf_avail or cb_avail:
             self.report({'INFO'}, "Motion generation systems available! See console for details.")
         else:
             self.report({'WARNING'}, "No motion generation systems installed. See console for details.")

@@ -45,12 +45,16 @@ A comprehensive Blender add-on that provides a desktop tutorial system and helpe
 ### 🎬 Motion Generation (Optional)
 - **NEW**: Generate character animations from text descriptions
 - **NEW**: Create motion sequences using AI
+- **NEW**: Complete ComfyUI integration in Blender
 - Multiple motion generation systems supported:
   - **HY-Motion-1.0**: Tencent's production-ready motion model
   - **MotionDiffuse**: Text-driven diffusion-based motion (original & SMPL-X)
   - **ComfyUI-MotionDiff**: Multiple models (MDM, MotionGPT, ReMoDiffuse, 4DHuman)
+  - **ComfyUI-BlenderAI-node**: Complete ComfyUI in Blender (AI materials, animation, rendering)
 - SMPL-X support for facial expressions and hand articulation
 - Import and apply motion data to Blender armatures
+- AI material generation and texture baking
+- Camera input for real-time AI rendering
 - Requires: PyTorch and chosen motion generation system
 - Completely optional feature
 

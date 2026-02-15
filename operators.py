@@ -2154,6 +2154,82 @@ class FO4_OT_CheckTripoSRTextureGen(Operator):
         
         return {'FINISHED'}
 
+# Stereo/Multi-View 3D Generation Operators
+
+class FO4_OT_GenerateFromStereo(Operator):
+    """Generate 3D from stereo image pair"""
+    bl_idname = "fo4.generate_from_stereo"
+    bl_label = "Generate from Stereo Images"
+    bl_options = {'REGISTER'}
+    
+    left_image: StringProperty(
+        name="Left Image",
+        subtype='FILE_PATH'
+    )
+    
+    right_image: StringProperty(
+        name="Right Image",
+        subtype='FILE_PATH'
+    )
+    
+    output_path: StringProperty(
+        name="Output Mesh",
+        subtype='FILE_PATH',
+        default="stereo_output.obj"
+    )
+    
+    def execute(self, context):
+        success, message = imageto3d_helpers.ImageTo3DHelpers.check_stereo_triposr_installation()
+        
+        if not success:
+            self.report({'ERROR'}, "Stereo TripoSR not installed")
+            print("\n" + "="*70)
+            print(message)
+            print("="*70 + "\n")
+            return {'CANCELLED'}
+        
+        if not self.left_image or not self.right_image:
+            self.report({'ERROR'}, "Both left and right images required")
+            return {'CANCELLED'}
+        
+        success, msg, output = imageto3d_helpers.ImageTo3DHelpers.generate_from_stereo_images(
+            self.left_image, self.right_image, self.output_path
+        )
+        
+        print("\n" + "="*70)
+        print("STEREO 3D GENERATION")
+        print("="*70)
+        print(msg)
+        print("="*70 + "\n")
+        
+        self.report({'INFO'}, "See console for instructions")
+        return {'FINISHED'}
+    
+    def invoke(self, context, event):
+        return context.window_manager.invoke_props_dialog(self, width=500)
+
+
+class FO4_OT_CheckStereoTripoSR(Operator):
+    """Check stereo TripoSR installation"""
+    bl_idname = "fo4.check_stereo_triposr"
+    bl_label = "Check Stereo TripoSR"
+    
+    def execute(self, context):
+        success, message = imageto3d_helpers.ImageTo3DHelpers.check_stereo_triposr_installation()
+        
+        print("\n" + "="*70)
+        print("STEREO TRIPOSR STATUS")
+        print("="*70)
+        print(message)
+        print("="*70 + "\n")
+        
+        if success:
+            self.report({'INFO'}, "Stereo TripoSR available")
+        else:
+            self.report({'WARNING'}, "Not installed")
+        
+        return {'FINISHED'}
+
 # Advanced Mesh Analysis and Repair Operators
 
 class FO4_OT_AnalyzeMeshQuality(Operator):
@@ -2474,6 +2550,8 @@ classes = (
     FO4_OT_GenerateTripoSRTexture,
     FO4_OT_ShowTripoSRWorkflow,
     FO4_OT_CheckTripoSRTextureGen,
+    FO4_OT_GenerateFromStereo,
+    FO4_OT_CheckStereoTripoSR,
     FO4_OT_AnalyzeMeshQuality,
     FO4_OT_AutoRepairMesh,
     FO4_OT_SmartDecimate,

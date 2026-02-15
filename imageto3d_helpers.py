@@ -779,3 +779,64 @@ def register():
 def unregister():
     """Unregister image-to-3D helper functions"""
     pass
+    
+    # ==================== Stereo Vision Multi-View Generation ====================
+    
+    @staticmethod
+    def find_stereo_triposr_path():
+        """Find super-ai-vision-stereo-world-generate-triposr installation path"""
+        possible_paths = [
+            os.path.expanduser('~/super-ai-vision-stereo-world-generate-triposr'),
+            os.path.expanduser('~/Projects/super-ai-vision-stereo-world-generate-triposr'),
+            os.path.expanduser('~/stereo-triposr'),
+            '/opt/stereo-triposr',
+            'C:/Projects/stereo-triposr',
+        ]
+        
+        for path in possible_paths:
+            if os.path.exists(os.path.join(path, 'generate.py')):
+                return path
+            if os.path.exists(os.path.join(path, 'main.py')):
+                return path
+        
+        return None
+    
+    @staticmethod
+    def check_stereo_triposr_installation():
+        """Check stereo-world-triposr installation status"""
+        try:
+            import torch
+            has_torch = True
+            cuda_available = torch.cuda.is_available()
+        except ImportError:
+            has_torch = False
+            cuda_available = False
+        
+        stereo_path = ImageTo3DHelpers.find_stereo_triposr_path()
+        
+        if stereo_path and has_torch:
+            msg = f"Stereo TripoSR found at: {stereo_path}\n"
+            if cuda_available:
+                msg += "CUDA: Available ✓\n"
+            else:
+                msg += "CUDA: Not available (CPU mode)\n"
+            msg += "Ready for stereo/multi-view 3D!"
+            return True, msg
+        else:
+            install_msg = (
+                "stereo-world-generate-triposr not found.\n\n"
+                "Install: gh repo clone yuedajiong/super-ai-vision-stereo-world-generate-triposr\n"
+                "Features: Stereo pairs, multi-view, better geometry\n"
+            )
+            return False, install_msg
+    
+    @staticmethod
+    def generate_from_stereo_images(left_image, right_image, output_path=None):
+        """Generate 3D from stereo image pair"""
+        stereo_path = ImageTo3DHelpers.find_stereo_triposr_path()
+        
+        if not stereo_path:
+            return False, "Stereo TripoSR not installed", None
+        
+        msg = f"Run: python generate.py --left {left_image} --right {right_image}"
+        return False, msg, None

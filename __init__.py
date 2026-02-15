@@ -28,6 +28,7 @@ from . import image_to_mesh_helpers
 from . import hunyuan3d_helpers
 from . import gradio_helpers
 from . import hymotion_helpers
+from . import nvtt_helpers
 
 modules = [
     tutorial_system,
@@ -40,6 +41,7 @@ modules = [
     hunyuan3d_helpers,
     gradio_helpers,
     hymotion_helpers,
+    nvtt_helpers,
     operators,
     ui_panels,
 ]

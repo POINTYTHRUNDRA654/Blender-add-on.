@@ -12,6 +12,7 @@ libigl: Simple C++ geometry processing library
 - BBW Reference Implementations:
   - azer89/BBW: https://github.com/azer89/BBW (C++ Visual Studio, libigl-based)
   - PhillipZeratul/BbwPlugin: https://github.com/PhillipZeratul/BbwPlugin (Unity/iOS port)
+  - shanmukhabharat/BBW: https://github.com/shanmukhabharat/BBW (Academic/educational)
 - Mesh repair, optimization, and UV unwrapping
 
 MediaPipe: Google's framework for ML pipelines
@@ -309,7 +310,21 @@ git clone https://github.com/PhillipZeratul/BbwPlugin.git
 - Cross-platform (including mobile)
 - Practical implementation for game engines
 
-**Both are excellent learning resources** but not directly usable in Blender.
+**Option C: shanmukhabharat/BBW (Academic/Learning)**
+# Using GitHub CLI:
+gh repo clone shanmukhabharat/BBW
+
+# Or using git:
+git clone https://github.com/shanmukhabharat/BBW.git
+
+**Note:** Academic implementation of linear blend skinning with BBW.
+- Educational/homework project
+- Demonstrates BBW fundamentals
+- Linear blend skinning implementation
+- Good for understanding core concepts
+- Simpler than production implementations
+
+**All three are excellent learning resources** but not directly usable in Blender.
 For Blender integration, use METHOD 1 or METHOD 2 (Python bindings).
 
 ### Features:
@@ -417,6 +432,7 @@ For more details:
 - libigl docs: https://libigl.github.io/ (Geometry processing documentation)
 - azer89/BBW: https://github.com/azer89/BBW (C++ BBW reference implementation)
 - PhillipZeratul/BbwPlugin: https://github.com/PhillipZeratul/BbwPlugin (Unity/iOS BBW)
+- shanmukhabharat/BBW: https://github.com/shanmukhabharat/BBW (Academic BBW implementation)
 - MediaPipe: https://google.github.io/mediapipe/ (Official documentation)
 - ntu-rris MediaPipe: https://github.com/ntu-rris/google-mediapipe (Pose estimation demos)
 - BlendArMocap: https://github.com/cgtinker/BlendArMocap (Blender mocap add-on)

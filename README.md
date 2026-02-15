@@ -45,9 +45,13 @@ A comprehensive Blender add-on that provides a desktop tutorial system and helpe
 ### 🎬 Motion Generation (Optional)
 - **NEW**: Generate character animations from text descriptions
 - **NEW**: Create motion sequences using AI
-- Powered by Tencent's HY-Motion-1.0 model
+- Multiple motion generation systems supported:
+  - **HY-Motion-1.0**: Tencent's production-ready motion model
+  - **MotionDiffuse**: Text-driven diffusion-based motion (original & SMPL-X)
+  - **ComfyUI-MotionDiff**: Multiple models (MDM, MotionGPT, ReMoDiffuse, 4DHuman)
+- SMPL-X support for facial expressions and hand articulation
 - Import and apply motion data to Blender armatures
-- Requires: git-lfs, PyTorch, and HY-Motion-1.0 installation
+- Requires: PyTorch and chosen motion generation system
 - Completely optional feature
 
 ### 🌐 Web Interface (Optional)

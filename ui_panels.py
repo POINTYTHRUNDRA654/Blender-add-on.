@@ -49,6 +49,15 @@ class FO4_PT_MeshPanel(Panel):
         box.operator("fo4.create_base_mesh", text="Create Base Mesh", icon='MESH_DATA')
         box.operator("fo4.optimize_mesh", text="Optimize for FO4", icon='MOD_DECIM')
         box.operator("fo4.validate_mesh", text="Validate Mesh", icon='CHECKMARK')
+        
+        # Advanced mesh tools
+        adv_box = layout.box()
+        adv_box.label(text="Advanced Mesh Tools", icon='MODIFIER')
+        adv_box.operator("fo4.analyze_mesh_quality", text="Analyze Quality", icon='INFO')
+        adv_box.operator("fo4.auto_repair_mesh", text="Auto-Repair", icon='TOOL_SETTINGS')
+        adv_box.operator("fo4.smart_decimate", text="Smart Decimate", icon='MOD_DECIM')
+        adv_box.operator("fo4.generate_lod", text="Generate LOD Chain", icon='OUTLINER_OB_MESH')
+        adv_box.operator("fo4.optimize_uvs", text="Optimize UVs", icon='UV')
 
 class FO4_PT_TexturePanel(Panel):
     """Texture installation helpers panel"""

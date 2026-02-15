@@ -20,6 +20,7 @@ from . import ui_panels
 from . import operators
 from . import tutorial_system
 from . import mesh_helpers
+from . import advanced_mesh_helpers
 from . import texture_helpers
 from . import animation_helpers
 from . import export_helpers
@@ -39,6 +40,7 @@ modules = [
     tutorial_system,
     notification_system,
     mesh_helpers,
+    advanced_mesh_helpers,
     texture_helpers,
     animation_helpers,
     export_helpers,

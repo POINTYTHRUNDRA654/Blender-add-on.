@@ -5,7 +5,7 @@ Operators for the Fallout 4 Tutorial Add-on
 import bpy
 from bpy.types import Operator
 from bpy.props import StringProperty, EnumProperty, IntProperty
-from . import tutorial_system, mesh_helpers, texture_helpers, animation_helpers, export_helpers, notification_system, image_to_mesh_helpers, hunyuan3d_helpers, gradio_helpers, hymotion_helpers
+from . import tutorial_system, mesh_helpers, texture_helpers, animation_helpers, export_helpers, notification_system, image_to_mesh_helpers, hunyuan3d_helpers, gradio_helpers, hymotion_helpers, nvtt_helpers
 
 # Tutorial Operators
 
@@ -902,6 +902,190 @@ class FO4_OT_ShowHyMotionInfo(Operator):
         
         return {'FINISHED'}
 
+# NVIDIA Texture Tools Operators
+
+class FO4_OT_ConvertTextureToDDS(Operator):
+    """Convert a texture to DDS format using NVIDIA Texture Tools"""
+    bl_idname = "fo4.convert_texture_to_dds"
+    bl_label = "Convert Texture to DDS"
+    bl_options = {'REGISTER', 'UNDO'}
+    
+    filepath: StringProperty(
+        name="Texture File",
+        description="Path to the texture file to convert",
+        subtype='FILE_PATH'
+    )
+    
+    output_path: StringProperty(
+        name="Output Path",
+        description="Path for the output DDS file (optional)",
+        subtype='FILE_PATH',
+        default=""
+    )
+    
+    compression: EnumProperty(
+        name="Compression",
+        description="DDS compression format",
+        items=[
+            ('bc1', "BC1 (DXT1)", "For diffuse textures without alpha"),
+            ('bc3', "BC3 (DXT5)", "For textures with alpha channel"),
+            ('bc5', "BC5 (ATI2)", "For normal maps"),
+        ],
+        default='bc1'
+    )
+    
+    quality: EnumProperty(
+        name="Quality",
+        description="Compression quality",
+        items=[
+            ('fastest', "Fastest", "Fastest compression"),
+            ('normal', "Normal", "Normal quality"),
+            ('production', "Production", "Production quality"),
+            ('highest', "Highest", "Highest quality (slowest)"),
+        ],
+        default='production'
+    )
+    
+    def execute(self, context):
+        # Check if NVTT is available
+        if not nvtt_helpers.NVTTHelpers.is_nvtt_available():
+            success, message = nvtt_helpers.NVTTHelpers.check_nvtt_installation()
+            self.report({'ERROR'}, "NVIDIA Texture Tools not found")
+            print("\n" + "="*70)
+            print("NVIDIA TEXTURE TOOLS INSTALLATION")
+            print("="*70)
+            print(message)
+            print("="*70 + "\n")
+            notification_system.FO4_NotificationSystem.notify(
+                "NVIDIA Texture Tools not installed", 'ERROR'
+            )
+            return {'CANCELLED'}
+        
+        if not self.filepath:
+            self.report({'ERROR'}, "No texture file selected")
+            return {'CANCELLED'}
+        
+        # Convert texture
+        output = self.output_path if self.output_path else None
+        success, message = nvtt_helpers.NVTTHelpers.convert_to_dds(
+            self.filepath,
+            output,
+            self.compression,
+            self.quality
+        )
+        
+        if success:
+            self.report({'INFO'}, message)
+            notification_system.FO4_NotificationSystem.notify(
+                "Texture converted to DDS successfully", 'INFO'
+            )
+        else:
+            self.report({'ERROR'}, message)
+            notification_system.FO4_NotificationSystem.notify(message, 'ERROR')
+            return {'CANCELLED'}
+        
+        return {'FINISHED'}
+    
+    def invoke(self, context, event):
+        context.window_manager.fileselect_add(self)
+        return {'RUNNING_MODAL'}
+
+
+class FO4_OT_ConvertObjectTexturesToDDS(Operator):
+    """Convert all textures from selected object to DDS format"""
+    bl_idname = "fo4.convert_object_textures_to_dds"
+    bl_label = "Convert Object Textures to DDS"
+    bl_options = {'REGISTER', 'UNDO'}
+    
+    output_dir: StringProperty(
+        name="Output Directory",
+        description="Directory to save converted DDS files",
+        subtype='DIR_PATH'
+    )
+    
+    def execute(self, context):
+        # Check if NVTT is available
+        if not nvtt_helpers.NVTTHelpers.is_nvtt_available():
+            success, message = nvtt_helpers.NVTTHelpers.check_nvtt_installation()
+            self.report({'ERROR'}, "NVIDIA Texture Tools not found")
+            print("\n" + "="*70)
+            print("NVIDIA TEXTURE TOOLS INSTALLATION")
+            print("="*70)
+            print(message)
+            print("="*70 + "\n")
+            notification_system.FO4_NotificationSystem.notify(
+                "NVIDIA Texture Tools not installed", 'ERROR'
+            )
+            return {'CANCELLED'}
+        
+        obj = context.active_object
+        if not obj:
+            self.report({'ERROR'}, "No object selected")
+            return {'CANCELLED'}
+        
+        if not self.output_dir:
+            self.report({'ERROR'}, "No output directory selected")
+            return {'CANCELLED'}
+        
+        # Convert textures
+        success, message, converted_files = nvtt_helpers.NVTTHelpers.convert_object_textures(
+            obj,
+            self.output_dir
+        )
+        
+        if success:
+            self.report({'INFO'}, message)
+            notification_system.FO4_NotificationSystem.notify(message, 'INFO')
+            
+            # Print details
+            print("\n" + "="*70)
+            print("TEXTURE CONVERSION RESULTS")
+            print("="*70)
+            print(f"Object: {obj.name}")
+            print(f"Converted files:")
+            for filepath in converted_files:
+                print(f"  - {filepath}")
+            print("="*70 + "\n")
+        else:
+            self.report({'ERROR'}, message)
+            notification_system.FO4_NotificationSystem.notify(message, 'ERROR')
+            return {'CANCELLED'}
+        
+        return {'FINISHED'}
+    
+    def invoke(self, context, event):
+        context.window_manager.fileselect_add(self)
+        return {'RUNNING_MODAL'}
+
+
+class FO4_OT_CheckNVTTInstallation(Operator):
+    """Check if NVIDIA Texture Tools is installed"""
+    bl_idname = "fo4.check_nvtt_installation"
+    bl_label = "Check NVTT Installation"
+    
+    def execute(self, context):
+        success, message = nvtt_helpers.NVTTHelpers.check_nvtt_installation()
+        
+        if success:
+            self.report({'INFO'}, message)
+            print("\n" + "="*70)
+            print("NVIDIA TEXTURE TOOLS STATUS")
+            print("="*70)
+            print("✅ NVIDIA Texture Tools is installed and ready!")
+            print(message)
+            print("\nYou can now convert textures to DDS format for Fallout 4.")
+            print("="*70 + "\n")
+        else:
+            self.report({'WARNING'}, "NVIDIA Texture Tools not found")
+            print("\n" + "="*70)
+            print("NVIDIA TEXTURE TOOLS INSTALLATION")
+            print("="*70)
+            print(message)
+            print("\nFor detailed instructions, see NVIDIA_RESOURCES.md")
+            print("="*70 + "\n")
+        
+        return {'FINISHED'}
+
 # Register all operators
 
 classes = (
@@ -930,6 +1114,9 @@ classes = (
     FO4_OT_GenerateMotionFromText,
     FO4_OT_ImportMotionFile,
     FO4_OT_ShowHyMotionInfo,
+    FO4_OT_ConvertTextureToDDS,
+    FO4_OT_ConvertObjectTexturesToDDS,
+    FO4_OT_CheckNVTTInstallation,
 )
 
 def register():

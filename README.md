@@ -543,6 +543,7 @@ This add-on comes with comprehensive documentation:
 - **[FAQ.md](FAQ.md)** - Frequently asked questions
 - **[API_REFERENCE.md](API_REFERENCE.md)** - API documentation for scripting
 - **[COMPATIBILITY.md](COMPATIBILITY.md)** - Compatibility with PhysX, other tools, and platforms
+- **[NVIDIA_RESOURCES.md](NVIDIA_RESOURCES.md)** - NVIDIA repositories and tools that can help with Blender add-on development
 - **[CONTRIBUTING.md](CONTRIBUTING.md)** - Contribution guidelines
 - **[CHANGELOG.md](CHANGELOG.md)** - Version history
 

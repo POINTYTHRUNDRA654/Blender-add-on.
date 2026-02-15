@@ -9,6 +9,9 @@ libigl: Simple C++ geometry processing library
 - Main Repository: https://github.com/libigl/libigl
 - Python Bindings: https://github.com/libigl/libigl-python-bindings
 - Includes Bounded Biharmonic Weights (BBW) for skinning
+- BBW Reference Implementations:
+  - azer89/BBW: https://github.com/azer89/BBW (C++ Visual Studio, libigl-based)
+  - PhillipZeratul/BbwPlugin: https://github.com/PhillipZeratul/BbwPlugin (Unity/iOS port)
 - Mesh repair, optimization, and UV unwrapping
 
 MediaPipe: Google's framework for ML pipelines
@@ -277,6 +280,38 @@ git clone https://github.com/libigl/libigl.git
 cd libigl/python
 pip install -e .
 
+### METHOD 4: BBW Reference Implementations (for developers/learning)
+
+**Option A: azer89/BBW (C++ Visual Studio)**
+# Using GitHub CLI:
+gh repo clone azer89/BBW
+
+# Or using git:
+git clone https://github.com/azer89/BBW.git
+
+**Note:** Visual Studio C++ project demonstrating BBW shape deformation.
+- Uses libigl (early 2014 version)
+- Requires: Tetgen, MOSEK 7.1, Eigen 3.2
+- Windows-focused Visual Studio project
+- Reference implementation for understanding BBW algorithm
+
+**Option B: PhillipZeratul/BbwPlugin (Unity/iOS)**
+# Using GitHub CLI:
+gh repo clone PhillipZeratul/BbwPlugin
+
+# Or using git:
+git clone https://github.com/PhillipZeratul/BbwPlugin.git
+
+**Note:** Unity Anima2D BBW bone weight calculation port for iOS.
+- C++ implementation that works on iOS
+- Originally from Unity Anima2D plugin
+- 2D skeleton animation weight calculation
+- Cross-platform (including mobile)
+- Practical implementation for game engines
+
+**Both are excellent learning resources** but not directly usable in Blender.
+For Blender integration, use METHOD 1 or METHOD 2 (Python bindings).
+
 ### Features:
 - Bounded Biharmonic Weights (BBW) for skinning
 - Mesh repair and optimization  
@@ -380,6 +415,8 @@ For more details:
 - libigl Python bindings: https://github.com/libigl/libigl-python-bindings (Recommended)
 - libigl main: https://github.com/libigl/libigl (C++ library)
 - libigl docs: https://libigl.github.io/ (Geometry processing documentation)
+- azer89/BBW: https://github.com/azer89/BBW (C++ BBW reference implementation)
+- PhillipZeratul/BbwPlugin: https://github.com/PhillipZeratul/BbwPlugin (Unity/iOS BBW)
 - MediaPipe: https://google.github.io/mediapipe/ (Official documentation)
 - ntu-rris MediaPipe: https://github.com/ntu-rris/google-mediapipe (Pose estimation demos)
 - BlendArMocap: https://github.com/cgtinker/BlendArMocap (Blender mocap add-on)

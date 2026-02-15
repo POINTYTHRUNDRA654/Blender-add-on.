@@ -29,6 +29,11 @@ from . import hunyuan3d_helpers
 from . import gradio_helpers
 from . import hymotion_helpers
 from . import nvtt_helpers
+from . import realesrgan_helpers
+from . import get3d_helpers
+from . import stylegan2_helpers
+from . import instantngp_helpers
+from . import imageto3d_helpers
 
 modules = [
     tutorial_system,
@@ -42,6 +47,11 @@ modules = [
     gradio_helpers,
     hymotion_helpers,
     nvtt_helpers,
+    realesrgan_helpers,
+    get3d_helpers,
+    stylegan2_helpers,
+    instantngp_helpers,
+    imageto3d_helpers,
     operators,
     ui_panels,
 ]

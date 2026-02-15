@@ -5,7 +5,7 @@ Operators for the Fallout 4 Tutorial Add-on
 import bpy
 from bpy.types import Operator
 from bpy.props import StringProperty, EnumProperty, IntProperty
-from . import tutorial_system, mesh_helpers, texture_helpers, animation_helpers, export_helpers, notification_system, image_to_mesh_helpers, hunyuan3d_helpers, gradio_helpers, hymotion_helpers, nvtt_helpers
+from . import tutorial_system, mesh_helpers, texture_helpers, animation_helpers, export_helpers, notification_system, image_to_mesh_helpers, hunyuan3d_helpers, gradio_helpers, hymotion_helpers, nvtt_helpers, realesrgan_helpers, get3d_helpers, stylegan2_helpers, instantngp_helpers, imageto3d_helpers
 
 # Tutorial Operators
 
@@ -1086,6 +1086,947 @@ class FO4_OT_CheckNVTTInstallation(Operator):
         
         return {'FINISHED'}
 
+# Real-ESRGAN Operators
+
+class FO4_OT_UpscaleTexture(Operator):
+    """Upscale a texture using Real-ESRGAN AI"""
+    bl_idname = "fo4.upscale_texture"
+    bl_label = "Upscale Texture with AI"
+    bl_options = {'REGISTER', 'UNDO'}
+    
+    filepath: StringProperty(
+        name="Texture File",
+        description="Path to the texture file to upscale",
+        subtype='FILE_PATH'
+    )
+    
+    output_path: StringProperty(
+        name="Output Path",
+        description="Path for the upscaled texture (optional)",
+        subtype='FILE_PATH',
+        default=""
+    )
+    
+    scale: EnumProperty(
+        name="Upscale Factor",
+        description="How much to upscale the texture",
+        items=[
+            ('2', "2x", "Double the resolution"),
+            ('4', "4x", "Quadruple the resolution"),
+        ],
+        default='4'
+    )
+    
+    def execute(self, context):
+        # Check if Real-ESRGAN is available
+        if not realesrgan_helpers.RealESRGANHelpers.is_realesrgan_available():
+            success, message = realesrgan_helpers.RealESRGANHelpers.check_realesrgan_installation()
+            self.report({'ERROR'}, "Real-ESRGAN not found")
+            print("\n" + "="*70)
+            print("REAL-ESRGAN INSTALLATION")
+            print("="*70)
+            print(message)
+            print("="*70 + "\n")
+            notification_system.FO4_NotificationSystem.notify(
+                "Real-ESRGAN not installed", 'ERROR'
+            )
+            return {'CANCELLED'}
+        
+        if not self.filepath:
+            self.report({'ERROR'}, "No texture file selected")
+            return {'CANCELLED'}
+        
+        # Upscale texture
+        output = self.output_path if self.output_path else None
+        scale_int = int(self.scale)
+        
+        success, message = realesrgan_helpers.RealESRGANHelpers.upscale_texture(
+            self.filepath,
+            output,
+            scale_int
+        )
+        
+        if success:
+            self.report({'INFO'}, message)
+            notification_system.FO4_NotificationSystem.notify(
+                f"Texture upscaled {scale_int}x successfully", 'INFO'
+            )
+        else:
+            self.report({'WARNING'}, message)
+            notification_system.FO4_NotificationSystem.notify(message, 'WARNING')
+            return {'CANCELLED'}
+        
+        return {'FINISHED'}
+    
+    def invoke(self, context, event):
+        context.window_manager.fileselect_add(self)
+        return {'RUNNING_MODAL'}
+
+
+class FO4_OT_UpscaleObjectTextures(Operator):
+    """Upscale all textures from selected object using Real-ESRGAN AI"""
+    bl_idname = "fo4.upscale_object_textures"
+    bl_label = "Upscale Object Textures with AI"
+    bl_options = {'REGISTER', 'UNDO'}
+    
+    output_dir: StringProperty(
+        name="Output Directory",
+        description="Directory to save upscaled textures",
+        subtype='DIR_PATH'
+    )
+    
+    scale: EnumProperty(
+        name="Upscale Factor",
+        description="How much to upscale the textures",
+        items=[
+            ('2', "2x", "Double the resolution"),
+            ('4', "4x", "Quadruple the resolution"),
+        ],
+        default='4'
+    )
+    
+    def execute(self, context):
+        # Check if Real-ESRGAN is available
+        if not realesrgan_helpers.RealESRGANHelpers.is_realesrgan_available():
+            success, message = realesrgan_helpers.RealESRGANHelpers.check_realesrgan_installation()
+            self.report({'ERROR'}, "Real-ESRGAN not found")
+            print("\n" + "="*70)
+            print("REAL-ESRGAN INSTALLATION")
+            print("="*70)
+            print(message)
+            print("="*70 + "\n")
+            notification_system.FO4_NotificationSystem.notify(
+                "Real-ESRGAN not installed", 'ERROR'
+            )
+            return {'CANCELLED'}
+        
+        obj = context.active_object
+        if not obj:
+            self.report({'ERROR'}, "No object selected")
+            return {'CANCELLED'}
+        
+        if not self.output_dir:
+            self.report({'ERROR'}, "No output directory selected")
+            return {'CANCELLED'}
+        
+        scale_int = int(self.scale)
+        
+        # Upscale textures
+        success, message, upscaled_files = realesrgan_helpers.RealESRGANHelpers.upscale_object_textures(
+            obj,
+            self.output_dir,
+            scale_int
+        )
+        
+        if success:
+            self.report({'INFO'}, message)
+            notification_system.FO4_NotificationSystem.notify(message, 'INFO')
+            
+            # Print details
+            print("\n" + "="*70)
+            print("TEXTURE UPSCALING RESULTS")
+            print("="*70)
+            print(f"Object: {obj.name}")
+            print(f"Scale: {scale_int}x")
+            print(f"Upscaled files:")
+            for filepath in upscaled_files:
+                print(f"  - {filepath}")
+            print("="*70 + "\n")
+        else:
+            self.report({'ERROR'}, message)
+            notification_system.FO4_NotificationSystem.notify(message, 'ERROR')
+            return {'CANCELLED'}
+        
+        return {'FINISHED'}
+    
+    def invoke(self, context, event):
+        context.window_manager.fileselect_add(self)
+        return {'RUNNING_MODAL'}
+
+
+class FO4_OT_CheckRealESRGANInstallation(Operator):
+    """Check if Real-ESRGAN is installed"""
+    bl_idname = "fo4.check_realesrgan_installation"
+    bl_label = "Check Real-ESRGAN Installation"
+    
+    def execute(self, context):
+        success, message = realesrgan_helpers.RealESRGANHelpers.check_realesrgan_installation()
+        
+        if success:
+            self.report({'INFO'}, message)
+            print("\n" + "="*70)
+            print("REAL-ESRGAN STATUS")
+            print("="*70)
+            print("✅ Real-ESRGAN is installed and ready!")
+            print(message)
+            print("\nYou can now upscale textures using AI.")
+            print("Recommended for:")
+            print("  - Enhancing low-resolution textures")
+            print("  - Improving texture quality for FO4 mods")
+            print("  - Upscaling 512x512 to 2048x2048 or 4096x4096")
+            print("="*70 + "\n")
+        else:
+            self.report({'WARNING'}, "Real-ESRGAN not found")
+            print("\n" + "="*70)
+            print("REAL-ESRGAN INSTALLATION")
+            print("="*70)
+            print(message)
+            print("\nFor detailed instructions, see NVIDIA_RESOURCES.md")
+            print("="*70 + "\n")
+        
+        return {'FINISHED'}
+
+# NVIDIA GET3D Operators
+
+class FO4_OT_ImportGET3DMesh(Operator):
+    """Import a mesh generated by NVIDIA GET3D"""
+    bl_idname = "fo4.import_get3d_mesh"
+    bl_label = "Import GET3D Mesh"
+    bl_options = {'REGISTER', 'UNDO'}
+    
+    filepath: StringProperty(
+        name="GET3D Mesh File",
+        description="Path to .obj file generated by GET3D",
+        subtype='FILE_PATH'
+    )
+    
+    filter_glob: StringProperty(
+        default="*.obj",
+        options={'HIDDEN'}
+    )
+    
+    def execute(self, context):
+        if not self.filepath:
+            self.report({'ERROR'}, "No file selected")
+            return {'CANCELLED'}
+        
+        # Import GET3D mesh
+        success, message, imported_obj = get3d_helpers.GET3DHelpers.import_get3d_mesh(
+            self.filepath
+        )
+        
+        if success:
+            self.report({'INFO'}, message)
+            notification_system.FO4_NotificationSystem.notify(
+                f"GET3D mesh imported: {imported_obj.name}", 'INFO'
+            )
+            
+            print("\n" + "="*70)
+            print("GET3D MESH IMPORTED")
+            print("="*70)
+            print(f"Mesh: {imported_obj.name}")
+            print(f"File: {self.filepath}")
+            print("\nNext steps:")
+            print("1. Use 'Optimize GET3D Mesh' to prepare for FO4")
+            print("2. Add textures with 'Setup FO4 Materials'")
+            print("3. Validate and export")
+            print("="*70 + "\n")
+        else:
+            self.report({'ERROR'}, message)
+            notification_system.FO4_NotificationSystem.notify(message, 'ERROR')
+            return {'CANCELLED'}
+        
+        return {'FINISHED'}
+    
+    def invoke(self, context, event):
+        context.window_manager.fileselect_add(self)
+        return {'RUNNING_MODAL'}
+
+
+class FO4_OT_OptimizeGET3DMesh(Operator):
+    """Optimize a GET3D mesh for Fallout 4"""
+    bl_idname = "fo4.optimize_get3d_mesh"
+    bl_label = "Optimize GET3D Mesh for FO4"
+    bl_options = {'REGISTER', 'UNDO'}
+    
+    def execute(self, context):
+        obj = context.active_object
+        
+        if not obj:
+            self.report({'ERROR'}, "No object selected")
+            return {'CANCELLED'}
+        
+        if obj.type != 'MESH':
+            self.report({'ERROR'}, "Selected object is not a mesh")
+            return {'CANCELLED'}
+        
+        # Optimize mesh for FO4
+        success, message = get3d_helpers.GET3DHelpers.optimize_get3d_mesh_for_fo4(obj)
+        
+        if success:
+            self.report({'INFO'}, message)
+            notification_system.FO4_NotificationSystem.notify(
+                "GET3D mesh optimized for Fallout 4", 'INFO'
+            )
+        else:
+            self.report({'WARNING'}, message)
+            notification_system.FO4_NotificationSystem.notify(message, 'WARNING')
+        
+        return {'FINISHED'}
+
+
+class FO4_OT_ShowGET3DInfo(Operator):
+    """Show information about NVIDIA GET3D"""
+    bl_idname = "fo4.show_get3d_info"
+    bl_label = "About GET3D"
+    
+    def execute(self, context):
+        success, message = get3d_helpers.GET3DHelpers.check_get3d_installation()
+        
+        if success:
+            self.report({'INFO'}, "GET3D is available")
+            print("\n" + "="*70)
+            print("NVIDIA GET3D STATUS")
+            print("="*70)
+            print(message)
+            print("\nAvailable models:")
+            models = get3d_helpers.GET3DHelpers.list_available_models()
+            if models:
+                for model in models:
+                    print(f"  - {os.path.basename(model)}")
+            else:
+                print("  No models found. Download pre-trained models from NVIDIA.")
+            print("="*70 + "\n")
+        else:
+            self.report({'WARNING'}, "GET3D not found")
+            print("\n" + "="*70)
+            print("NVIDIA GET3D INSTALLATION")
+            print("="*70)
+            print(message)
+            print("\nFor detailed instructions, see NVIDIA_RESOURCES.md")
+            print("="*70 + "\n")
+        
+        # Show workflow guide
+        guide = get3d_helpers.GET3DHelpers.create_simple_workflow_guide()
+        print("\n" + guide)
+        
+        return {'FINISHED'}
+
+
+class FO4_OT_CheckGET3DInstallation(Operator):
+    """Check if NVIDIA GET3D is installed"""
+    bl_idname = "fo4.check_get3d_installation"
+    bl_label = "Check GET3D Installation"
+    
+    def execute(self, context):
+        success, message = get3d_helpers.GET3DHelpers.check_get3d_installation()
+        
+        if success:
+            self.report({'INFO'}, message)
+            print("\n" + "="*70)
+            print("NVIDIA GET3D STATUS")
+            print("="*70)
+            print("✅ GET3D is installed and ready!")
+            print(message)
+            print("\nYou can now:")
+            print("  - Generate 3D meshes with AI")
+            print("  - Import GET3D generated models")
+            print("  - Optimize for Fallout 4")
+            print("\nNote: Mesh generation runs outside Blender")
+            print("Use 'About GET3D' for workflow guide")
+            print("="*70 + "\n")
+        else:
+            self.report({'WARNING'}, "GET3D not found")
+            print("\n" + "="*70)
+            print("NVIDIA GET3D INSTALLATION")
+            print("="*70)
+            print(message)
+            print("\nFor detailed instructions, see NVIDIA_RESOURCES.md")
+            print("="*70 + "\n")
+        
+        return {'FINISHED'}
+
+# StyleGAN2 Operators
+
+class FO4_OT_GenerateTextureStyleGAN2(Operator):
+    """Generate texture using StyleGAN2 AI"""
+    bl_idname = "fo4.generate_texture_stylegan2"
+    bl_label = "Generate Texture (StyleGAN2)"
+    bl_options = {'REGISTER', 'UNDO'}
+    
+    output_dir: StringProperty(
+        name="Output Directory",
+        description="Directory to save generated textures",
+        subtype='DIR_PATH'
+    )
+    
+    num_textures: IntProperty(
+        name="Number of Textures",
+        description="How many textures to generate",
+        default=5,
+        min=1,
+        max=100
+    )
+    
+    seed_start: IntProperty(
+        name="Seed Start",
+        description="Starting seed for texture generation",
+        default=0,
+        min=0
+    )
+    
+    def execute(self, context):
+        # Check if StyleGAN2 is available
+        if not stylegan2_helpers.StyleGAN2Helpers.is_stylegan2_available():
+            success, message = stylegan2_helpers.StyleGAN2Helpers.check_stylegan2_installation()
+            self.report({'ERROR'}, "StyleGAN2 not found")
+            print("\n" + "="*70)
+            print("STYLEGAN2 INSTALLATION")
+            print("="*70)
+            print(message)
+            print("="*70 + "\n")
+            notification_system.FO4_NotificationSystem.notify(
+                "StyleGAN2 not installed", 'ERROR'
+            )
+            return {'CANCELLED'}
+        
+        if not self.output_dir:
+            self.report({'ERROR'}, "No output directory selected")
+            return {'CANCELLED'}
+        
+        # Generate textures (returns instructions)
+        success, message = stylegan2_helpers.StyleGAN2Helpers.batch_generate_textures(
+            self.output_dir,
+            self.num_textures,
+            self.seed_start
+        )
+        
+        self.report({'INFO'}, "See console for generation instructions")
+        print("\n" + "="*70)
+        print("STYLEGAN2 TEXTURE GENERATION")
+        print("="*70)
+        print(message)
+        print("="*70 + "\n")
+        
+        notification_system.FO4_NotificationSystem.notify(
+            "StyleGAN2 generation instructions printed to console", 'INFO'
+        )
+        
+        return {'FINISHED'}
+    
+    def invoke(self, context, event):
+        return context.window_manager.invoke_props_dialog(self, width=400)
+    
+    def draw(self, context):
+        layout = self.layout
+        layout.prop(self, "output_dir")
+        layout.prop(self, "num_textures")
+        layout.prop(self, "seed_start")
+
+
+class FO4_OT_ImportStyleGAN2Texture(Operator):
+    """Import a StyleGAN2 generated texture to object material"""
+    bl_idname = "fo4.import_stylegan2_texture"
+    bl_label = "Import StyleGAN2 Texture"
+    bl_options = {'REGISTER', 'UNDO'}
+    
+    filepath: StringProperty(
+        name="Texture File",
+        description="Path to StyleGAN2 generated texture",
+        subtype='FILE_PATH'
+    )
+    
+    filter_glob: StringProperty(
+        default="*.png;*.jpg;*.jpeg",
+        options={'HIDDEN'}
+    )
+    
+    texture_type: EnumProperty(
+        name="Texture Type",
+        description="Type of texture to import",
+        items=[
+            ('DIFFUSE', "Diffuse", "Diffuse/Albedo texture"),
+            ('NORMAL', "Normal", "Normal map"),
+            ('SPECULAR', "Specular", "Specular map"),
+        ],
+        default='DIFFUSE'
+    )
+    
+    def execute(self, context):
+        obj = context.active_object
+        
+        if not obj:
+            self.report({'ERROR'}, "No object selected")
+            return {'CANCELLED'}
+        
+        if not self.filepath:
+            self.report({'ERROR'}, "No texture file selected")
+            return {'CANCELLED'}
+        
+        # Import texture
+        success, message = stylegan2_helpers.StyleGAN2Helpers.import_texture_to_material(
+            self.filepath,
+            obj,
+            self.texture_type
+        )
+        
+        if success:
+            self.report({'INFO'}, message)
+            notification_system.FO4_NotificationSystem.notify(
+                f"StyleGAN2 texture imported as {self.texture_type}", 'INFO'
+            )
+        else:
+            self.report({'ERROR'}, message)
+            notification_system.FO4_NotificationSystem.notify(message, 'ERROR')
+            return {'CANCELLED'}
+        
+        return {'FINISHED'}
+    
+    def invoke(self, context, event):
+        context.window_manager.fileselect_add(self)
+        return {'RUNNING_MODAL'}
+
+
+class FO4_OT_ShowStyleGAN2Info(Operator):
+    """Show information about StyleGAN2 texture generation"""
+    bl_idname = "fo4.show_stylegan2_info"
+    bl_label = "About StyleGAN2"
+    
+    def execute(self, context):
+        success, message = stylegan2_helpers.StyleGAN2Helpers.check_stylegan2_installation()
+        
+        if success:
+            self.report({'INFO'}, "StyleGAN2 is available")
+            print("\n" + "="*70)
+            print("STYLEGAN2 STATUS")
+            print("="*70)
+            print(message)
+            print("\nAvailable models:")
+            models = stylegan2_helpers.StyleGAN2Helpers.list_available_models()
+            if models:
+                for model in models:
+                    print(f"  - {os.path.basename(model)}")
+            else:
+                print("  No models found. Download pre-trained models from NVIDIA.")
+            print("\nTexture categories:")
+            categories = stylegan2_helpers.StyleGAN2Helpers.get_texture_categories()
+            for cat in categories:
+                print(f"  - {cat}")
+            print("="*70 + "\n")
+        else:
+            self.report({'WARNING'}, "StyleGAN2 not found")
+            print("\n" + "="*70)
+            print("STYLEGAN2 INSTALLATION")
+            print("="*70)
+            print(message)
+            print("\nFor detailed instructions, see NVIDIA_RESOURCES.md")
+            print("="*70 + "\n")
+        
+        # Show workflow guide
+        guide = stylegan2_helpers.StyleGAN2Helpers.create_workflow_guide()
+        print("\n" + guide)
+        
+        return {'FINISHED'}
+
+
+class FO4_OT_CheckStyleGAN2Installation(Operator):
+    """Check if StyleGAN2 is installed"""
+    bl_idname = "fo4.check_stylegan2_installation"
+    bl_label = "Check StyleGAN2 Installation"
+    
+    def execute(self, context):
+        success, message = stylegan2_helpers.StyleGAN2Helpers.check_stylegan2_installation()
+        
+        if success:
+            self.report({'INFO'}, message)
+            print("\n" + "="*70)
+            print("STYLEGAN2 STATUS")
+            print("="*70)
+            print("✅ StyleGAN2 is installed and ready!")
+            print(message)
+            print("\nYou can now:")
+            print("  - Generate unique textures with AI")
+            print("  - Create custom diffuse maps")
+            print("  - Generate variations quickly")
+            print("\nNote: Texture generation runs outside Blender")
+            print("Use 'About StyleGAN2' for workflow guide")
+            
+            settings = stylegan2_helpers.StyleGAN2Helpers.get_recommended_settings()
+            print("\nRecommended settings:")
+            for key, value in settings.items():
+                print(f"  {key}: {value}")
+            print("="*70 + "\n")
+        else:
+            self.report({'WARNING'}, "StyleGAN2 not found")
+            print("\n" + "="*70)
+            print("STYLEGAN2 INSTALLATION")
+            print("="*70)
+            print(message)
+            print("\nFor detailed instructions, see NVIDIA_RESOURCES.md")
+            print("="*70 + "\n")
+        
+        return {'FINISHED'}
+
+# Instant-NGP Operators
+
+class FO4_OT_ReconstructFromImages(Operator):
+    """Reconstruct 3D mesh from images using Instant-NGP (NeRF)"""
+    bl_idname = "fo4.reconstruct_from_images"
+    bl_label = "Reconstruct from Images (Instant-NGP)"
+    bl_options = {'REGISTER'}
+    
+    images_dir: StringProperty(
+        name="Images Directory",
+        description="Directory containing input images for reconstruction",
+        subtype='DIR_PATH'
+    )
+    
+    output_path: StringProperty(
+        name="Output Mesh",
+        description="Path for output mesh file",
+        subtype='FILE_PATH',
+        default="reconstruction.obj"
+    )
+    
+    def execute(self, context):
+        # Check if Instant-NGP is available
+        if not instantngp_helpers.InstantNGPHelpers.is_instantngp_available():
+            success, message = instantngp_helpers.InstantNGPHelpers.check_instantngp_installation()
+            self.report({'ERROR'}, "Instant-NGP not found")
+            print("\n" + "="*70)
+            print("INSTANT-NGP INSTALLATION")
+            print("="*70)
+            print(message)
+            print("="*70 + "\n")
+            notification_system.FO4_NotificationSystem.notify(
+                "Instant-NGP not installed", 'ERROR'
+            )
+            return {'CANCELLED'}
+        
+        if not self.images_dir:
+            self.report({'ERROR'}, "No images directory selected")
+            return {'CANCELLED'}
+        
+        # Reconstruct (returns instructions)
+        success, message = instantngp_helpers.InstantNGPHelpers.reconstruct_from_images(
+            self.images_dir,
+            self.output_path
+        )
+        
+        self.report({'INFO'}, "See console for reconstruction instructions")
+        print("\n" + "="*70)
+        print("INSTANT-NGP 3D RECONSTRUCTION")
+        print("="*70)
+        print(message)
+        print("="*70 + "\n")
+        
+        notification_system.FO4_NotificationSystem.notify(
+            "Instant-NGP reconstruction instructions printed to console", 'INFO'
+        )
+        
+        return {'FINISHED'}
+    
+    def invoke(self, context, event):
+        return context.window_manager.invoke_props_dialog(self, width=450)
+    
+    def draw(self, context):
+        layout = self.layout
+        layout.prop(self, "images_dir")
+        layout.prop(self, "output_path")
+
+
+class FO4_OT_ImportInstantNGPMesh(Operator):
+    """Import a mesh reconstructed by Instant-NGP"""
+    bl_idname = "fo4.import_instantngp_mesh"
+    bl_label = "Import Instant-NGP Mesh"
+    bl_options = {'REGISTER', 'UNDO'}
+    
+    filepath: StringProperty(
+        name="Instant-NGP Mesh File",
+        description="Path to .obj file reconstructed by Instant-NGP",
+        subtype='FILE_PATH'
+    )
+    
+    filter_glob: StringProperty(
+        default="*.obj",
+        options={'HIDDEN'}
+    )
+    
+    def execute(self, context):
+        if not self.filepath:
+            self.report({'ERROR'}, "No file selected")
+            return {'CANCELLED'}
+        
+        # Import Instant-NGP mesh
+        success, message, imported_obj = instantngp_helpers.InstantNGPHelpers.import_instantngp_mesh(
+            self.filepath
+        )
+        
+        if success:
+            self.report({'INFO'}, message)
+            notification_system.FO4_NotificationSystem.notify(
+                f"Instant-NGP mesh imported: {imported_obj.name}", 'INFO'
+            )
+            
+            print("\n" + "="*70)
+            print("INSTANT-NGP MESH IMPORTED")
+            print("="*70)
+            print(f"Mesh: {imported_obj.name}")
+            print(f"File: {self.filepath}")
+            print(f"Polygons: {len(imported_obj.data.polygons)}")
+            print("\nNext steps:")
+            print("1. Use 'Optimize NeRF Mesh' to prepare for FO4")
+            print("2. NeRF meshes often need decimation")
+            print("3. Setup materials and textures")
+            print("4. Validate and export")
+            print("="*70 + "\n")
+        else:
+            self.report({'ERROR'}, message)
+            notification_system.FO4_NotificationSystem.notify(message, 'ERROR')
+            return {'CANCELLED'}
+        
+        return {'FINISHED'}
+    
+    def invoke(self, context, event):
+        context.window_manager.fileselect_add(self)
+        return {'RUNNING_MODAL'}
+
+
+class FO4_OT_OptimizeNERFMesh(Operator):
+    """Optimize an Instant-NGP NeRF mesh for Fallout 4"""
+    bl_idname = "fo4.optimize_nerf_mesh"
+    bl_label = "Optimize NeRF Mesh for FO4"
+    bl_options = {'REGISTER', 'UNDO'}
+    
+    def execute(self, context):
+        obj = context.active_object
+        
+        if not obj:
+            self.report({'ERROR'}, "No object selected")
+            return {'CANCELLED'}
+        
+        if obj.type != 'MESH':
+            self.report({'ERROR'}, "Selected object is not a mesh")
+            return {'CANCELLED'}
+        
+        poly_count_before = len(obj.data.polygons)
+        
+        # Optimize mesh for FO4
+        success, message = instantngp_helpers.InstantNGPHelpers.optimize_nerf_mesh_for_fo4(obj)
+        
+        poly_count_after = len(obj.data.polygons)
+        
+        if success:
+            self.report({'INFO'}, message)
+            notification_system.FO4_NotificationSystem.notify(
+                f"NeRF mesh optimized: {poly_count_before} → {poly_count_after} polygons", 'INFO'
+            )
+            
+            print("\n" + "="*70)
+            print("NERF MESH OPTIMIZATION")
+            print("="*70)
+            print(f"Before: {poly_count_before} polygons")
+            print(f"After: {poly_count_after} polygons")
+            print(f"Reduction: {((poly_count_before - poly_count_after) / poly_count_before * 100):.1f}%")
+            print("="*70 + "\n")
+        else:
+            self.report({'WARNING'}, message)
+            notification_system.FO4_NotificationSystem.notify(message, 'WARNING')
+        
+        return {'FINISHED'}
+
+
+class FO4_OT_ShowInstantNGPInfo(Operator):
+    """Show information about Instant-NGP reconstruction"""
+    bl_idname = "fo4.show_instantngp_info"
+    bl_label = "About Instant-NGP"
+    
+    def execute(self, context):
+        success, message = instantngp_helpers.InstantNGPHelpers.check_instantngp_installation()
+        
+        if success:
+            self.report({'INFO'}, "Instant-NGP is available")
+            print("\n" + "="*70)
+            print("INSTANT-NGP STATUS")
+            print("="*70)
+            print(message)
+            
+            settings = instantngp_helpers.InstantNGPHelpers.get_recommended_settings()
+            print("\nRecommended settings:")
+            for key, value in settings.items():
+                print(f"  {key}: {value}")
+            
+            print("\nEstimated training time:")
+            print(f"  100 images with RTX GPU: {instantngp_helpers.InstantNGPHelpers.estimate_training_time(100, True)}")
+            print(f"  100 images without RTX: {instantngp_helpers.InstantNGPHelpers.estimate_training_time(100, False)}")
+            print("="*70 + "\n")
+        else:
+            self.report({'WARNING'}, "Instant-NGP not found")
+            print("\n" + "="*70)
+            print("INSTANT-NGP INSTALLATION")
+            print("="*70)
+            print(message)
+            print("\nFor detailed instructions, see NVIDIA_RESOURCES.md")
+            print("="*70 + "\n")
+        
+        # Show workflow guide
+        guide = instantngp_helpers.InstantNGPHelpers.create_workflow_guide()
+        print("\n" + guide)
+        
+        return {'FINISHED'}
+
+
+class FO4_OT_CheckInstantNGPInstallation(Operator):
+    """Check if Instant-NGP is installed"""
+    bl_idname = "fo4.check_instantngp_installation"
+    bl_label = "Check Instant-NGP Installation"
+    
+    def execute(self, context):
+        success, message = instantngp_helpers.InstantNGPHelpers.check_instantngp_installation()
+        
+        if success:
+            self.report({'INFO'}, message)
+            print("\n" + "="*70)
+            print("INSTANT-NGP STATUS")
+            print("="*70)
+            print("✅ Instant-NGP is installed and ready!")
+            print(message)
+            print("\nYou can now:")
+            print("  - Reconstruct 3D from photos")
+            print("  - Create meshes using NeRF technology")
+            print("  - Import and optimize for Fallout 4")
+            print("\nNote: Reconstruction runs in Instant-NGP application")
+            print("Use 'About Instant-NGP' for workflow guide")
+            print("="*70 + "\n")
+        else:
+            self.report({'WARNING'}, "Instant-NGP not found")
+            print("\n" + "="*70)
+            print("INSTANT-NGP INSTALLATION")
+            print("="*70)
+            print(message)
+            print("\nFor detailed instructions, see NVIDIA_RESOURCES.md")
+            print("="*70 + "\n")
+        
+        return {'FINISHED'}
+
+# Image-to-3D Comparison and Status Operators
+
+class FO4_OT_ShowImageTo3DComparison(Operator):
+    """Show comparison of all available image-to-3D methods"""
+    bl_idname = "fo4.show_imageto3d_comparison"
+    bl_label = "Compare Image-to-3D Methods"
+    
+    def execute(self, context):
+        # Show comparison guide
+        guide = imageto3d_helpers.ImageTo3DHelpers.create_comparison_guide()
+        print("\n" + guide)
+        
+        # Show installation status
+        print("\n" + "="*70)
+        print("INSTALLATION STATUS")
+        print("="*70)
+        
+        status = imageto3d_helpers.ImageTo3DHelpers.get_installation_status()
+        for name, (installed, message) in status.items():
+            icon = "✅" if installed else "❌"
+            print(f"{icon} {name}")
+            if not installed:
+                print(f"   Install: See guide above")
+        
+        print("="*70 + "\n")
+        
+        self.report({'INFO'}, "Image-to-3D comparison printed to console")
+        notification_system.FO4_NotificationSystem.notify(
+            "Image-to-3D comparison guide available in console", 'INFO'
+        )
+        
+        return {'FINISHED'}
+
+
+class FO4_OT_CheckAllImageTo3D(Operator):
+    """Check installation status of all image-to-3D tools"""
+    bl_idname = "fo4.check_all_imageto3d"
+    bl_label = "Check All Image-to-3D Tools"
+    
+    def execute(self, context):
+        print("\n" + "="*70)
+        print("IMAGE-TO-3D TOOLS STATUS")
+        print("="*70)
+        
+        # Check each tool
+        tools = [
+            ('TripoSR', imageto3d_helpers.ImageTo3DHelpers.check_triposr_installation),
+            ('DreamGaussian', imageto3d_helpers.ImageTo3DHelpers.check_dreamgaussian_installation),
+            ('Shap-E', imageto3d_helpers.ImageTo3DHelpers.check_shap_e_installation),
+            ('Instant-NGP', instantngp_helpers.InstantNGPHelpers.check_instantngp_installation),
+            ('GET3D', get3d_helpers.GET3DHelpers.check_get3d_installation),
+            ('Hunyuan3D-2', hunyuan3d_helpers.Hunyuan3DHelpers.check_installation),
+        ]
+        
+        installed_count = 0
+        total_count = len(tools)
+        
+        for name, check_func in tools:
+            try:
+                installed, message = check_func()
+                icon = "✅" if installed else "❌"
+                print(f"\n{icon} {name}")
+                if installed:
+                    installed_count += 1
+                    # Show first line of message
+                    first_line = message.split('\n')[0]
+                    print(f"   {first_line}")
+                else:
+                    print(f"   Not installed")
+            except Exception as e:
+                print(f"❌ {name}")
+                print(f"   Error checking: {e}")
+        
+        print("\n" + "="*70)
+        print(f"Summary: {installed_count}/{total_count} tools installed")
+        print("="*70)
+        
+        # Show available methods
+        available = imageto3d_helpers.ImageTo3DHelpers.get_available_methods()
+        print("\nAvailable methods:")
+        for method_id, name, description in available:
+            print(f"  • {name}: {description}")
+        
+        print("\n" + "="*70 + "\n")
+        
+        self.report({'INFO'}, f"{installed_count}/{total_count} image-to-3D tools available")
+        
+        return {'FINISHED'}
+
+
+class FO4_OT_SuggestImageTo3DMethod(Operator):
+    """Get suggestion for best image-to-3D method"""
+    bl_idname = "fo4.suggest_imageto3d_method"
+    bl_label = "Suggest Best Method"
+    
+    use_case: EnumProperty(
+        name="Use Case",
+        items=[
+            ('speed', "Speed", "Fastest conversion"),
+            ('quality', "Quality", "Best quality output"),
+            ('ease', "Ease of Use", "Easiest to setup"),
+            ('terrain', "Terrain", "Height maps and terrain"),
+            ('photos', "Photos", "Multiple photo reconstruction"),
+            ('texture', "Textures", "Texture generation"),
+        ],
+        default='speed'
+    )
+    
+    def execute(self, context):
+        suggestion = imageto3d_helpers.ImageTo3DHelpers.suggest_best_method(self.use_case)
+        
+        self.report({'INFO'}, suggestion)
+        print("\n" + "="*70)
+        print("RECOMMENDATION")
+        print("="*70)
+        print(f"Use Case: {self.use_case}")
+        print(f"Suggestion: {suggestion}")
+        print("="*70 + "\n")
+        
+        notification_system.FO4_NotificationSystem.notify(
+            f"Recommended: {suggestion.split(' - ')[0]}", 'INFO'
+        )
+        
+        return {'FINISHED'}
+    
+    def invoke(self, context, event):
+        return context.window_manager.invoke_props_dialog(self)
+
 # Register all operators
 
 classes = (
@@ -1117,6 +2058,25 @@ classes = (
     FO4_OT_ConvertTextureToDDS,
     FO4_OT_ConvertObjectTexturesToDDS,
     FO4_OT_CheckNVTTInstallation,
+    FO4_OT_UpscaleTexture,
+    FO4_OT_UpscaleObjectTextures,
+    FO4_OT_CheckRealESRGANInstallation,
+    FO4_OT_ImportGET3DMesh,
+    FO4_OT_OptimizeGET3DMesh,
+    FO4_OT_ShowGET3DInfo,
+    FO4_OT_CheckGET3DInstallation,
+    FO4_OT_GenerateTextureStyleGAN2,
+    FO4_OT_ImportStyleGAN2Texture,
+    FO4_OT_ShowStyleGAN2Info,
+    FO4_OT_CheckStyleGAN2Installation,
+    FO4_OT_ReconstructFromImages,
+    FO4_OT_ImportInstantNGPMesh,
+    FO4_OT_OptimizeNERFMesh,
+    FO4_OT_ShowInstantNGPInfo,
+    FO4_OT_CheckInstantNGPInstallation,
+    FO4_OT_ShowImageTo3DComparison,
+    FO4_OT_CheckAllImageTo3D,
+    FO4_OT_SuggestImageTo3DMethod,
 )
 
 def register():

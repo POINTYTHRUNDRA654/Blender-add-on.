@@ -2027,6 +2027,133 @@ class FO4_OT_SuggestImageTo3DMethod(Operator):
     def invoke(self, context, event):
         return context.window_manager.invoke_props_dialog(self)
 
+# TripoSR Texture Generation Operators
+
+class FO4_OT_GenerateTripoSRTexture(Operator):
+    """Generate enhanced textures for TripoSR mesh"""
+    bl_idname = "fo4.generate_triposr_texture"
+    bl_label = "Generate TripoSR Textures"
+    bl_options = {'REGISTER'}
+    
+    mesh_path: StringProperty(
+        name="Mesh File",
+        description="Path to TripoSR generated mesh",
+        subtype='FILE_PATH'
+    )
+    
+    reference_image: StringProperty(
+        name="Reference Image",
+        description="Original image used for 3D generation",
+        subtype='FILE_PATH'
+    )
+    
+    output_dir: StringProperty(
+        name="Output Directory",
+        description="Directory for generated textures",
+        subtype='DIR_PATH'
+    )
+    
+    def execute(self, context):
+        # Check if texture gen is available
+        success, message = imageto3d_helpers.ImageTo3DHelpers.check_triposr_texture_gen_installation()
+        
+        if not success:
+            self.report({'ERROR'}, "triposr-texture-gen not installed")
+            print("\n" + "="*70)
+            print("TRIPOSR TEXTURE GENERATION")
+            print("="*70)
+            print(message)
+            print("="*70 + "\n")
+            notification_system.FO4_NotificationSystem.notify(
+                "triposr-texture-gen not installed", 'ERROR'
+            )
+            return {'CANCELLED'}
+        
+        if not self.mesh_path or not self.reference_image:
+            self.report({'ERROR'}, "Mesh and reference image required")
+            return {'CANCELLED'}
+        
+        # Generate textures (returns instructions)
+        success, msg, texture_paths = imageto3d_helpers.ImageTo3DHelpers.generate_texture_for_triposr_mesh(
+            self.mesh_path,
+            self.reference_image,
+            self.output_dir
+        )
+        
+        self.report({'INFO'}, "See console for texture generation instructions")
+        print("\n" + "="*70)
+        print("TRIPOSR TEXTURE GENERATION")
+        print("="*70)
+        print(msg)
+        print("="*70 + "\n")
+        
+        notification_system.FO4_NotificationSystem.notify(
+            "Texture generation instructions in console", 'INFO'
+        )
+        
+        return {'FINISHED'}
+    
+    def invoke(self, context, event):
+        return context.window_manager.invoke_props_dialog(self, width=500)
+    
+    def draw(self, context):
+        layout = self.layout
+        layout.prop(self, "mesh_path")
+        layout.prop(self, "reference_image")
+        layout.prop(self, "output_dir")
+
+
+class FO4_OT_ShowTripoSRWorkflow(Operator):
+    """Show complete TripoSR workflow with texture generation"""
+    bl_idname = "fo4.show_triposr_workflow"
+    bl_label = "TripoSR Complete Workflow"
+    
+    def execute(self, context):
+        # Show workflow guide
+        guide = imageto3d_helpers.ImageTo3DHelpers.create_triposr_complete_workflow_guide()
+        print("\n" + guide)
+        
+        self.report({'INFO'}, "Complete TripoSR workflow printed to console")
+        notification_system.FO4_NotificationSystem.notify(
+            "TripoSR workflow guide available in console", 'INFO'
+        )
+        
+        return {'FINISHED'}
+
+
+class FO4_OT_CheckTripoSRTextureGen(Operator):
+    """Check triposr-texture-gen installation"""
+    bl_idname = "fo4.check_triposr_texture_gen"
+    bl_label = "Check TripoSR Texture Gen"
+    
+    def execute(self, context):
+        success, message = imageto3d_helpers.ImageTo3DHelpers.check_triposr_texture_gen_installation()
+        
+        if success:
+            self.report({'INFO'}, message)
+            print("\n" + "="*70)
+            print("TRIPOSR TEXTURE GENERATION STATUS")
+            print("="*70)
+            print("✅ triposr-texture-gen is installed and ready!")
+            print(message)
+            print("\nYou can now:")
+            print("  - Generate enhanced textures for TripoSR meshes")
+            print("  - Create PBR materials (diffuse, normal, roughness)")
+            print("  - Optimize UV layouts automatically")
+            print("\nUse 'Generate TripoSR Textures' operator")
+            print("See 'TripoSR Complete Workflow' for full guide")
+            print("="*70 + "\n")
+        else:
+            self.report({'WARNING'}, "triposr-texture-gen not found")
+            print("\n" + "="*70)
+            print("TRIPOSR TEXTURE GENERATION INSTALLATION")
+            print("="*70)
+            print(message)
+            print("\nFor workflow guide, use 'TripoSR Complete Workflow' operator")
+            print("="*70 + "\n")
+        
+        return {'FINISHED'}
+
 # Advanced Mesh Analysis and Repair Operators
 
 class FO4_OT_AnalyzeMeshQuality(Operator):
@@ -2344,6 +2471,9 @@ classes = (
     FO4_OT_ShowImageTo3DComparison,
     FO4_OT_CheckAllImageTo3D,
     FO4_OT_SuggestImageTo3DMethod,
+    FO4_OT_GenerateTripoSRTexture,
+    FO4_OT_ShowTripoSRWorkflow,
+    FO4_OT_CheckTripoSRTextureGen,
     FO4_OT_AnalyzeMeshQuality,
     FO4_OT_AutoRepairMesh,
     FO4_OT_SmartDecimate,

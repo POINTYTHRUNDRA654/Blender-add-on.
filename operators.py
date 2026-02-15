@@ -2230,6 +2230,92 @@ class FO4_OT_CheckStereoTripoSR(Operator):
         
         return {'FINISHED'}
 
+# Hugging Face Diffusers Operators
+
+class FO4_OT_CheckDiffusers(Operator):
+    """Check Hugging Face Diffusers installation"""
+    bl_idname = "fo4.check_diffusers"
+    bl_label = "Check Diffusers"
+    
+    def execute(self, context):
+        success, message = imageto3d_helpers.ImageTo3DHelpers.check_diffusers_installation()
+        
+        print("\n" + "="*70)
+        print("HUGGING FACE DIFFUSERS STATUS")
+        print("="*70)
+        print(message)
+        if success:
+            print("\nCapabilities:")
+            print("  • Text-to-image (Stable Diffusion, SDXL)")
+            print("  • Image-to-image refinement")
+            print("  • Inpainting")
+            print("  • ControlNet (guided generation)")
+            print("  • Texture generation")
+            print("\nWorkflow:")
+            print("  1. Generate image with Diffusers")
+            print("  2. Convert to 3D with TripoSR")
+            print("  3. Complete asset pipeline")
+            print("\nIntegration #15 in the ecosystem!")
+        print("="*70 + "\n")
+        
+        if success:
+            self.report({'INFO'}, "Diffusers available")
+        else:
+            self.report({'WARNING'}, "Not installed")
+        
+        return {'FINISHED'}
+
+
+class FO4_OT_ShowDiffusersWorkflow(Operator):
+    """Show complete Diffusers + TripoSR workflow"""
+    bl_idname = "fo4.show_diffusers_workflow"
+    bl_label = "Diffusers Workflow Guide"
+    
+    def execute(self, context):
+        guide = imageto3d_helpers.ImageTo3DHelpers.create_diffusers_workflow_guide()
+        print("\n" + guide)
+        
+        self.report({'INFO'}, "Diffusers workflow guide in console")
+        notification_system.FO4_NotificationSystem.notify(
+            "Text → Image → 3D workflow available", 'INFO'
+        )
+        
+        return {'FINISHED'}
+
+
+class FO4_OT_CheckLayerDiffuse(Operator):
+    """Check ComfyUI LayerDiffuse installation"""
+    bl_idname = "fo4.check_layerdiffuse"
+    bl_label = "Check LayerDiffuse"
+    
+    def execute(self, context):
+        success, message = imageto3d_helpers.ImageTo3DHelpers.check_layerdiffuse_installation()
+        
+        print("\n" + "="*70)
+        print("COMFYUI LAYERDIFFUSE STATUS")
+        print("="*70)
+        print(message)
+        if success:
+            print("\nKey Features:")
+            print("  • Transparent background generation")
+            print("  • Layer-based control")
+            print("  • RGBA output")
+            print("  • Perfect for game assets")
+            print("  • Better 3D conversion quality")
+            print("\nAdvantages:")
+            print("  • No background removal needed")
+            print("  • Clean edges for TripoSR")
+            print("  • Professional cutouts")
+            print("\nIntegration #16 in the ecosystem!")
+        print("="*70 + "\n")
+        
+        if success:
+            self.report({'INFO'}, "LayerDiffuse available")
+        else:
+            self.report({'WARNING'}, "Not installed")
+        
+        return {'FINISHED'}
+
 # StarxSky TRIPOSR Variant Operators
 
 class FO4_OT_CheckStarxSkyTripoSR(Operator):
@@ -2962,6 +3048,9 @@ classes = (
     FO4_OT_CheckStereoTripoSR,
     FO4_OT_CheckStarxSkyTripoSR,
     FO4_OT_ShowAllTripoSRVariants,
+    FO4_OT_CheckDiffusers,
+    FO4_OT_ShowDiffusersWorkflow,
+    FO4_OT_CheckLayerDiffuse,
     FO4_OT_UsePythonicTripoSR,
     FO4_OT_CheckPythonicTripoSR,
     FO4_OT_GenerateWithTripoSRLight,

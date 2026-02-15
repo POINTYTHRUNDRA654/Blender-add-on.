@@ -97,11 +97,23 @@ class ImageTo3DHelpers:
                 "3. Download model weights (automatic on first run)\n\n"
                 "METHOD 2 - Python Package:\n"
                 "   pip install triposr\n\n"
+                "METHOD 3 - ComfyUI Node (NEW):\n"
+                "1. Clone ComfyUI-Flowty-TripoSR:\n"
+                "   gh repo clone flowtyone/ComfyUI-Flowty-TripoSR\n"
+                "   (or: git clone https://github.com/flowtyone/ComfyUI-Flowty-TripoSR.git)\n\n"
+                "2. For use with ComfyUI:\n"
+                "   - Place in ComfyUI/custom_nodes/\n"
+                "   - Install requirements: pip install -r requirements.txt\n"
+                "   - Restart ComfyUI\n\n"
+                "3. For standalone use from Blender:\n"
+                "   - Can use TripoSR model from this installation\n"
+                "   - Provides optimized inference pipeline\n\n"
                 "FEATURES:\n"
                 "- Very fast inference (~5 seconds per image)\n"
                 "- High quality 3D reconstruction\n"
                 "- Single image input\n"
-                "- Works on CPU or GPU\n\n"
+                "- Works on CPU or GPU\n"
+                "- ComfyUI integration for workflow automation\n\n"
             )
             
             if not has_torch:
@@ -109,6 +121,51 @@ class ImageTo3DHelpers:
                 install_msg += "Install: pip install torch torchvision\n\n"
             
             return False, install_msg
+    
+    @staticmethod
+    def convert_image_to_3d_triposr(image_path, output_path=None):
+        """
+        Convert single image to 3D using TripoSR
+        
+        Args:
+            image_path: Path to input image
+            output_path: Path for output mesh (optional)
+        
+        Returns: (bool success, str message, str output_file)
+        """
+        triposr_path = ImageTo3DHelpers.find_triposr_path()
+        
+        if not triposr_path:
+            return False, "TripoSR not installed", None
+        
+        if not os.path.exists(image_path):
+            return False, f"Image not found: {image_path}", None
+        
+        # Determine output path
+        if output_path is None:
+            base_name = os.path.splitext(os.path.basename(image_path))[0]
+            output_path = f"{base_name}_triposr.obj"
+        
+        # Instructions for running TripoSR
+        msg = (
+            "To convert image to 3D with TripoSR:\n\n"
+            f"1. Navigate to: {triposr_path}\n"
+            "2. Run TripoSR:\n"
+            f"   python run.py {image_path} --output {output_path}\n\n"
+            "   OR for batch processing:\n"
+            f"   python run.py {os.path.dirname(image_path)}/ --output ./output/\n\n"
+            "3. Import generated mesh:\n"
+            "   - Use 'Import' operator in Blender\n"
+            "   - Or use File → Import → Wavefront (.obj)\n\n"
+            "TIPS:\n"
+            "- Best results with clear, well-lit object photos\n"
+            "- White/neutral background recommended\n"
+            "- Object should fill most of frame\n"
+            "- Inference takes ~5 seconds on GPU\n"
+            "- Output includes texture map\n"
+        )
+        
+        return False, msg, None
     
     # ==================== DreamGaussian ====================
     

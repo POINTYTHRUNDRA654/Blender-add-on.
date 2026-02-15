@@ -4,8 +4,8 @@ Operators for the Fallout 4 Tutorial Add-on
 
 import bpy
 from bpy.types import Operator
-from bpy.props import StringProperty, EnumProperty, IntProperty
-from . import tutorial_system, mesh_helpers, texture_helpers, animation_helpers, export_helpers, notification_system, image_to_mesh_helpers, hunyuan3d_helpers, gradio_helpers, hymotion_helpers, nvtt_helpers, realesrgan_helpers, get3d_helpers, stylegan2_helpers, instantngp_helpers, imageto3d_helpers
+from bpy.props import StringProperty, EnumProperty, IntProperty, FloatProperty, BoolProperty
+from . import tutorial_system, mesh_helpers, texture_helpers, animation_helpers, export_helpers, notification_system, image_to_mesh_helpers, hunyuan3d_helpers, gradio_helpers, hymotion_helpers, nvtt_helpers, realesrgan_helpers, get3d_helpers, stylegan2_helpers, instantngp_helpers, imageto3d_helpers, advanced_mesh_helpers
 
 # Tutorial Operators
 
@@ -2027,6 +2027,273 @@ class FO4_OT_SuggestImageTo3DMethod(Operator):
     def invoke(self, context, event):
         return context.window_manager.invoke_props_dialog(self)
 
+# Advanced Mesh Analysis and Repair Operators
+
+class FO4_OT_AnalyzeMeshQuality(Operator):
+    """Analyze mesh quality and identify issues"""
+    bl_idname = "fo4.analyze_mesh_quality"
+    bl_label = "Analyze Mesh Quality"
+    bl_options = {'REGISTER', 'UNDO'}
+    
+    def execute(self, context):
+        obj = context.active_object
+        
+        if not obj:
+            self.report({'ERROR'}, "No object selected")
+            return {'CANCELLED'}
+        
+        # Analyze mesh
+        scores, issues, details = advanced_mesh_helpers.AdvancedMeshHelpers.analyze_mesh_quality(obj)
+        
+        if scores is None:
+            self.report({'ERROR'}, issues[0])
+            return {'CANCELLED'}
+        
+        # Report results
+        self.report({'INFO'}, f"Overall Quality: {scores['overall']:.1f}/100")
+        
+        print("\n" + "="*70)
+        print("MESH QUALITY ANALYSIS")
+        print("="*70)
+        print(f"Object: {obj.name}")
+        print(f"\nQuality Scores:")
+        print(f"  Overall:  {scores['overall']:.1f}/100")
+        print(f"  Topology: {scores['topology']:.1f}/100")
+        print(f"  Geometry: {scores['geometry']:.1f}/100")
+        print(f"  UV:       {scores['uv']:.1f}/100")
+        print(f"\nMesh Statistics:")
+        print(f"  Vertices: {details['vertex_count']}")
+        print(f"  Edges:    {details['edge_count']}")
+        print(f"  Faces:    {details['face_count']}")
+        print(f"    - Tris:  {details['tris']}")
+        print(f"    - Quads: {details['quads']}")
+        print(f"    - N-gons: {details['ngons']}")
+        print(f"\nIssues Found:")
+        for issue in issues:
+            print(f"  • {issue}")
+        print("="*70 + "\n")
+        
+        notification_system.FO4_NotificationSystem.notify(
+            f"Mesh quality: {scores['overall']:.1f}/100", 
+            'INFO' if scores['overall'] > 70 else 'WARNING'
+        )
+        
+        return {'FINISHED'}
+
+
+class FO4_OT_AutoRepairMesh(Operator):
+    """Automatically repair common mesh issues"""
+    bl_idname = "fo4.auto_repair_mesh"
+    bl_label = "Auto-Repair Mesh"
+    bl_options = {'REGISTER', 'UNDO'}
+    
+    def execute(self, context):
+        obj = context.active_object
+        
+        if not obj:
+            self.report({'ERROR'}, "No object selected")
+            return {'CANCELLED'}
+        
+        # Repair mesh
+        success, message, repairs = advanced_mesh_helpers.AdvancedMeshHelpers.auto_repair_mesh(obj)
+        
+        if success:
+            self.report({'INFO'}, message)
+            notification_system.FO4_NotificationSystem.notify(
+                "Mesh repaired successfully", 'INFO'
+            )
+            
+            print("\n" + "="*70)
+            print("MESH REPAIR RESULTS")
+            print("="*70)
+            print(f"Object: {obj.name}")
+            print(f"\nRepairs Made:")
+            for key, value in repairs.items():
+                print(f"  {key}: {value}")
+            print("="*70 + "\n")
+        else:
+            self.report({'ERROR'}, message)
+            return {'CANCELLED'}
+        
+        return {'FINISHED'}
+
+
+class FO4_OT_SmartDecimate(Operator):
+    """Intelligently reduce polygon count with feature preservation"""
+    bl_idname = "fo4.smart_decimate"
+    bl_label = "Smart Decimate"
+    bl_options = {'REGISTER', 'UNDO'}
+    
+    method: EnumProperty(
+        name="Method",
+        items=[
+            ('RATIO', "Ratio", "Use reduction ratio"),
+            ('TARGET', "Target Count", "Target specific polygon count"),
+        ],
+        default='RATIO'
+    )
+    
+    ratio: FloatProperty(
+        name="Ratio",
+        description="Reduction ratio (0.5 = 50% reduction)",
+        default=0.5,
+        min=0.01,
+        max=1.0
+    )
+    
+    target_poly_count: IntProperty(
+        name="Target Poly Count",
+        description="Target polygon count",
+        default=10000,
+        min=100,
+        max=1000000
+    )
+    
+    preserve_uvs: BoolProperty(
+        name="Preserve UVs",
+        description="Preserve UV seams during decimation",
+        default=True
+    )
+    
+    def execute(self, context):
+        obj = context.active_object
+        
+        if not obj:
+            self.report({'ERROR'}, "No object selected")
+            return {'CANCELLED'}
+        
+        # Decimate mesh
+        if self.method == 'TARGET':
+            success, message, stats = advanced_mesh_helpers.AdvancedMeshHelpers.smart_decimate(
+                obj, target_poly_count=self.target_poly_count, preserve_uvs=self.preserve_uvs
+            )
+        else:
+            success, message, stats = advanced_mesh_helpers.AdvancedMeshHelpers.smart_decimate(
+                obj, ratio=self.ratio, preserve_uvs=self.preserve_uvs
+            )
+        
+        if success:
+            self.report({'INFO'}, message)
+            notification_system.FO4_NotificationSystem.notify(
+                f"Decimated: {stats['reduction_percent']:.1f}% reduction", 'INFO'
+            )
+        else:
+            self.report({'ERROR'}, message)
+            return {'CANCELLED'}
+        
+        return {'FINISHED'}
+    
+    def invoke(self, context, event):
+        return context.window_manager.invoke_props_dialog(self)
+    
+    def draw(self, context):
+        layout = self.layout
+        layout.prop(self, "method")
+        if self.method == 'RATIO':
+            layout.prop(self, "ratio")
+        else:
+            layout.prop(self, "target_poly_count")
+        layout.prop(self, "preserve_uvs")
+
+
+class FO4_OT_GenerateLOD(Operator):
+    """Generate Level of Detail mesh chain"""
+    bl_idname = "fo4.generate_lod"
+    bl_label = "Generate LOD Chain"
+    bl_options = {'REGISTER', 'UNDO'}
+    
+    num_levels: IntProperty(
+        name="LOD Levels",
+        description="Number of LOD levels to generate",
+        default=4,
+        min=1,
+        max=6
+    )
+    
+    def execute(self, context):
+        obj = context.active_object
+        
+        if not obj:
+            self.report({'ERROR'}, "No object selected")
+            return {'CANCELLED'}
+        
+        # Generate LOD chain
+        success, message, lod_objects = advanced_mesh_helpers.AdvancedMeshHelpers.generate_lod_chain(obj)
+        
+        if success:
+            self.report({'INFO'}, message)
+            notification_system.FO4_NotificationSystem.notify(
+                f"Generated {len(lod_objects)} LOD levels", 'INFO'
+            )
+            
+            print("\n" + "="*70)
+            print("LOD GENERATION RESULTS")
+            print("="*70)
+            print(f"Source Object: {obj.name}")
+            print(f"\nLOD Meshes Created:")
+            for lod_obj, poly_count in lod_objects:
+                print(f"  {lod_obj.name}: {poly_count} polygons")
+            print("="*70 + "\n")
+        else:
+            self.report({'ERROR'}, message)
+            return {'CANCELLED'}
+        
+        return {'FINISHED'}
+    
+    def invoke(self, context, event):
+        return context.window_manager.invoke_props_dialog(self)
+
+
+class FO4_OT_OptimizeUVs(Operator):
+    """Optimize UV layout"""
+    bl_idname = "fo4.optimize_uvs"
+    bl_label = "Optimize UVs"
+    bl_options = {'REGISTER', 'UNDO'}
+    
+    method: EnumProperty(
+        name="Method",
+        items=[
+            ('SMART', "Smart UV Project", "Smart UV projection with automatic seams"),
+            ('UNWRAP', "Angle-Based Unwrap", "Unwrap with angle-based method"),
+            ('CUBE', "Cube Projection", "Simple cube projection"),
+        ],
+        default='SMART'
+    )
+    
+    margin: FloatProperty(
+        name="Margin",
+        description="Space between UV islands",
+        default=0.01,
+        min=0.0,
+        max=0.1
+    )
+    
+    def execute(self, context):
+        obj = context.active_object
+        
+        if not obj:
+            self.report({'ERROR'}, "No object selected")
+            return {'CANCELLED'}
+        
+        # Optimize UVs
+        success, message = advanced_mesh_helpers.AdvancedMeshHelpers.optimize_uvs(
+            obj, self.method, self.margin
+        )
+        
+        if success:
+            self.report({'INFO'}, message)
+            notification_system.FO4_NotificationSystem.notify(
+                "UVs optimized", 'INFO'
+            )
+        else:
+            self.report({'ERROR'}, message)
+            return {'CANCELLED'}
+        
+        return {'FINISHED'}
+    
+    def invoke(self, context, event):
+        return context.window_manager.invoke_props_dialog(self)
+
 # Register all operators
 
 classes = (
@@ -2077,6 +2344,11 @@ classes = (
     FO4_OT_ShowImageTo3DComparison,
     FO4_OT_CheckAllImageTo3D,
     FO4_OT_SuggestImageTo3DMethod,
+    FO4_OT_AnalyzeMeshQuality,
+    FO4_OT_AutoRepairMesh,
+    FO4_OT_SmartDecimate,
+    FO4_OT_GenerateLOD,
+    FO4_OT_OptimizeUVs,
 )
 
 def register():

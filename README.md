@@ -78,16 +78,22 @@ A comprehensive Blender add-on that provides a desktop tutorial system and helpe
 - **NEW**: AI-powered automatic rigging for characters
 - **RigNet**: Automatically predicts skeleton structure and skinning weights
 - **libigl**: Bounded Biharmonic Weights (BBW) for automatic skinning
+- **MediaPipe**: Real-time pose estimation and tracking (33 body landmarks)
+- **BlendArMocap**: Complete Blender add-on for MediaPipe motion capture
 - Based on SIGGRAPH 2020 research paper (RigNet)
 - Supports meshes with 1K-5K vertices (RigNet)
 - Two RigNet implementations available:
   - rignet-gj: Joint prediction reimplementation (educational/WIP)
   - Original RigNet: Complete rigging pipeline
 - libigl provides fast, reliable weight computation for existing skeletons
-- Alternative: Use existing Blender add-ons (brignet, Rignet_blender_addon)
+- MediaPipe enables motion capture from images/video
+- BlendArMocap integrates MediaPipe mocap into Blender workflow
+- Alternative: Use existing Blender add-ons (brignet, Rignet_blender_addon, BlendArMocap)
 - Requires: 
   - RigNet: PyTorch, PyTorch Geometric, and RigNet repository
   - libigl: Python bindings (pip install libigl)
+  - MediaPipe: pip install mediapipe
+  - BlendArMocap: Blender add-on (discontinued but functional)
 - Completely optional feature
 
 ### 📦 Export Functionality
@@ -400,7 +406,68 @@ git clone https://github.com/libigl/libigl.git
 **When to use:**
 - **RigNet**: Full automatic rigging (skeleton + skinning)
 - **libigl**: Automatic skinning for existing skeletons
-- **Combination**: RigNet for skeleton prediction + libigl for weight refinement
+- **MediaPipe**: Motion capture from images/video, reference poses
+- **BlendArMocap**: Complete motion capture workflow in Blender
+- **Combination**: RigNet for skeleton prediction + libigl for weight refinement + MediaPipe for animation
+
+**Additional: MediaPipe for Pose Estimation**
+
+MediaPipe provides real-time pose estimation and tracking:
+
+1. **Install MediaPipe** (easiest):
+```bash
+# In Blender's Python environment
+pip install mediapipe opencv-python
+```
+
+2. **Clone demo repository** (optional, for examples):
+```bash
+gh repo clone ntu-rris/google-mediapipe
+# OR
+git clone https://github.com/ntu-rris/google-mediapipe.git
+```
+
+3. **Restart Blender**
+
+**Features:**
+- 33 3D body landmarks, 21 hand landmarks, 468 face landmarks
+- Real-time performance on CPU (10-30 FPS)
+- Works with images or video input
+- Reference poses for rigging
+- Motion capture data for animation
+
+**Recommended: BlendArMocap Add-on**
+
+For a complete motion capture workflow in Blender, use BlendArMocap:
+
+1. **Download BlendArMocap**:
+```bash
+gh repo clone cgtinker/BlendArMocap
+# OR
+git clone https://github.com/cgtinker/BlendArMocap.git
+```
+
+2. **Install as Blender add-on**:
+   - Download ZIP or clone repository
+   - In Blender: Edit > Preferences > Add-ons > Install
+   - Select the BlendArMocap folder or ZIP
+   - Enable "BlendArMocap"
+
+3. **Install dependencies** (via add-on preferences):
+   - BlendArMocap will prompt to install mediapipe and dependencies
+   - Follow on-screen instructions
+
+4. **Restart Blender**
+
+**BlendArMocap Features:**
+- MediaPipe detection within Blender (pose, hand, face, holistic)
+- Automatic transfer to Rigify rigs
+- Import Freemocap session data
+- Calculate rotations from detection data
+- Generate transfer configurations
+
+**Note:** BlendArMocap is discontinued but still functional for Blender 3.x
+Documentation: https://cgtinker.github.io/BlendArMocap/
 
 ## Installation
 

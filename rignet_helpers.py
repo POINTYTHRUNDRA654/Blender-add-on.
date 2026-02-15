@@ -10,6 +10,12 @@ libigl: Simple C++ geometry processing library
 - Python Bindings: https://github.com/libigl/libigl-python-bindings
 - Includes Bounded Biharmonic Weights (BBW) for skinning
 - Mesh repair, optimization, and UV unwrapping
+
+MediaPipe: Google's framework for ML pipelines
+- Repository: https://github.com/ntu-rris/google-mediapipe
+- Pose estimation, hand tracking, face detection
+- Real-time performance on CPU
+- Can provide reference poses for rigging and animation
 """
 
 import bpy
@@ -116,6 +122,48 @@ class RigNetHelpers:
             return False, "libigl not found. Install with: pip install libigl OR gh repo clone libigl/libigl-python-bindings"
         except Exception as e:
             return False, f"Error checking libigl: {str(e)}"
+    
+    @staticmethod
+    def check_mediapipe_available():
+        """Check if MediaPipe is installed and available"""
+        try:
+            # Try to import mediapipe
+            import mediapipe as mp
+            
+            # Check for ntu-rris/google-mediapipe repository (optional, for demos)
+            possible_paths = [
+                os.path.expanduser("~/google-mediapipe"),
+                os.path.expanduser("~/Projects/google-mediapipe"),
+                os.path.join(os.path.dirname(__file__), "google-mediapipe"),
+                "C:/google-mediapipe" if sys.platform == "win32" else "/opt/google-mediapipe"
+            ]
+            
+            repo_path = None
+            for path in possible_paths:
+                if os.path.exists(path) and os.path.isdir(path):
+                    repo_path = path
+                    break
+            
+            if repo_path:
+                return True, f"MediaPipe available with demo repo at {repo_path}"
+            else:
+                return True, "MediaPipe available (installed via pip)"
+                
+        except ImportError:
+            # Check if demo repository exists even without mediapipe installed
+            possible_paths = [
+                os.path.expanduser("~/google-mediapipe"),
+                os.path.expanduser("~/Projects/google-mediapipe"),
+                "C:/google-mediapipe" if sys.platform == "win32" else "/opt/google-mediapipe"
+            ]
+            
+            for path in possible_paths:
+                if os.path.exists(path) and os.path.isdir(path):
+                    return False, f"MediaPipe demo repo found at {path} but mediapipe not installed"
+            
+            return False, "MediaPipe not found. Install with: pip install mediapipe"
+        except Exception as e:
+            return False, f"Error checking MediaPipe: {str(e)}"
     
     @staticmethod
     def get_installation_instructions():
@@ -241,7 +289,68 @@ pip install -e .
 
 ================================================================================
 
-## OPTION 4: Use Existing Blender Add-ons (Easiest)
+## OPTION 4: MediaPipe (Pose Estimation & Tracking)
+
+MediaPipe is Google's framework for building ML pipelines including pose estimation,
+hand tracking, face detection, and more. It's very useful for:
+- Reference pose generation for rigging
+- Motion capture from images/video
+- Hand and face tracking for animation
+- Real-time performance on CPU
+
+### METHOD 1: Install MediaPipe via pip (EASIEST)
+```bash
+pip install mediapipe
+```
+
+### METHOD 2: Clone demo repository with examples (RECOMMENDED)
+```bash
+# Using GitHub CLI:
+gh repo clone ntu-rris/google-mediapipe
+
+# Or using git:
+git clone https://github.com/ntu-rris/google-mediapipe.git
+
+# Install dependencies:
+cd google-mediapipe
+conda env create -f environment.yaml
+# OR
+pip install mediapipe opencv-python numpy
+```
+
+### Features:
+- **Pose Estimation**: 33 3D landmarks for whole body
+- **Hand Tracking**: 21 3D landmarks per hand, supports multiple hands
+- **Face Mesh**: 468/478 3D face landmarks
+- **Holistic**: Face + Hands + Body (543 total landmarks)
+- **Real-time**: Runs at 10-30 FPS on CPU
+- **3D World Coordinates**: True 3D positions, not just 2D
+
+### Use Cases in Blender:
+1. **Reference Poses**: Extract poses from images/video for manual rigging
+2. **Motion Capture**: Convert video to animation data
+3. **Retargeting**: Map MediaPipe skeleton to Blender armature
+4. **Hand Animation**: Detailed finger tracking for character animation
+5. **Facial Animation**: Face mesh for facial expressions
+
+### Integration with Other Tools:
+- **+ RigNet**: Use MediaPipe pose as reference for skeleton prediction
+- **+ MotionDiffuse**: Use MediaPipe data to guide motion generation
+- **+ libigl**: Use MediaPipe skeleton for BBW skinning input
+
+### Demo Capabilities (from ntu-rris repo):
+- Single image pose estimation
+- Real-time video tracking
+- Gesture recognition
+- Hand ROM measurement
+- 3D skeleton visualization
+- Face masking and segmentation
+
+### Restart Blender after installation
+
+================================================================================
+
+## OPTION 5: Use Existing Blender Add-ons (Easiest)
 
 For immediate use without manual integration:
 - **brignet**: https://github.com/pKrime/brignet (Recommended for RigNet)
@@ -271,6 +380,10 @@ For more details:
 - libigl Python bindings: https://github.com/libigl/libigl-python-bindings (Recommended)
 - libigl main: https://github.com/libigl/libigl (C++ library)
 - libigl docs: https://libigl.github.io/ (Geometry processing documentation)
+- MediaPipe: https://google.github.io/mediapipe/ (Official documentation)
+- ntu-rris MediaPipe: https://github.com/ntu-rris/google-mediapipe (Pose estimation demos)
+- BlendArMocap: https://github.com/cgtinker/BlendArMocap (Blender mocap add-on)
+- BlendArMocap docs: https://cgtinker.github.io/BlendArMocap/ (Documentation)
 - RigNet Paper: https://doi.org/10.1145/3386569.3392379
 """
         return instructions

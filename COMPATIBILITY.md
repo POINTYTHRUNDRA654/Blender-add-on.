@@ -51,7 +51,7 @@ This Blender add-on is specifically designed for **Fallout 4 modding**:
 ### Supported Blender Versions
 - ✅ Blender 3.0+
 - ✅ Blender 3.6 (tested)
-- ✅ Blender 4.0+ (should work)
+- ⚠️ Blender 4.0+ (untested, but expected to work based on API compatibility)
 - ❌ Blender 2.x (not supported)
 
 ### Supported Platforms
@@ -121,7 +121,7 @@ This add-on works **with** these tools (not a replacement):
 
 **For AI features (optional):**
 - PyTorch
-- Tencent Hunyuan3D-2 (NOT NVIDIA PhysX)
+- Tencent Hunyuan3D-2
 - Gradio (for web interface)
 
 **For Motion features (optional):**

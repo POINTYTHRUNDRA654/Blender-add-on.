@@ -52,13 +52,14 @@ This guide lists NVIDIA repositories and tools that can be used with Blender add
 ### 2. Texture Generation & Processing
 
 #### **NVTT** - NVIDIA Texture Tools
-- **Repository:** `castano/nvidia-texture-tools`
+- **Repository:** `castano/nvidia-texture-tools` (community-maintained fork of NVIDIA's original)
 - **Clone:** `gh repo clone castano/nvidia-texture-tools` or `git clone https://github.com/castano/nvidia-texture-tools.git`
 - **Purpose:** High-quality texture compression and processing
 - **Use Case:** Convert textures to DDS format for Fallout 4
 - **Compatibility:** ✅✅ **HIGHLY USEFUL** - FO4 uses DDS textures
 - **Requirements:** C++ compiler
 - **Integration:** Command-line tool for batch texture processing
+- **Note:** Official NVIDIA Texture Tools are older; this fork is more actively maintained
 
 #### **StyleGAN** / **StyleGAN2** - Generate Realistic Textures
 - **Repository:** `NVlabs/stylegan2` or `NVlabs/stylegan3`
@@ -97,13 +98,14 @@ This guide lists NVIDIA repositories and tools that can be used with Blender add
 ### 4. Image Processing & Upscaling
 
 #### **ESRGAN** - Enhanced Super-Resolution GAN
-- **Repository:** `xinntao/ESRGAN` (uses NVIDIA research)
+- **Repository:** `xinntao/ESRGAN` (based on NVIDIA research, community implementation)
 - **Clone:** `gh repo clone xinntao/ESRGAN` or `git clone https://github.com/xinntao/ESRGAN.git`
 - **Purpose:** AI upscaling for images
 - **Use Case:** Upscale low-res textures to higher resolution for FO4
 - **Compatibility:** ✅✅ **HIGHLY USEFUL** - Improve texture quality
 - **Requirements:** PyTorch, CUDA
 - **Integration:** Upscale textures before importing to Blender
+- **Note:** Community implementation of NVIDIA's super-resolution research
 
 #### **Real-ESRGAN** - Practical Image Restoration
 - **Repository:** `xinntao/Real-ESRGAN`
@@ -183,8 +185,11 @@ pip install -r requirements.txt
 # Download pre-trained models
 python download_models.py
 
-# Upscale a texture
-python inference_realesrgan.py -n RealESRGAN_x4plus -i inputs/texture.png -o outputs --face_enhance
+# Upscale a texture (for game textures, omit --face_enhance)
+python inference_realesrgan.py -n RealESRGAN_x4plus -i inputs/texture.png -o outputs
+
+# For textures with faces/characters, add face enhancement
+python inference_realesrgan.py -n RealESRGAN_x4plus -i inputs/character.png -o outputs --face_enhance
 
 # Result: outputs/texture_out.png (4x resolution)
 # Now import this texture into Blender

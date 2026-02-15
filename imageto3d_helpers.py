@@ -2395,3 +2395,82 @@ See README.md for complete documentation.
 See NVIDIA_RESOURCES.md for all AI tools.
 """
         return guide
+    
+    # ==================== StarxSky TRIPOSR Implementation ====================
+    
+    @staticmethod
+    def find_starxsky_triposr_path():
+        """Find StarxSky TRIPOSR installation path"""
+        possible_paths = [
+            os.path.expanduser('~/TRIPOSR'),
+            os.path.expanduser('~/StarxSky-TRIPOSR'),
+            os.path.expanduser('~/Projects/TRIPOSR'),
+            os.path.expanduser('~/Documents/TRIPOSR'),
+            '/opt/TRIPOSR',
+            'C:/Projects/TRIPOSR',
+        ]
+        
+        for path in possible_paths:
+            if os.path.exists(os.path.join(path, 'run.py')):
+                # Check if it's StarxSky version by looking for specific markers
+                if os.path.exists(os.path.join(path, '.starxsky')) or 'StarxSky' in path:
+                    return path
+            if os.path.exists(os.path.join(path, 'inference.py')):
+                return path
+        
+        return None
+    
+    @staticmethod
+    def check_starxsky_triposr_installation():
+        """Check StarxSky TRIPOSR installation status"""
+        try:
+            import torch
+            has_torch = True
+            cuda_available = torch.cuda.is_available()
+        except ImportError:
+            has_torch = False
+            cuda_available = False
+        
+        starxsky_path = ImageTo3DHelpers.find_starxsky_triposr_path()
+        
+        if starxsky_path and has_torch:
+            msg = f"StarxSky TRIPOSR found at: {starxsky_path}\n"
+            if cuda_available:
+                msg += "CUDA: Available ✓\n"
+            else:
+                msg += "CUDA: Not available (CPU mode)\n"
+            msg += "Ready for enhanced TripoSR generation!"
+            return True, msg
+        else:
+            install_msg = (
+                "StarxSky TRIPOSR not found. To install:\n\n"
+                "INSTALLATION:\n"
+                "1. Clone repository:\n"
+                "   gh repo clone StarxSky/TRIPOSR\n"
+                "   (or: git clone https://github.com/StarxSky/TRIPOSR.git)\n\n"
+                "2. Install dependencies:\n"
+                "   cd TRIPOSR\n"
+                "   pip install -r requirements.txt\n\n"
+                "3. Download models (if needed):\n"
+                "   python download_models.py\n\n"
+                "FEATURES:\n"
+                "- Enhanced TripoSR implementation\n"
+                "- Community-driven improvements\n"
+                "- Additional optimizations\n"
+                "- Extended configuration options\n"
+                "- Alternative processing pipeline\n"
+                "- Custom enhancements and fixes\n\n"
+                "USE CASES:\n"
+                "- Alternative to official TripoSR\n"
+                "- Community enhancements\n"
+                "- Experimental features\n"
+                "- Custom configurations\n"
+                "- Research and testing\n\n"
+                "This is variant #14 in the complete TripoSR ecosystem!\n"
+            )
+            
+            if not has_torch:
+                install_msg += "⚠️ PyTorch not installed\n"
+                install_msg += "Install: pip install torch torchvision\n\n"
+            
+            return False, install_msg

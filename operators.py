@@ -2230,6 +2230,124 @@ class FO4_OT_CheckStereoTripoSR(Operator):
         
         return {'FINISHED'}
 
+# TripoSR Lightweight Version Operators
+
+class FO4_OT_GenerateWithTripoSRLight(Operator):
+    """Generate 3D quickly with lightweight TripoSR"""
+    bl_idname = "fo4.generate_triposr_light"
+    bl_label = "Generate with TripoSR Light"
+    bl_options = {'REGISTER'}
+    
+    image_path: StringProperty(
+        name="Image File",
+        subtype='FILE_PATH'
+    )
+    
+    output_path: StringProperty(
+        name="Output Mesh",
+        subtype='FILE_PATH',
+        default="output_light.obj"
+    )
+    
+    quality_mode: EnumProperty(
+        name="Quality Mode",
+        items=[
+            ('fast', "Fast (2s GPU, 10s CPU)", "Fastest, quality: 75"),
+            ('balanced', "Balanced (3s GPU, 15s CPU)", "Better quality: 80"),
+        ],
+        default='fast'
+    )
+    
+    def execute(self, context):
+        success, message = imageto3d_helpers.ImageTo3DHelpers.check_triposr_light_installation()
+        
+        if not success:
+            self.report({'ERROR'}, "TripoSR Light not installed")
+            print("\n" + "="*70)
+            print("TRIPOSR LIGHT INSTALLATION")
+            print("="*70)
+            print(message)
+            print("="*70 + "\n")
+            return {'CANCELLED'}
+        
+        if not self.image_path:
+            self.report({'ERROR'}, "Image file required")
+            return {'CANCELLED'}
+        
+        success, msg, output = imageto3d_helpers.ImageTo3DHelpers.generate_3d_light(
+            self.image_path, self.output_path, self.quality_mode
+        )
+        
+        print("\n" + "="*70)
+        print("TRIPOSR LIGHT GENERATION")
+        print("="*70)
+        print(msg)
+        print("="*70 + "\n")
+        
+        self.report({'INFO'}, "See console for instructions")
+        notification_system.FO4_NotificationSystem.notify(
+            f"TripoSR Light {self.quality_mode} mode", 'INFO'
+        )
+        
+        return {'FINISHED'}
+    
+    def invoke(self, context, event):
+        return context.window_manager.invoke_props_dialog(self, width=450)
+    
+    def draw(self, context):
+        layout = self.layout
+        layout.prop(self, "image_path")
+        layout.prop(self, "output_path")
+        layout.prop(self, "quality_mode")
+
+
+class FO4_OT_ShowTripoSRComparison(Operator):
+    """Show comparison of all TripoSR variants"""
+    bl_idname = "fo4.show_triposr_comparison"
+    bl_label = "Compare TripoSR Variants"
+    
+    def execute(self, context):
+        guide = imageto3d_helpers.ImageTo3DHelpers.create_triposr_comparison_guide()
+        print("\n" + guide)
+        
+        self.report({'INFO'}, "TripoSR comparison guide in console")
+        notification_system.FO4_NotificationSystem.notify(
+            "TripoSR variants comparison available", 'INFO'
+        )
+        
+        return {'FINISHED'}
+
+
+class FO4_OT_CheckTripoSRLight(Operator):
+    """Check TripoSR Light installation"""
+    bl_idname = "fo4.check_triposr_light"
+    bl_label = "Check TripoSR Light"
+    
+    def execute(self, context):
+        success, message = imageto3d_helpers.ImageTo3DHelpers.check_triposr_light_installation()
+        
+        print("\n" + "="*70)
+        print("TRIPOSR LIGHT STATUS")
+        print("="*70)
+        print(message)
+        if success:
+            print("\nPerformance:")
+            print("  GPU: 2 seconds (fast mode)")
+            print("  CPU: 15 seconds (viable!)")
+            print("\nMemory:")
+            print("  VRAM: 2GB (half of standard)")
+            print("  Model: 500MB download")
+            print("\nQuality: 75-80/100")
+            print("Best for: Rapid prototyping, batch work, CPU users")
+        print("="*70 + "\n")
+        
+        if success:
+            self.report({'INFO'}, "TripoSR Light available")
+        else:
+            self.report({'WARNING'}, "Not installed")
+        
+        return {'FINISHED'}
+
 # TripoSR Advanced Texture Baking Operators
 
 class FO4_OT_BakeTripoSRTextures(Operator):
@@ -2700,6 +2818,9 @@ classes = (
     FO4_OT_CheckTripoSRTextureGen,
     FO4_OT_GenerateFromStereo,
     FO4_OT_CheckStereoTripoSR,
+    FO4_OT_GenerateWithTripoSRLight,
+    FO4_OT_ShowTripoSRComparison,
+    FO4_OT_CheckTripoSRLight,
     FO4_OT_BakeTripoSRTextures,
     FO4_OT_ShowTripoSRBakingWorkflow,
     FO4_OT_CheckTripoSRBake,

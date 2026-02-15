@@ -4,7 +4,7 @@ UI Panels for the Fallout 4 Tutorial Add-on
 
 import bpy
 from bpy.types import Panel
-from . import hunyuan3d_helpers, gradio_helpers, hymotion_helpers
+from . import hunyuan3d_helpers, gradio_helpers, hymotion_helpers, nvtt_helpers
 
 class FO4_PT_MainPanel(Panel):
     """Main tutorial panel in the 3D View sidebar"""
@@ -49,6 +49,15 @@ class FO4_PT_MeshPanel(Panel):
         box.operator("fo4.create_base_mesh", text="Create Base Mesh", icon='MESH_DATA')
         box.operator("fo4.optimize_mesh", text="Optimize for FO4", icon='MOD_DECIM')
         box.operator("fo4.validate_mesh", text="Validate Mesh", icon='CHECKMARK')
+        
+        # Advanced mesh tools
+        adv_box = layout.box()
+        adv_box.label(text="Advanced Mesh Tools", icon='MODIFIER')
+        adv_box.operator("fo4.analyze_mesh_quality", text="Analyze Quality", icon='INFO')
+        adv_box.operator("fo4.auto_repair_mesh", text="Auto-Repair", icon='TOOL_SETTINGS')
+        adv_box.operator("fo4.smart_decimate", text="Smart Decimate", icon='MOD_DECIM')
+        adv_box.operator("fo4.generate_lod", text="Generate LOD Chain", icon='OUTLINER_OB_MESH')
+        adv_box.operator("fo4.optimize_uvs", text="Optimize UVs", icon='UV')
 
 class FO4_PT_TexturePanel(Panel):
     """Texture installation helpers panel"""
@@ -202,6 +211,62 @@ class FO4_PT_AnimationPanel(Panel):
         box.operator("fo4.setup_armature", text="Setup FO4 Armature", icon='ARMATURE_DATA')
         box.operator("fo4.validate_animation", text="Validate Animation", icon='CHECKMARK')
 
+class FO4_PT_NVTTPanel(Panel):
+    """NVIDIA Texture Tools panel"""
+    bl_label = "Texture Conversion (NVTT)"
+    bl_idname = "FO4_PT_nvtt_panel"
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'UI'
+    bl_category = 'Fallout 4'
+    bl_parent_id = "FO4_PT_main_panel"
+    bl_options = {'DEFAULT_CLOSED'}
+    
+    def draw(self, context):
+        layout = self.layout
+        
+        # Check if NVTT is available
+        is_available = nvtt_helpers.NVTTHelpers.is_nvtt_available()
+        
+        # Status box
+        status_box = layout.box()
+        if is_available:
+            status_box.label(text="NVTT: Available ✓", icon='CHECKMARK')
+            nvtt_path = nvtt_helpers.NVTTHelpers.get_nvtt_path()
+            if nvtt_path:
+                # Show just the filename, not full path
+                import os
+                status_box.label(text=f"Path: {os.path.dirname(nvtt_path)}", icon='FILE_FOLDER')
+        else:
+            status_box.label(text="NVTT: Not Installed ✗", icon='ERROR')
+        
+        status_box.operator("fo4.check_nvtt_installation", text="Check Installation", icon='INFO')
+        
+        # Conversion operators
+        box = layout.box()
+        box.label(text="Convert to DDS for FO4", icon='FILE_IMAGE')
+        
+        row = box.row()
+        row.enabled = is_available
+        row.operator("fo4.convert_texture_to_dds", text="Convert Single Texture", icon='IMAGE_DATA')
+        
+        row = box.row()
+        row.enabled = is_available
+        row.operator("fo4.convert_object_textures_to_dds", text="Convert Object Textures", icon='MATERIAL')
+        
+        # Info box
+        info_box = layout.box()
+        info_box.label(text="About DDS Conversion:", icon='INFO')
+        info_box.label(text="• DDS is required for FO4")
+        info_box.label(text="• BC1 (DXT1): Diffuse textures")
+        info_box.label(text="• BC5 (ATI2): Normal maps")
+        info_box.label(text="• BC3 (DXT5): Alpha textures")
+        
+        if not is_available:
+            info_box.separator()
+            info_box.label(text="Install NVTT:", icon='DOWNLOAD')
+            info_box.label(text="gh repo clone castano/")
+            info_box.label(text="  nvidia-texture-tools")
+
 class FO4_PT_ExportPanel(Panel):
     """Export panel for Fallout 4"""
     bl_label = "Export to FO4"
@@ -228,6 +293,7 @@ classes = (
     FO4_PT_ImageToMeshPanel,
     FO4_PT_AIGenerationPanel,
     FO4_PT_AnimationPanel,
+    FO4_PT_NVTTPanel,
     FO4_PT_ExportPanel,
 )
 

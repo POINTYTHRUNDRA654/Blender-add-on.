@@ -213,6 +213,24 @@ Run all validation tools before exporting.
 
 This add-on handles the geometry part. Full physics requires additional tools.
 
+### Q: Are there any NVIDIA repositories that can help with this add-on?
+**A:** **Yes!** While NVIDIA PhysX is not compatible with Fallout 4, many other NVIDIA repositories are very useful:
+
+**Highly Recommended:**
+- **NVIDIA Texture Tools** - Convert textures to DDS format (essential for FO4)
+- **Real-ESRGAN** - AI upscaling for textures (improve quality)
+- **StyleGAN2/3** - Generate unique textures with AI
+
+**Also Useful:**
+- **GET3D** - Generate 3D meshes from images using AI
+- **InstantNGP** - Create 3D models from photos
+- **Kaolin** - Advanced mesh processing library
+
+**NOT Compatible:**
+- **PhysX** - Not used in Fallout 4 (use Havok tools instead)
+
+See **[NVIDIA_RESOURCES.md](NVIDIA_RESOURCES.md)** for a complete list with installation instructions and use cases.
+
 ## Advanced Questions
 
 ### Q: Can I script custom workflows?

@@ -2230,6 +2230,154 @@ class FO4_OT_CheckStereoTripoSR(Operator):
         
         return {'FINISHED'}
 
+# TripoSR Advanced Texture Baking Operators
+
+class FO4_OT_BakeTripoSRTextures(Operator):
+    """Bake advanced texture maps for TripoSR mesh"""
+    bl_idname = "fo4.bake_triposr_textures"
+    bl_label = "Bake TripoSR Textures"
+    bl_options = {'REGISTER'}
+    
+    mesh_path: StringProperty(
+        name="Mesh File",
+        subtype='FILE_PATH'
+    )
+    
+    output_dir: StringProperty(
+        name="Output Directory",
+        subtype='DIR_PATH'
+    )
+    
+    resolution: EnumProperty(
+        name="Resolution",
+        items=[
+            ('1024', "1K (1024)", "1024x1024"),
+            ('2048', "2K (2048)", "2048x2048"),
+            ('4096', "4K (4096)", "4096x4096"),
+            ('8192', "8K (8192)", "8192x8192"),
+        ],
+        default='2048'
+    )
+    
+    bake_normal: BoolProperty(name="Normal Map", default=True)
+    bake_ao: BoolProperty(name="Ambient Occlusion", default=True)
+    bake_curvature: BoolProperty(name="Curvature", default=False)
+    bake_height: BoolProperty(name="Height/Displacement", default=False)
+    
+    def execute(self, context):
+        success, message = imageto3d_helpers.ImageTo3DHelpers.check_triposr_bake_installation()
+        
+        if not success:
+            self.report({'ERROR'}, "TripoSR-Bake not installed")
+            print("\n" + "="*70)
+            print("TRIPOSR-BAKE INSTALLATION")
+            print("="*70)
+            print(message)
+            print("="*70 + "\n")
+            return {'CANCELLED'}
+        
+        if not self.mesh_path:
+            self.report({'ERROR'}, "Mesh file required")
+            return {'CANCELLED'}
+        
+        # Build bake types list
+        bake_types = []
+        if self.bake_normal:
+            bake_types.append('normal')
+        if self.bake_ao:
+            bake_types.append('ao')
+        if self.bake_curvature:
+            bake_types.append('curvature')
+        if self.bake_height:
+            bake_types.append('height')
+        
+        if not bake_types:
+            self.report({'ERROR'}, "Select at least one map type to bake")
+            return {'CANCELLED'}
+        
+        # Bake textures
+        success, msg, baked_maps = imageto3d_helpers.ImageTo3DHelpers.bake_triposr_textures(
+            self.mesh_path,
+            self.output_dir,
+            bake_types,
+            int(self.resolution)
+        )
+        
+        print("\n" + "="*70)
+        print("TRIPOSR TEXTURE BAKING")
+        print("="*70)
+        print(msg)
+        print("="*70 + "\n")
+        
+        self.report({'INFO'}, "See console for baking instructions")
+        notification_system.FO4_NotificationSystem.notify(
+            f"Baking {len(bake_types)} maps at {self.resolution}", 'INFO'
+        )
+        
+        return {'FINISHED'}
+    
+    def invoke(self, context, event):
+        return context.window_manager.invoke_props_dialog(self, width=500)
+    
+    def draw(self, context):
+        layout = self.layout
+        layout.prop(self, "mesh_path")
+        layout.prop(self, "output_dir")
+        layout.prop(self, "resolution")
+        layout.separator()
+        layout.label(text="Bake Maps:")
+        layout.prop(self, "bake_normal")
+        layout.prop(self, "bake_ao")
+        layout.prop(self, "bake_curvature")
+        layout.prop(self, "bake_height")
+
+
+class FO4_OT_ShowTripoSRBakingWorkflow(Operator):
+    """Show complete TripoSR workflow with advanced baking"""
+    bl_idname = "fo4.show_triposr_baking_workflow"
+    bl_label = "TripoSR Baking Workflow"
+    
+    def execute(self, context):
+        guide = imageto3d_helpers.ImageTo3DHelpers.create_triposr_baking_workflow()
+        print("\n" + guide)
+        
+        self.report({'INFO'}, "Complete baking workflow printed to console")
+        notification_system.FO4_NotificationSystem.notify(
+            "TripoSR baking workflow guide in console", 'INFO'
+        )
+        
+        return {'FINISHED'}
+
+
+class FO4_OT_CheckTripoSRBake(Operator):
+    """Check TripoSR-Bake installation"""
+    bl_idname = "fo4.check_triposr_bake"
+    bl_label = "Check TripoSR-Bake"
+    
+    def execute(self, context):
+        success, message = imageto3d_helpers.ImageTo3DHelpers.check_triposr_bake_installation()
+        
+        print("\n" + "="*70)
+        print("TRIPOSR-BAKE STATUS")
+        print("="*70)
+        print(message)
+        if success:
+            print("\nAvailable baking options:")
+            print("  • Normal maps (surface detail)")
+            print("  • Ambient occlusion (depth)")
+            print("  • Curvature maps (edges)")
+            print("  • Height/displacement maps")
+            print("  • Thickness maps")
+            print("\nResolutions: 1K, 2K, 4K, 8K")
+        print("="*70 + "\n")
+        
+        if success:
+            self.report({'INFO'}, "TripoSR-Bake available")
+        else:
+            self.report({'WARNING'}, "Not installed")
+        
+        return {'FINISHED'}
+
 # Advanced Mesh Analysis and Repair Operators
 
 class FO4_OT_AnalyzeMeshQuality(Operator):
@@ -2552,6 +2700,9 @@ classes = (
     FO4_OT_CheckTripoSRTextureGen,
     FO4_OT_GenerateFromStereo,
     FO4_OT_CheckStereoTripoSR,
+    FO4_OT_BakeTripoSRTextures,
+    FO4_OT_ShowTripoSRBakingWorkflow,
+    FO4_OT_CheckTripoSRBake,
     FO4_OT_AnalyzeMeshQuality,
     FO4_OT_AutoRepairMesh,
     FO4_OT_SmartDecimate,

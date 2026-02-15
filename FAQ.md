@@ -178,6 +178,41 @@ Run all validation tools before exporting.
 - Number of materials
 - Bone count in animations
 
+## Physics and Compatibility Questions
+
+### Q: Will this work with NVIDIA PhysX?
+**A:** **No, this add-on is not compatible with NVIDIA PhysX**, and PhysX is not used in Fallout 4 modding. Here's why:
+
+**Fallout 4 uses Havok Physics:**
+- Fallout 4 (and all Bethesda Creation Engine games) use Havok physics, not NVIDIA PhysX
+- PhysX is NVIDIA's proprietary physics engine used in other games (Unreal Engine games, some Unity games, etc.)
+- These are completely different physics systems and are not interchangeable
+
+**What this add-on does:**
+- This add-on helps create meshes, textures, and animations for Fallout 4
+- It includes a basic collision mesh generator (simplified geometry for collision bounds)
+- It does NOT create actual Havok physics simulations or files
+- For physics in Fallout 4, you need the game's native Havok system
+
+**If you need physics for Fallout 4 mods:**
+- Use Havok Content Tools (available from Bethesda)
+- Use NifSkope to edit collision properties in .nif files
+- Use the Creation Kit for setting up physics properties in-game
+- This add-on can create collision meshes, but full physics integration requires the tools above
+
+**Bottom line:** PhysX from NVIDIA-Omniverse is not compatible with Fallout 4 modding. Stick with Havok-based tools for physics in Fallout 4.
+
+### Q: Does this add-on support physics simulation?
+**A:** This add-on provides **basic collision mesh generation** for Fallout 4 objects, but does not implement full Havok physics simulation. The collision mesh feature creates simplified geometry that defines collision boundaries. For advanced physics (ragdolls, cloth, etc.), you need external Havok Content Tools and the Creation Kit.
+
+### Q: What's the difference between collision meshes and physics?
+**A:** 
+- **Collision mesh:** A simplified 3D shape that defines where objects collide (this add-on can create these)
+- **Physics simulation:** Complex calculations for movement, gravity, forces, etc. (requires Havok Content Tools)
+- **In-game physics:** How objects behave in Fallout 4 (set up in Creation Kit with Havok properties)
+
+This add-on handles the geometry part. Full physics requires additional tools.
+
 ## Advanced Questions
 
 ### Q: Can I script custom workflows?

@@ -35,6 +35,7 @@ from . import get3d_helpers
 from . import stylegan2_helpers
 from . import instantngp_helpers
 from . import imageto3d_helpers
+from . import rignet_helpers
 
 modules = [
     tutorial_system,
@@ -43,6 +44,7 @@ modules = [
     advanced_mesh_helpers,
     texture_helpers,
     animation_helpers,
+    rignet_helpers,
     export_helpers,
     image_to_mesh_helpers,
     hunyuan3d_helpers,

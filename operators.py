@@ -5,7 +5,7 @@ Operators for the Fallout 4 Tutorial Add-on
 import bpy
 from bpy.types import Operator
 from bpy.props import StringProperty, EnumProperty, IntProperty, FloatProperty, BoolProperty
-from . import tutorial_system, mesh_helpers, texture_helpers, animation_helpers, export_helpers, notification_system, image_to_mesh_helpers, hunyuan3d_helpers, gradio_helpers, hymotion_helpers, nvtt_helpers, realesrgan_helpers, get3d_helpers, stylegan2_helpers, instantngp_helpers, imageto3d_helpers, advanced_mesh_helpers
+from . import tutorial_system, mesh_helpers, texture_helpers, animation_helpers, export_helpers, notification_system, image_to_mesh_helpers, hunyuan3d_helpers, gradio_helpers, hymotion_helpers, nvtt_helpers, realesrgan_helpers, get3d_helpers, stylegan2_helpers, instantngp_helpers, imageto3d_helpers, advanced_mesh_helpers, rignet_helpers
 
 # Tutorial Operators
 
@@ -278,6 +278,226 @@ class FO4_OT_ValidateAnimation(Operator):
             for issue in issues:
                 self.report({'WARNING'}, f"  - {issue}")
                 notification_system.FO4_NotificationSystem.notify(issue, 'WARNING')
+        
+        return {'FINISHED'}
+
+# RigNet Auto-Rigging Operators
+
+class FO4_OT_CheckRigNetInstallation(Operator):
+    """Check if RigNet is installed and available"""
+    bl_idname = "fo4.check_rignet"
+    bl_label = "Check RigNet Installation"
+    
+    def execute(self, context):
+        available, message = rignet_helpers.RigNetHelpers.check_rignet_available()
+        
+        if available:
+            self.report({'INFO'}, f"✓ RigNet available at: {message}")
+            notification_system.FO4_NotificationSystem.notify(
+                "RigNet is installed and ready!", 'INFO'
+            )
+        else:
+            self.report({'WARNING'}, f"✗ RigNet not available: {message}")
+            notification_system.FO4_NotificationSystem.notify(
+                f"RigNet not available: {message}", 'WARNING'
+            )
+        
+        return {'FINISHED'}
+
+class FO4_OT_ShowRigNetInfo(Operator):
+    """Show RigNet installation information"""
+    bl_idname = "fo4.show_rignet_info"
+    bl_label = "RigNet Installation Info"
+    
+    def execute(self, context):
+        instructions = rignet_helpers.RigNetHelpers.get_installation_instructions()
+        
+        # Print to console
+        print("\n" + "="*70)
+        print("RIGNET INSTALLATION INSTRUCTIONS")
+        print("="*70)
+        print(instructions)
+        print("="*70 + "\n")
+        
+        self.report({'INFO'}, "Installation instructions printed to console (Window > Toggle System Console)")
+        return {'FINISHED'}
+
+class FO4_OT_PrepareForRigNet(Operator):
+    """Prepare mesh for RigNet auto-rigging (simplify to 1K-5K vertices)"""
+    bl_idname = "fo4.prepare_for_rignet"
+    bl_label = "Prepare for Auto-Rig"
+    bl_options = {'REGISTER', 'UNDO'}
+    
+    target_vertices: IntProperty(
+        name="Target Vertices",
+        description="Target vertex count for RigNet (1000-5000)",
+        default=3000,
+        min=1000,
+        max=5000
+    )
+    
+    def execute(self, context):
+        obj = context.active_object
+        
+        if not obj or obj.type != 'MESH':
+            self.report({'ERROR'}, "No mesh object selected")
+            return {'CANCELLED'}
+        
+        # Prepare mesh
+        success, message, prepared_mesh = rignet_helpers.RigNetHelpers.prepare_mesh_for_rignet(
+            obj, self.target_vertices
+        )
+        
+        if success:
+            self.report({'INFO'}, message)
+            notification_system.FO4_NotificationSystem.notify(message, 'INFO')
+            # Select the prepared mesh
+            bpy.ops.object.select_all(action='DESELECT')
+            prepared_mesh.select_set(True)
+            context.view_layer.objects.active = prepared_mesh
+        else:
+            self.report({'ERROR'}, message)
+            notification_system.FO4_NotificationSystem.notify(message, 'ERROR')
+            return {'CANCELLED'}
+        
+        return {'FINISHED'}
+    
+    def invoke(self, context, event):
+        return context.window_manager.invoke_props_dialog(self)
+
+class FO4_OT_AutoRigMesh(Operator):
+    """Automatically rig mesh using RigNet"""
+    bl_idname = "fo4.auto_rig_mesh"
+    bl_label = "Auto-Rig with RigNet"
+    bl_options = {'REGISTER', 'UNDO'}
+    
+    def execute(self, context):
+        obj = context.active_object
+        
+        if not obj or obj.type != 'MESH':
+            self.report({'ERROR'}, "No mesh object selected")
+            return {'CANCELLED'}
+        
+        # Check if RigNet is available
+        available, message = rignet_helpers.RigNetHelpers.check_rignet_available()
+        if not available:
+            self.report({'ERROR'}, f"RigNet not available: {message}")
+            self.report({'INFO'}, "Use 'Show Installation Info' for setup instructions")
+            return {'CANCELLED'}
+        
+        # Run auto-rigging
+        success, message, armature = rignet_helpers.RigNetHelpers.auto_rig_mesh(obj)
+        
+        if success:
+            self.report({'INFO'}, message)
+            notification_system.FO4_NotificationSystem.notify(message, 'INFO')
+        else:
+            self.report({'WARNING'}, message)
+            notification_system.FO4_NotificationSystem.notify(message, 'WARNING')
+            return {'CANCELLED'}
+        
+        return {'FINISHED'}
+
+class FO4_OT_ExportForRigNet(Operator):
+    """Export mesh for external RigNet processing"""
+    bl_idname = "fo4.export_for_rignet"
+    bl_label = "Export for RigNet"
+    
+    filepath: StringProperty(subtype='FILE_PATH')
+    
+    def execute(self, context):
+        obj = context.active_object
+        
+        if not obj or obj.type != 'MESH':
+            self.report({'ERROR'}, "No mesh object selected")
+            return {'CANCELLED'}
+        
+        # Use provided filepath or generate one
+        output_path = self.filepath if self.filepath else None
+        
+        success, message, file_path = rignet_helpers.RigNetHelpers.export_for_rignet(
+            obj, output_path
+        )
+        
+        if success:
+            self.report({'INFO'}, message)
+            notification_system.FO4_NotificationSystem.notify(message, 'INFO')
+        else:
+            self.report({'ERROR'}, message)
+            return {'CANCELLED'}
+        
+        return {'FINISHED'}
+    
+    def invoke(self, context, event):
+        context.window_manager.fileselect_add(self)
+        return {'RUNNING_MODAL'}
+
+class FO4_OT_CheckLibiglInstallation(Operator):
+    """Check if libigl is installed and available"""
+    bl_idname = "fo4.check_libigl"
+    bl_label = "Check libigl Installation"
+    
+    def execute(self, context):
+        available, message = rignet_helpers.RigNetHelpers.check_libigl_available()
+        
+        if available:
+            self.report({'INFO'}, f"✓ libigl available: {message}")
+            notification_system.FO4_NotificationSystem.notify(
+                "libigl is installed and ready!", 'INFO'
+            )
+        else:
+            self.report({'WARNING'}, f"✗ libigl not available: {message}")
+            notification_system.FO4_NotificationSystem.notify(
+                f"libigl not available: {message}", 'WARNING'
+            )
+        
+        return {'FINISHED'}
+
+class FO4_OT_ComputeBBWSkinning(Operator):
+    """Compute skinning weights using libigl's Bounded Biharmonic Weights"""
+    bl_idname = "fo4.compute_bbw_skinning"
+    bl_label = "Compute BBW Skinning"
+    bl_options = {'REGISTER', 'UNDO'}
+    
+    def execute(self, context):
+        obj = context.active_object
+        
+        if not obj or obj.type != 'MESH':
+            self.report({'ERROR'}, "No mesh object selected")
+            return {'CANCELLED'}
+        
+        # Find armature (either selected or parent)
+        armature = None
+        if obj.parent and obj.parent.type == 'ARMATURE':
+            armature = obj.parent
+        else:
+            # Look for selected armature
+            for selected_obj in context.selected_objects:
+                if selected_obj.type == 'ARMATURE':
+                    armature = selected_obj
+                    break
+        
+        if not armature:
+            self.report({'ERROR'}, "No armature found. Select mesh and armature, or parent mesh to armature")
+            return {'CANCELLED'}
+        
+        # Check if libigl is available
+        available, message = rignet_helpers.RigNetHelpers.check_libigl_available()
+        if not available:
+            self.report({'ERROR'}, f"libigl not available: {message}")
+            self.report({'INFO'}, "Install with: pip install libigl")
+            return {'CANCELLED'}
+        
+        # Compute BBW skinning
+        success, message = rignet_helpers.RigNetHelpers.compute_bbw_skinning(obj, armature)
+        
+        if success:
+            self.report({'INFO'}, message)
+            notification_system.FO4_NotificationSystem.notify(message, 'INFO')
+        else:
+            self.report({'WARNING'}, message)
+            notification_system.FO4_NotificationSystem.notify(message, 'WARNING')
+            return {'CANCELLED'}
         
         return {'FINISHED'}
 
@@ -3178,6 +3398,13 @@ classes = (
     FO4_OT_ValidateTextures,
     FO4_OT_SetupArmature,
     FO4_OT_ValidateAnimation,
+    FO4_OT_CheckRigNetInstallation,
+    FO4_OT_ShowRigNetInfo,
+    FO4_OT_PrepareForRigNet,
+    FO4_OT_AutoRigMesh,
+    FO4_OT_ExportForRigNet,
+    FO4_OT_CheckLibiglInstallation,
+    FO4_OT_ComputeBBWSkinning,
     FO4_OT_ExportMesh,
     FO4_OT_ExportAll,
     FO4_OT_ValidateExport,

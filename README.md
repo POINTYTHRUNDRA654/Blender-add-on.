@@ -70,6 +70,22 @@ A comprehensive Blender add-on that provides a desktop tutorial system and helpe
 - Animation validation
 - Bone count checking
 
+### 🤖 Auto-Rigging with RigNet & libigl (Optional)
+- **NEW**: AI-powered automatic rigging for characters
+- **RigNet**: Automatically predicts skeleton structure and skinning weights
+- **libigl**: Bounded Biharmonic Weights (BBW) for automatic skinning
+- Based on SIGGRAPH 2020 research paper (RigNet)
+- Supports meshes with 1K-5K vertices (RigNet)
+- Two RigNet implementations available:
+  - rignet-gj: Joint prediction reimplementation (educational/WIP)
+  - Original RigNet: Complete rigging pipeline
+- libigl provides fast, reliable weight computation for existing skeletons
+- Alternative: Use existing Blender add-ons (brignet, Rignet_blender_addon)
+- Requires: 
+  - RigNet: PyTorch, PyTorch Geometric, and RigNet repository
+  - libigl: Python bindings (pip install libigl)
+- Completely optional feature
+
 ### 📦 Export Functionality
 - Export to FBX (convertible to NIF)
 - Complete mod package export
@@ -253,6 +269,135 @@ The add-on will automatically detect HY-Motion-1.0 and enable motion features.
 - Apply motion to Blender armatures
 - Create character animations with AI
 
+## Optional: RigNet for Auto-Rigging
+
+For AI-powered automatic rigging of characters, install RigNet:
+
+### What is RigNet?
+
+RigNet is a deep learning system that automatically creates character rigs from 3D meshes:
+- Predicts skeleton joint positions
+- Determines bone connectivity and hierarchy
+- Calculates skinning weights automatically
+- Based on SIGGRAPH 2020 paper by Xu et al.
+
+### Prerequisites
+- PyTorch with CUDA support
+- PyTorch Geometric
+- 8GB+ VRAM recommended
+- Works best with meshes of 1K-5K vertices
+
+### Installation Steps
+
+**OPTION 1: rignet-gj (Recommended for learning)**
+
+1. **Install PyTorch** (in Blender's Python environment):
+```bash
+# Windows
+cd "C:\Program Files\Blender Foundation\Blender X.X\X.X\python\bin"
+python.exe -m pip install torch torchvision --index-url https://download.pytorch.org/whl/cu118
+
+# macOS/Linux
+cd /path/to/blender/X.X/python/bin
+./python3.xx -m pip install torch torchvision
+```
+
+2. **Clone rignet-gj repository**:
+```bash
+# Using GitHub CLI (recommended)
+gh repo clone govindjoshi12/rignet-gj
+
+# Or using git
+git clone https://github.com/govindjoshi12/rignet-gj.git
+```
+
+3. **Install dependencies**:
+```bash
+cd rignet-gj
+pip install numpy scipy matplotlib tensorboard trimesh open3d jupyter
+pip install torch-geometric
+pip install pyg_lib torch_scatter torch_sparse torch_cluster
+```
+
+4. **Restart Blender**
+
+The add-on will automatically detect rignet-gj and enable auto-rigging features.
+
+**OPTION 2: Original RigNet (Complete pipeline)**
+
+1. **Install PyTorch** (same as above)
+
+2. **Clone original RigNet**:
+```bash
+gh repo clone zhan-xu/RigNet
+# OR
+git clone https://github.com/zhan-xu/RigNet.git
+```
+
+3. **Install RigNet dependencies**:
+```bash
+cd RigNet
+pip install numpy scipy matplotlib tensorboard open3d==0.9.0 opencv-python "rtree>=0.8,<0.9" trimesh
+pip install torch-geometric==1.7.2
+pip install pyg_lib torch_scatter torch_sparse torch_cluster torch_spline_conv -f https://data.pyg.org/whl/torch-1.12.0+cu113.html
+```
+
+4. **Download pre-trained models**:
+- Download from: https://drive.google.com/file/d/1gM2Lerk7a2R0g9DwlK3IvCfp8c2aFVXs/view?usp=sharing
+- Extract checkpoints folder to RigNet/checkpoints/
+
+5. **Restart Blender**
+
+**OPTION 3: Existing Blender Add-ons (Easiest)**
+
+For immediate use without manual integration:
+- **brignet**: https://github.com/pKrime/brignet (Recommended)
+- **Rignet_blender_addon**: https://github.com/L-Medici/Rignet_blender_addon
+
+These are complete Blender add-ons that integrate RigNet functionality directly.
+
+**Additional: libigl for BBW Skinning**
+
+libigl provides Bounded Biharmonic Weights for automatic skinning weight computation:
+
+1. **Install Python bindings** (easiest):
+```bash
+# In Blender's Python environment
+pip install libigl
+```
+
+2. **Clone Python bindings repository** (recommended for development):
+```bash
+# Using GitHub CLI
+gh repo clone libigl/libigl-python-bindings
+
+# Or using git
+git clone --recursive https://github.com/libigl/libigl-python-bindings.git
+cd libigl-python-bindings
+pip install .
+```
+
+3. **Clone main repository** (for C++ development):
+```bash
+gh repo clone libigl/libigl
+# OR
+git clone https://github.com/libigl/libigl.git
+```
+
+4. **Restart Blender**
+
+**Features:**
+- Bounded Biharmonic Weights (BBW) for automatic skinning
+- Works with any existing armature/skeleton
+- Fast C++ implementation with Python interface
+- No vertex count limitations
+- Additional: mesh repair, UV unwrapping, geodesic distances
+
+**When to use:**
+- **RigNet**: Full automatic rigging (skeleton + skinning)
+- **libigl**: Automatic skinning for existing skeletons
+- **Combination**: RigNet for skeleton prediction + libigl for weight refinement
+
 ## Installation
 
 1. Download the add-on files
@@ -327,6 +472,45 @@ OR
 3. Create your animation
 4. Click "Validate Animation" to check for issues
 ```
+
+#### 6b. Auto-Rig with RigNet & libigl (Optional)
+```
+OPTION A: Full Auto-Rigging with RigNet
+1. Install RigNet (see Auto-Rigging section above)
+2. Select your character mesh
+3. Expand "Auto-Rigging (RigNet)" panel
+4. Click "1. Prepare Mesh" to optimize mesh for rigging
+   - Simplifies to 1K-5K vertices (optimal for RigNet)
+5. Click "2. Auto-Rig" to automatically create skeleton
+   - RigNet will predict joints and skinning weights
+   - Works best with humanoid/animal characters
+
+OPTION B: Auto-Skinning with libigl (for existing skeletons)
+1. Install libigl: pip install libigl
+2. Create or select your armature/skeleton
+3. Select your character mesh
+4. Parent mesh to armature (or select both)
+5. Expand "Auto-Rigging (RigNet)" panel
+6. Under "libigl (BBW Skinning)" section
+7. Click "Compute BBW Weights"
+   - libigl will automatically compute skinning weights
+   - Uses Bounded Biharmonic Weights algorithm
+   - Works with any mesh/armature combination
+
+OPTION C: Export for External Processing
+1. Click "Export for External RigNet"
+2. Process with brignet or RigNet CLI
+3. Import resulting rig
+```
+
+**Comparison:**
+- **RigNet**: Predicts skeleton + skinning (1K-5K vertices, AI-powered)
+- **libigl**: Computes skinning for existing skeleton (any size, algorithmic)
+- **Manual**: Full control (use animation_helpers for basic armature)
+
+**Note:** RigNet integration is in beta. For production use, consider:
+- brignet Blender add-on (https://github.com/pKrime/brignet)
+- Rignet_blender_addon (https://github.com/L-Medici/Rignet_blender_addon)
 
 #### 7. Export Your Mod
 ```
@@ -531,6 +715,42 @@ If you need advanced physics features, use these tools **in addition to** this a
 - Check file format (.bvh or .fbx supported)
 - Verify file path is correct
 - Try importing manually: File → Import → Motion Capture (.bvh)
+
+### Auto-Rigging Issues
+
+**"RigNet not available"**
+- Solution: Install RigNet following the instructions in the "Optional: RigNet for Auto-Rigging" section
+- Check that PyTorch is installed in Blender's Python environment
+- Verify rignet-gj or RigNet repository is cloned in a standard location
+- Restart Blender after installation
+
+**"PyTorch not installed"**
+- Solution: Install PyTorch in Blender's Python environment:
+  ```bash
+  python -m pip install torch torchvision
+  ```
+
+**"RigNet found but required files not present"**
+- For rignet-gj: Check that utilities/ folder exists
+- For original RigNet: Check that checkpoints/ folder exists and contains model weights
+- Download pre-trained models if using original RigNet
+
+**"RigNet integration is in beta"**
+- This is expected - full integration is work in progress
+- Use existing Blender add-ons for production work:
+  - brignet: https://github.com/pKrime/brignet (Recommended)
+  - Rignet_blender_addon: https://github.com/L-Medici/Rignet_blender_addon
+- Or export mesh and use RigNet CLI directly
+
+**"Mesh has too many/few vertices"**
+- Solution: Use "Prepare for Auto-Rig" operator first
+- RigNet works best with 1K-5K vertices
+- The prepare function will automatically simplify or subdivide
+
+**Auto-rigging grayed out**
+- This is normal if RigNet is not installed
+- Auto-rigging is optional - manual rigging works without it
+- Click "Installation Guide" for setup instructions
 
 ## Documentation
 

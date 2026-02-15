@@ -4,7 +4,7 @@ UI Panels for the Fallout 4 Tutorial Add-on
 
 import bpy
 from bpy.types import Panel
-from . import hunyuan3d_helpers, gradio_helpers, hymotion_helpers, nvtt_helpers
+from . import hunyuan3d_helpers, gradio_helpers, hymotion_helpers, nvtt_helpers, rignet_helpers
 
 class FO4_PT_MainPanel(Panel):
     """Main tutorial panel in the 3D View sidebar"""
@@ -211,6 +211,102 @@ class FO4_PT_AnimationPanel(Panel):
         box.operator("fo4.setup_armature", text="Setup FO4 Armature", icon='ARMATURE_DATA')
         box.operator("fo4.validate_animation", text="Validate Animation", icon='CHECKMARK')
 
+class FO4_PT_RigNetPanel(Panel):
+    """RigNet auto-rigging panel"""
+    bl_label = "Auto-Rigging (RigNet)"
+    bl_idname = "FO4_PT_rignet_panel"
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'UI'
+    bl_category = 'Fallout 4'
+    bl_parent_id = "FO4_PT_main_panel"
+    bl_options = {'DEFAULT_CLOSED'}
+    
+    def draw(self, context):
+        layout = self.layout
+        
+        # Check if RigNet is available
+        is_available, message = rignet_helpers.RigNetHelpers.check_rignet_available()
+        
+        # Check if libigl is available
+        libigl_available, libigl_message = rignet_helpers.RigNetHelpers.check_libigl_available()
+        
+        # Status box for RigNet
+        status_box = layout.box()
+        status_box.label(text="RigNet Status:", icon='INFO')
+        if is_available:
+            status_box.label(text="✓ RigNet Available", icon='CHECKMARK')
+            # Show just the directory name
+            import os
+            rignet_dir = os.path.basename(message)
+            status_box.label(text=f"  {rignet_dir}", icon='FILE_FOLDER')
+        else:
+            status_box.label(text="✗ RigNet Not Installed", icon='ERROR')
+        
+        status_box.operator("fo4.check_rignet", text="Check RigNet", icon='INFO')
+        
+        # Status box for libigl
+        libigl_box = layout.box()
+        libigl_box.label(text="libigl Status:", icon='INFO')
+        if libigl_available:
+            libigl_box.label(text="✓ libigl Available", icon='CHECKMARK')
+            if "pip" in libigl_message:
+                libigl_box.label(text="  Installed via pip", icon='PACKAGE')
+            else:
+                import os
+                libigl_dir = os.path.basename(libigl_message.split("at ")[-1]) if "at " in libigl_message else "libigl"
+                libigl_box.label(text=f"  {libigl_dir}", icon='FILE_FOLDER')
+        else:
+            libigl_box.label(text="✗ libigl Not Installed", icon='ERROR')
+        
+        libigl_box.operator("fo4.check_libigl", text="Check libigl", icon='INFO')
+        
+        layout.operator("fo4.show_rignet_info", text="Installation Guide", icon='QUESTION')
+        
+        # Auto-rigging operators (RigNet)
+        rignet_box = layout.box()
+        rignet_box.label(text="RigNet (Full Auto-Rigging)", icon='ARMATURE_DATA')
+        
+        row = rignet_box.row()
+        row.operator("fo4.prepare_for_rignet", text="1. Prepare Mesh", icon='MODIFIER')
+        
+        row = rignet_box.row()
+        row.enabled = is_available
+        row.operator("fo4.auto_rig_mesh", text="2. Auto-Rig", icon='ARMATURE_DATA')
+        
+        row = rignet_box.row()
+        row.operator("fo4.export_for_rignet", text="Export for External RigNet", icon='EXPORT')
+        
+        # BBW skinning operators (libigl)
+        libigl_op_box = layout.box()
+        libigl_op_box.label(text="libigl (BBW Skinning)", icon='MOD_SKIN')
+        
+        row = libigl_op_box.row()
+        row.enabled = libigl_available
+        row.operator("fo4.compute_bbw_skinning", text="Compute BBW Weights", icon='WPAINT_HLT')
+        
+        libigl_op_box.label(text="(Requires existing armature)", icon='INFO')
+        
+        # Info box
+        info_box = layout.box()
+        info_box.label(text="About Auto-Rigging:", icon='INFO')
+        info_box.label(text="• RigNet: Full auto-rigging")
+        info_box.label(text="  - AI predicts skeleton")
+        info_box.label(text="  - Best for humanoid/animals")
+        info_box.label(text="• libigl: BBW skinning only")
+        info_box.label(text="  - Needs existing skeleton")
+        info_box.label(text="  - Fast & reliable weights")
+        
+        if not is_available and not libigl_available:
+            info_box.separator()
+            info_box.label(text="Quick Install:", icon='DOWNLOAD')
+            info_box.label(text="RigNet:")
+            info_box.label(text="  gh repo clone govindjoshi12/")
+            info_box.label(text="    rignet-gj")
+            info_box.label(text="libigl:")
+            info_box.label(text="  pip install libigl")
+            info_box.label(text="OR gh repo clone libigl/")
+            info_box.label(text="  libigl-python-bindings")
+
 class FO4_PT_NVTTPanel(Panel):
     """NVIDIA Texture Tools panel"""
     bl_label = "Texture Conversion (NVTT)"
@@ -293,6 +389,7 @@ classes = (
     FO4_PT_ImageToMeshPanel,
     FO4_PT_AIGenerationPanel,
     FO4_PT_AnimationPanel,
+    FO4_PT_RigNetPanel,
     FO4_PT_NVTTPanel,
     FO4_PT_ExportPanel,
 )

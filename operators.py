@@ -2230,6 +2230,76 @@ class FO4_OT_CheckStereoTripoSR(Operator):
         
         return {'FINISHED'}
 
+# TripoSR Pythonic Implementation Operators
+
+class FO4_OT_UsePythonicTripoSR(Operator):
+    """Use Pythonic TripoSR API for direct Python integration"""
+    bl_idname = "fo4.use_pythonic_triposr"
+    bl_label = "Use Pythonic TripoSR"
+    bl_options = {'REGISTER'}
+    
+    show_guide: BoolProperty(
+        name="Show Integration Guide",
+        default=True
+    )
+    
+    def execute(self, context):
+        success, message = imageto3d_helpers.ImageTo3DHelpers.check_triposr_pythonic_installation()
+        
+        if not success:
+            self.report({'ERROR'}, "TripoSR Pythonic not installed")
+            print("\n" + "="*70)
+            print("TRIPOSR PYTHONIC IMPLEMENTATION")
+            print("="*70)
+            print(message)
+            print("="*70 + "\n")
+            return {'CANCELLED'}
+        
+        if self.show_guide:
+            guide = imageto3d_helpers.ImageTo3DHelpers.create_triposr_python_integration_guide()
+            print("\n" + guide)
+        
+        self.report({'INFO'}, "TripoSR Pythonic ready - See console for API guide")
+        notification_system.FO4_NotificationSystem.notify(
+            "Pythonic TripoSR available for Python integration", 'INFO'
+        )
+        
+        return {'FINISHED'}
+
+
+class FO4_OT_CheckPythonicTripoSR(Operator):
+    """Check Pythonic TripoSR installation"""
+    bl_idname = "fo4.check_pythonic_triposr"
+    bl_label = "Check Pythonic TripoSR"
+    
+    def execute(self, context):
+        success, message = imageto3d_helpers.ImageTo3DHelpers.check_triposr_pythonic_installation()
+        
+        print("\n" + "="*70)
+        print("TRIPOSR PYTHONIC STATUS")
+        print("="*70)
+        print(message)
+        if success:
+            print("\nFeatures:")
+            print("  • Clean Python API")
+            print("  • Type hints throughout")
+            print("  • Direct Blender integration")
+            print("  • No subprocess overhead")
+            print("  • Batch processing optimized")
+            print("\nExample:")
+            print("  from triposr import TripoSR")
+            print("  model = TripoSR(device='cuda')")
+            print("  mesh = model.generate('photo.jpg')")
+            print("  mesh.export('output.obj')")
+        print("="*70 + "\n")
+        
+        if success:
+            self.report({'INFO'}, "Pythonic TripoSR available")
+        else:
+            self.report({'WARNING'}, "Not installed")
+        
+        return {'FINISHED'}
+
 # TripoSR Lightweight Version Operators
 
 class FO4_OT_GenerateWithTripoSRLight(Operator):
@@ -2818,6 +2888,8 @@ classes = (
     FO4_OT_CheckTripoSRTextureGen,
     FO4_OT_GenerateFromStereo,
     FO4_OT_CheckStereoTripoSR,
+    FO4_OT_UsePythonicTripoSR,
+    FO4_OT_CheckPythonicTripoSR,
     FO4_OT_GenerateWithTripoSRLight,
     FO4_OT_ShowTripoSRComparison,
     FO4_OT_CheckTripoSRLight,

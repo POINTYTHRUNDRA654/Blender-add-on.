@@ -2,6 +2,8 @@
 
 A comprehensive Blender add-on that provides a desktop tutorial system and helper tools for creating Fallout 4 mods. This add-on guides you through every step of the mod creation process, from mesh creation to final export.
 
+**⚠️ Important:** This add-on is designed for **Fallout 4 modding with Havok physics**. It is **not compatible with NVIDIA PhysX**. See [COMPATIBILITY.md](COMPATIBILITY.md) for details.
+
 ## Features
 
 ### 🎓 Tutorial System
@@ -23,7 +25,7 @@ A comprehensive Blender add-on that provides a desktop tutorial system and helpe
 - Automatic mesh optimization
 - Poly count validation
 - UV mapping checks
-- Collision mesh generation
+- Collision mesh generation (basic geometry for Havok physics)
 
 ### 🖼️ Image to Mesh Conversion
 - Convert images to 3D meshes using height maps
@@ -406,6 +408,39 @@ You can also use the add-on's functionality through Python scripts in Blender's 
 4. **Start with lower resolution** to test, then increase for final mesh
 5. **See TUTORIALS.md** for detailed guide on using these resources
 
+## Physics System Compatibility
+
+### Important: Fallout 4 Uses Havok Physics, Not PhysX
+
+**This add-on is designed for Fallout 4 modding, which uses Havok physics.**
+
+- **Fallout 4 uses Havok:** All Bethesda Creation Engine games (Skyrim, Fallout 4, Starfield) use Havok physics
+- **PhysX is not compatible:** NVIDIA PhysX (including NVIDIA-Omniverse/PhysX) is a different physics engine used in other games
+- **This add-on does NOT require PhysX:** Everything works with Fallout 4's native Havok system
+
+### What This Add-on Provides
+
+**Collision Mesh Generation:**
+- Creates simplified geometry for collision boundaries
+- Exports to FBX/NIF format compatible with Fallout 4
+- Basic collision shapes for static objects
+
+**What This Add-on Does NOT Provide:**
+- Full Havok physics simulation (requires Havok Content Tools)
+- Ragdoll physics setup (requires Creation Kit)
+- Dynamic physics properties (requires NifSkope + Creation Kit)
+- PhysX support (not used in Fallout 4)
+
+### For Advanced Physics in Fallout 4
+
+If you need advanced physics features, use these tools **in addition to** this add-on:
+1. **Havok Content Tools** - For creating physics simulations (available from Bethesda)
+2. **NifSkope** - For editing collision properties in .nif files
+3. **Creation Kit** - For setting up physics properties in-game
+4. **This add-on** - For creating meshes and basic collision geometry
+
+**Bottom line:** This add-on works perfectly for Fallout 4 modding. PhysX is not needed or compatible with Fallout 4.
+
 ## Troubleshooting
 
 ### Common Issues
@@ -496,6 +531,20 @@ You can also use the add-on's functionality through Python scripts in Blender's 
 - Check file format (.bvh or .fbx supported)
 - Verify file path is correct
 - Try importing manually: File → Import → Motion Capture (.bvh)
+
+## Documentation
+
+This add-on comes with comprehensive documentation:
+
+- **[README.md](README.md)** - Main documentation (you are here)
+- **[INSTALLATION.md](INSTALLATION.md)** - Installation instructions
+- **[QUICKSTART.md](QUICKSTART.md)** - Quick start guide
+- **[TUTORIALS.md](TUTORIALS.md)** - Detailed tutorials
+- **[FAQ.md](FAQ.md)** - Frequently asked questions
+- **[API_REFERENCE.md](API_REFERENCE.md)** - API documentation for scripting
+- **[COMPATIBILITY.md](COMPATIBILITY.md)** - Compatibility with PhysX, other tools, and platforms
+- **[CONTRIBUTING.md](CONTRIBUTING.md)** - Contribution guidelines
+- **[CHANGELOG.md](CHANGELOG.md)** - Version history
 
 ## Version History
 

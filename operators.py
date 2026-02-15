@@ -5,7 +5,7 @@ Operators for the Fallout 4 Tutorial Add-on
 import bpy
 from bpy.types import Operator
 from bpy.props import StringProperty, EnumProperty, IntProperty, FloatProperty, BoolProperty
-from . import tutorial_system, mesh_helpers, texture_helpers, animation_helpers, export_helpers, notification_system, image_to_mesh_helpers, hunyuan3d_helpers, gradio_helpers, hymotion_helpers, nvtt_helpers, realesrgan_helpers, get3d_helpers, stylegan2_helpers, instantngp_helpers, imageto3d_helpers, advanced_mesh_helpers, rignet_helpers
+from . import tutorial_system, mesh_helpers, texture_helpers, animation_helpers, export_helpers, notification_system, image_to_mesh_helpers, hunyuan3d_helpers, gradio_helpers, hymotion_helpers, nvtt_helpers, realesrgan_helpers, get3d_helpers, stylegan2_helpers, instantngp_helpers, imageto3d_helpers, advanced_mesh_helpers, rignet_helpers, motion_generation_helpers
 
 # Tutorial Operators
 
@@ -1121,6 +1121,95 @@ class FO4_OT_ShowHyMotionInfo(Operator):
             print("="*70 + "\n")
         
         return {'FINISHED'}
+
+class FO4_OT_CheckAllMotionSystems(Operator):
+    """Check all available motion generation systems"""
+    bl_idname = "fo4.check_all_motion_systems"
+    bl_label = "Check Motion Systems"
+    
+    def execute(self, context):
+        # Check all systems
+        hy_avail, hy_msg = motion_generation_helpers.MotionGenerationHelpers.check_hymotion_available()
+        md_avail, md_msg = motion_generation_helpers.MotionGenerationHelpers.check_motiondiffuse_available()
+        cf_avail, cf_msg = motion_generation_helpers.MotionGenerationHelpers.check_comfyui_motiondiff_available()
+        
+        print("\n" + "="*70)
+        print("MOTION GENERATION SYSTEMS STATUS")
+        print("="*70)
+        print(f"HY-Motion-1.0:      {'✓ ' + hy_msg if hy_avail else '✗ ' + hy_msg}")
+        print(f"MotionDiffuse:      {'✓ ' + md_msg if md_avail else '✗ ' + md_msg}")
+        print(f"ComfyUI-MotionDiff: {'✓ ' + cf_msg if cf_avail else '✗ ' + cf_msg}")
+        print("="*70 + "\n")
+        
+        if hy_avail or md_avail or cf_avail:
+            self.report({'INFO'}, "Motion generation systems available! See console for details.")
+        else:
+            self.report({'WARNING'}, "No motion generation systems installed. See console for details.")
+        
+        return {'FINISHED'}
+
+class FO4_OT_ShowMotionGenerationInfo(Operator):
+    """Show installation information for all motion generation systems"""
+    bl_idname = "fo4.show_motion_generation_info"
+    bl_label = "Motion Generation Installation Info"
+    
+    def execute(self, context):
+        instructions = motion_generation_helpers.MotionGenerationHelpers.get_installation_instructions()
+        
+        print("\n" + "="*70)
+        print("MOTION GENERATION INSTALLATION INSTRUCTIONS")
+        print("="*70)
+        print(instructions)
+        print("="*70 + "\n")
+        
+        self.report({'INFO'}, "Installation instructions printed to console (Window > Toggle System Console)")
+        return {'FINISHED'}
+
+class FO4_OT_GenerateMotionAuto(Operator):
+    """Generate motion using best available system"""
+    bl_idname = "fo4.generate_motion_auto"
+    bl_label = "Generate Motion (Auto)"
+    bl_options = {'REGISTER', 'UNDO'}
+    
+    prompt: StringProperty(
+        name="Motion Description",
+        description="Describe the motion to generate",
+        default="a person walking forward"
+    )
+    
+    duration: FloatProperty(
+        name="Duration (seconds)",
+        description="Duration of the animation",
+        default=3.0,
+        min=0.5,
+        max=30.0
+    )
+    
+    fps: IntProperty(
+        name="FPS",
+        description="Frames per second",
+        default=30,
+        min=1,
+        max=120
+    )
+    
+    def execute(self, context):
+        # Generate motion using best available system
+        success, message, motion_data = motion_generation_helpers.MotionGenerationHelpers.generate_motion_from_text(
+            self.prompt, "auto", self.duration, self.fps
+        )
+        
+        if success:
+            self.report({'INFO'}, message)
+            notification_system.FO4_NotificationSystem.notify(message, 'INFO')
+        else:
+            self.report({'WARNING'}, message)
+            notification_system.FO4_NotificationSystem.notify(message, 'WARNING')
+        
+        return {'FINISHED'}
+    
+    def invoke(self, context, event):
+        return context.window_manager.invoke_props_dialog(self)
 
 # NVIDIA Texture Tools Operators
 
@@ -3419,6 +3508,9 @@ classes = (
     FO4_OT_GenerateMotionFromText,
     FO4_OT_ImportMotionFile,
     FO4_OT_ShowHyMotionInfo,
+    FO4_OT_CheckAllMotionSystems,
+    FO4_OT_ShowMotionGenerationInfo,
+    FO4_OT_GenerateMotionAuto,
     FO4_OT_ConvertTextureToDDS,
     FO4_OT_ConvertObjectTexturesToDDS,
     FO4_OT_CheckNVTTInstallation,

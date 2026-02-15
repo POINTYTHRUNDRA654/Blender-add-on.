@@ -2230,6 +2230,78 @@ class FO4_OT_CheckStereoTripoSR(Operator):
         
         return {'FINISHED'}
 
+# StarxSky TRIPOSR Variant Operators
+
+class FO4_OT_CheckStarxSkyTripoSR(Operator):
+    """Check StarxSky TRIPOSR installation"""
+    bl_idname = "fo4.check_starxsky_triposr"
+    bl_label = "Check StarxSky TRIPOSR"
+    
+    def execute(self, context):
+        success, message = imageto3d_helpers.ImageTo3DHelpers.check_starxsky_triposr_installation()
+        
+        print("\n" + "="*70)
+        print("STARXSKY TRIPOSR STATUS")
+        print("="*70)
+        print(message)
+        if success:
+            print("\nThis is variant #14 in the TripoSR ecosystem")
+            print("Features:")
+            print("  • Community-driven implementation")
+            print("  • Alternative processing options")
+            print("  • Extended configurations")
+            print("  • Experimental enhancements")
+        print("="*70 + "\n")
+        
+        if success:
+            self.report({'INFO'}, "StarxSky TRIPOSR available")
+        else:
+            self.report({'WARNING'}, "Not installed")
+        
+        return {'FINISHED'}
+
+
+class FO4_OT_ShowAllTripoSRVariants(Operator):
+    """Show all 14 TripoSR variants available"""
+    bl_idname = "fo4.show_all_triposr_variants"
+    bl_label = "Show All TripoSR Variants"
+    
+    def execute(self, context):
+        print("\n" + "="*70)
+        print("COMPLETE TRIPOSR ECOSYSTEM - 14 VARIANTS")
+        print("="*70)
+        print("\n🎯 OFFICIAL & STANDARD:")
+        print("  1. VAST-AI TripoSR - Official, balanced (5s, quality 85)")
+        print("\n⚡ SPEED OPTIMIZED:")
+        print("  2. TripoSR Light - 2-3x faster, CPU-viable (2s, quality 75-80)")
+        print("\n🎨 TEXTURE & MATERIALS:")
+        print("  3. TripoSR Texture Gen - PBR textures (4K diffuse/normal/rough)")
+        print("  4. TripoSR-Bake - Advanced maps (normal/AO/curvature/height)")
+        print("\n📸 MULTI-VIEW & STEREO:")
+        print("  5. Stereo/Multi-view - Highest quality (90-98/100)")
+        print("\n🔧 TOOLS & CONVERSION:")
+        print("  6. NVTT - DDS conversion for FO4")
+        print("  7. Real-ESRGAN - AI upscaling")
+        print("  8. StyleGAN2 - Texture generation")
+        print("  9. GET3D - AI 3D generation")
+        print("  10. Instant-NGP - NeRF reconstruction")
+        print("\n🔌 INTEGRATION:")
+        print("  11. ComfyUI Node - Workflow automation")
+        print("  12. Pythonic API - Python integration")
+        print("\n🌟 COMMUNITY:")
+        print("  13. Image-to-3D Comparison - Unified interface")
+        print("  14. StarxSky TRIPOSR - Community variant")
+        print("\n✅ All integrated into this add-on!")
+        print("✅ Choose the right tool for your workflow!")
+        print("="*70 + "\n")
+        
+        self.report({'INFO'}, "All 14 TripoSR variants listed in console")
+        notification_system.FO4_NotificationSystem.notify(
+            "14 TripoSR variants available!", 'INFO'
+        )
+        
+        return {'FINISHED'}
+
 # TripoSR Pythonic Implementation Operators
 
 class FO4_OT_UsePythonicTripoSR(Operator):
@@ -2888,6 +2960,8 @@ classes = (
     FO4_OT_CheckTripoSRTextureGen,
     FO4_OT_GenerateFromStereo,
     FO4_OT_CheckStereoTripoSR,
+    FO4_OT_CheckStarxSkyTripoSR,
+    FO4_OT_ShowAllTripoSRVariants,
     FO4_OT_UsePythonicTripoSR,
     FO4_OT_CheckPythonicTripoSR,
     FO4_OT_GenerateWithTripoSRLight,

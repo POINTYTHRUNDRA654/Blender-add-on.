@@ -771,14 +771,6 @@ See NVIDIA_RESOURCES.md for detailed setup instructions.
         }
         
         return suggestions.get(use_case, 'TripoSR recommended for general use')
-
-def register():
-    """Register image-to-3D helper functions"""
-    pass
-
-def unregister():
-    """Unregister image-to-3D helper functions"""
-    pass
     
     # ==================== Stereo Vision Multi-View Generation ====================
     

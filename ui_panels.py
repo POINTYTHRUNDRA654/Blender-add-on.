@@ -99,11 +99,30 @@ class FO4_PT_ImageToMeshPanel(Panel):
         box.label(text="Displacement Map", icon='MOD_DISPLACE')
         box.operator("fo4.apply_displacement_map", text="Apply Displacement Map", icon='TEXTURE')
         
+        # ZoeDepth section
+        from . import zoedepth_helpers
+        available, _ = zoedepth_helpers.check_zoedepth_availability()
+        
+        depth_box = layout.box()
+        depth_box.label(text="Depth Estimation (ZoeDepth)", icon='CAMERA_DATA')
+        
+        if available:
+            depth_box.label(text="Status: Available ✓", icon='CHECKMARK')
+        else:
+            depth_box.label(text="Status: Not Installed ✗", icon='ERROR')
+        
+        row = depth_box.row()
+        row.enabled = available
+        row.operator("fo4.estimate_depth", text="Estimate Depth & Create Mesh", icon='MESH_GRID')
+        
+        depth_box.operator("fo4.show_zoedepth_info", text="Installation Info", icon='INFO')
+        
         # Info box
         info_box = layout.box()
         info_box.label(text="Quick Guide:", icon='INFO')
+        info_box.label(text="• Height Map: Grayscale images")
+        info_box.label(text="• ZoeDepth: RGB images (AI depth)")
         info_box.label(text="• Formats: PNG, JPG, BMP, TIFF, TGA")
-        info_box.label(text="• Grayscale: Bright=high, Dark=low")
         info_box.label(text="• Requires: PIL/Pillow & NumPy")
         info_box.label(text="• See README for install instructions")
 

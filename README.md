@@ -29,6 +29,7 @@ A comprehensive Blender add-on that provides a desktop tutorial system and helpe
 
 ### 🖼️ Image to Mesh Conversion
 - Convert images to 3D meshes using height maps
+- **NEW**: AI-powered depth estimation with ZoeDepth (optional)
 - Support for common image formats (PNG, JPG, BMP, TIFF, TGA)
 - Adjustable displacement strength and mesh resolution
 - Apply displacement maps to existing meshes
@@ -230,6 +231,86 @@ Then in Blender:
 - User-friendly interface
 - Works on any device with a browser
 - Can create a shareable public link (optional)
+
+## Optional: ZoeDepth for Depth Estimation
+
+For AI-powered depth estimation from RGB images, install ZoeDepth:
+
+### What is ZoeDepth?
+
+ZoeDepth is a state-of-the-art monocular depth estimation model from Intel ISL that can:
+- Estimate depth from any RGB image without requiring stereo cameras
+- Generate high-quality depth maps for image-to-mesh conversion
+- Provide better results than simple height map extraction
+- Work on indoor scenes, outdoor scenes, or general purpose
+
+### Prerequisites
+
+**Hardware Requirements:**
+- GPU recommended for faster inference (CPU supported)
+- 4GB+ free disk space
+- 8GB+ RAM recommended
+
+**Software Requirements:**
+- PyTorch
+- ZoeDepth repository
+
+### Installation Steps
+
+1. **Install PyTorch** (in Blender's Python environment):
+```bash
+# Windows
+cd "C:\Program Files\Blender Foundation\Blender X.X\X.X\python\bin"
+python.exe -m pip install torch torchvision --index-url https://download.pytorch.org/whl/cu118
+
+# macOS/Linux
+cd /path/to/blender/X.X/python/bin
+./python3.xx -m pip install torch torchvision
+```
+
+2. **Clone ZoeDepth repository**:
+```bash
+# Using GitHub CLI (recommended)
+gh repo clone isl-org/ZoeDepth
+
+# Or using git
+git clone https://github.com/isl-org/ZoeDepth.git
+```
+
+3. **Install ZoeDepth dependencies**:
+```bash
+cd ZoeDepth
+pip install -r requirements.txt
+```
+
+4. **Restart Blender**
+
+The add-on will automatically detect if ZoeDepth is installed and enable depth estimation features.
+
+### Using ZoeDepth
+
+Once installed, you'll see a "Depth Estimation (ZoeDepth)" section in the Image to Mesh panel:
+
+- **Estimate Depth**: Select an RGB image and generate a depth map
+- **Model Selection**: Choose between three model variants:
+  - **ZoeD_N**: Best for indoor scenes (NYU-trained)
+  - **ZoeD_K**: Best for outdoor/driving scenes (KITTI-trained)
+  - **ZoeD_NK**: General purpose (combined model)
+- **Create Mesh**: Convert depth map to 3D mesh with adjustable scale
+
+### Benefits over Height Maps
+
+- Works with any RGB image (not just grayscale height maps)
+- Understands 3D scene structure
+- Better depth accuracy for realistic scenes
+- No manual height map creation needed
+
+### Note on Depth Estimation
+
+- Depth estimation is **optional** - height map method still works
+- First inference may take time to download model weights
+- GPU recommended for real-time performance
+- Generated depth maps can be saved for reuse
 
 ## Optional: HY-Motion-1.0 for Motion Generation
 

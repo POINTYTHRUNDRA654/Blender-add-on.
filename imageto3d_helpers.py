@@ -2328,7 +2328,7 @@ All functions include docstrings:
 ----------------------------------
 ```python
 def generate(self, image_path, **kwargs):
-    """
+    '''
     Generate 3D mesh from image.
     
     Args:
@@ -2343,7 +2343,7 @@ def generate(self, image_path, **kwargs):
     Raises:
         TripoSRError: If generation fails
         FileNotFoundError: If image not found
-    """
+    '''
 ```
 
 TYPE HINTS
@@ -3174,6 +3174,110 @@ See NVIDIA_RESOURCES.md for all AI tools.
                 "  - Clean edges ✓\n"
                 "  - Better for 3D ✓\n"
                 "  - Game-ready output ✓\n\n"
+            )
+            
+            if not has_torch:
+                install_msg += "⚠️ PyTorch not installed\n"
+                install_msg += "Install: pip install torch torchvision\n\n"
+            
+            return False, install_msg
+    
+    # ==================== oneClick Windows ImageTo3D Install ====================
+    
+    @staticmethod
+    def is_oneclick_imageto3d_available():
+        """Check if oneClick Windows ImageTo3D is available"""
+        possible_paths = [
+            os.path.expanduser('~/oneClick_Windows_ImageTo3D_install'),
+            os.path.expanduser('~/Projects/oneClick_Windows_ImageTo3D_install'),
+            os.path.expanduser('~/Documents/oneClick_Windows_ImageTo3D_install'),
+            '/opt/oneClick_Windows_ImageTo3D_install',
+            'C:/Projects/oneClick_Windows_ImageTo3D_install',
+            'C:/oneClick_Windows_ImageTo3D_install',
+        ]
+        
+        for path in possible_paths:
+            if os.path.exists(path):
+                return True
+        
+        return False
+    
+    @staticmethod
+    def find_oneclick_imageto3d_path():
+        """Find oneClick Windows ImageTo3D installation path"""
+        possible_paths = [
+            os.path.expanduser('~/oneClick_Windows_ImageTo3D_install'),
+            os.path.expanduser('~/Projects/oneClick_Windows_ImageTo3D_install'),
+            os.path.expanduser('~/Documents/oneClick_Windows_ImageTo3D_install'),
+            '/opt/oneClick_Windows_ImageTo3D_install',
+            'C:/Projects/oneClick_Windows_ImageTo3D_install',
+            'C:/oneClick_Windows_ImageTo3D_install',
+        ]
+        
+        for path in possible_paths:
+            if os.path.exists(path):
+                return path
+        
+        return None
+    
+    @staticmethod
+    def check_oneclick_imageto3d_installation():
+        """Check oneClick Windows ImageTo3D installation status"""
+        try:
+            import torch
+            has_torch = True
+            cuda_available = torch.cuda.is_available()
+        except ImportError:
+            has_torch = False
+            cuda_available = False
+        
+        install_path = ImageTo3DHelpers.find_oneclick_imageto3d_path()
+        
+        if install_path:
+            msg = f"oneClick Windows ImageTo3D found at: {install_path}\n"
+            if has_torch:
+                if cuda_available:
+                    msg += "CUDA: Available ✓ (GPU acceleration)\n"
+                else:
+                    msg += "CUDA: Not available (CPU mode - slower)\n"
+            else:
+                msg += "PyTorch: Not installed\n"
+            msg += "Ready for one-click image to 3D conversion!"
+            return True, msg
+        else:
+            install_msg = (
+                "oneClick Windows ImageTo3D not found. To install:\n\n"
+                "INSTALLATION:\n"
+                "1. Clone repository from Hugging Face:\n"
+                "   git clone https://huggingface.co/cebas/oneClick_Windows_ImageTo3D_install\n\n"
+                "2. Navigate to the cloned directory:\n"
+                "   cd oneClick_Windows_ImageTo3D_install\n\n"
+                "3. Install dependencies (if required):\n"
+                "   pip install torch torchvision\n"
+                "   pip install -r requirements.txt (if available)\n\n"
+                "FEATURES:\n"
+                "- One-click image to 3D conversion on Windows\n"
+                "- Simplified installation process\n"
+                "- Pre-configured for Windows environments\n"
+                "- Optimized image processing pipeline\n"
+                "- Batch processing support\n"
+                "- Integration with popular 3D generation models\n\n"
+                "USE CASES:\n"
+                "- Quick image to 3D prototyping\n"
+                "- Batch conversion of reference images\n"
+                "- Fallout 4 asset creation pipeline\n"
+                "- Game asset development\n\n"
+                "WORKFLOW:\n"
+                "1. Install oneClick Windows ImageTo3D\n"
+                "2. Place input images in designated folder\n"
+                "3. Run one-click conversion\n"
+                "4. Import generated 3D models to Blender\n"
+                "5. Apply textures and optimize for Fallout 4\n\n"
+                "REQUIREMENTS:\n"
+                "- Windows operating system (optimized for)\n"
+                "- PyTorch (recommended for GPU acceleration)\n"
+                "- 4GB+ RAM minimum\n"
+                "- GPU with CUDA support recommended for faster processing\n\n"
             )
             
             if not has_torch:

@@ -1,3 +1,4 @@
+# Python
 # Blender files
 *.blend1
 *.blend2
@@ -27,6 +28,11 @@ wheels/
 .installed.cfg
 *.egg
 
+# Virtual Environment
+venv/
+ENV/
+env/
+
 # IDE
 .vscode/
 .idea/
@@ -34,6 +40,12 @@ wheels/
 *.swo
 *~
 
+# Blender
+*.blend1
+*.blend2
+*.blend@
+
+# OS
 # OS files
 .DS_Store
 Thumbs.db
@@ -44,6 +56,9 @@ Thumbs.db
 htmlcov/
 
 # Temporary files
+tmp/
+temp/
+*.tmp
 /tmp/
 *.tmp
 *.bak

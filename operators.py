@@ -857,6 +857,143 @@ class FO4_OT_ShowHunyuan3DInfo(Operator):
         
         return {'FINISHED'}
 
+# ZoeDepth Depth Estimation Operators
+
+class FO4_OT_EstimateDepth(Operator):
+    """Estimate depth from an RGB image using ZoeDepth"""
+    bl_idname = "fo4.estimate_depth"
+    bl_label = "Estimate Depth"
+    bl_options = {'REGISTER', 'UNDO'}
+    
+    filepath: StringProperty(subtype='FILE_PATH')
+    
+    model_type: EnumProperty(
+        name="Model Type",
+        description="ZoeDepth model variant to use",
+        items=[
+            ('ZoeD_N', "Indoor (ZoeD_N)", "NYU-trained model, best for indoor scenes"),
+            ('ZoeD_K', "Outdoor (ZoeD_K)", "KITTI-trained model, best for outdoor/driving scenes"),
+            ('ZoeD_NK', "General (ZoeD_NK)", "Combined model, general purpose"),
+        ],
+        default='ZoeD_NK'
+    )
+    
+    mesh_width: FloatProperty(
+        name="Mesh Width",
+        description="Physical width of the resulting mesh",
+        default=2.0,
+        min=0.1,
+        max=100.0
+    )
+    
+    mesh_height: FloatProperty(
+        name="Mesh Height",
+        description="Physical height of the resulting mesh",
+        default=2.0,
+        min=0.1,
+        max=100.0
+    )
+    
+    depth_scale: FloatProperty(
+        name="Depth Scale",
+        description="Scale factor for depth values",
+        default=1.0,
+        min=0.1,
+        max=10.0
+    )
+    
+    subdivisions: IntProperty(
+        name="Subdivisions",
+        description="Number of subdivisions (0 = auto based on image)",
+        default=0,
+        min=0,
+        max=256
+    )
+    
+    def execute(self, context):
+        # Import ZoeDepth helpers
+        from . import zoedepth_helpers
+        
+        # Check availability
+        available, message = zoedepth_helpers.check_zoedepth_availability()
+        if not available:
+            self.report({'ERROR'}, f"ZoeDepth not available: {message}")
+            notification_system.FO4_NotificationSystem.notify(
+                "ZoeDepth not available. See console for installation.", 'ERROR'
+            )
+            print("\n" + "="*70)
+            print(zoedepth_helpers.get_installation_info())
+            print("="*70)
+            return {'CANCELLED'}
+        
+        # Estimate depth
+        success, depth_data, width, height = zoedepth_helpers.estimate_depth_from_image(
+            self.filepath, 
+            model_type=self.model_type
+        )
+        
+        if not success:
+            self.report({'ERROR'}, depth_data)  # depth_data contains error message
+            notification_system.FO4_NotificationSystem.notify(depth_data, 'ERROR')
+            return {'CANCELLED'}
+        
+        # Get object name from file
+        import os
+        obj_name = os.path.splitext(os.path.basename(self.filepath))[0] + "_depth"
+        
+        # Create mesh from depth map
+        subdivs = self.subdivisions if self.subdivisions > 0 else None
+        success, result = zoedepth_helpers.create_mesh_from_depth_map(
+            obj_name,
+            depth_data,
+            width,
+            height,
+            self.mesh_width,
+            self.mesh_height,
+            self.depth_scale,
+            subdivs
+        )
+        
+        if success:
+            self.report({'INFO'}, f"Created mesh from depth estimation: {result.name}")
+            notification_system.FO4_NotificationSystem.notify(
+                f"Created depth mesh from {os.path.basename(self.filepath)}", 'INFO'
+            )
+        else:
+            self.report({'ERROR'}, result)  # result contains error message
+            notification_system.FO4_NotificationSystem.notify(result, 'ERROR')
+            return {'CANCELLED'}
+        
+        return {'FINISHED'}
+    
+    def invoke(self, context, event):
+        context.window_manager.fileselect_add(self)
+        return {'RUNNING_MODAL'}
+
+
+class FO4_OT_ShowZoeDepthInfo(Operator):
+    """Show information about ZoeDepth depth estimation"""
+    bl_idname = "fo4.show_zoedepth_info"
+    bl_label = "About ZoeDepth"
+    
+    def execute(self, context):
+        from . import zoedepth_helpers
+        
+        status = zoedepth_helpers.get_status_message()
+        self.report({'INFO'}, status)
+        
+        available, _ = zoedepth_helpers.check_zoedepth_availability()
+        if not available:
+            instructions = zoedepth_helpers.get_installation_info()
+            print("\n" + "="*70)
+            print("ZOEDEPTH INSTALLATION INSTRUCTIONS")
+            print("="*70)
+            print(instructions)
+            print("="*70)
+            self.report({'INFO'}, "Installation instructions printed to console")
+        
+        return {'FINISHED'}
+
 # Gradio Web Interface Operators
 
 class FO4_OT_StartGradioServer(Operator):
@@ -3504,6 +3641,8 @@ classes = (
     FO4_OT_GenerateMeshFromText,
     FO4_OT_GenerateMeshFromImageAI,
     FO4_OT_ShowHunyuan3DInfo,
+    FO4_OT_EstimateDepth,
+    FO4_OT_ShowZoeDepthInfo,
     FO4_OT_StartGradioServer,
     FO4_OT_StopGradioServer,
     FO4_OT_ShowGradioInfo,

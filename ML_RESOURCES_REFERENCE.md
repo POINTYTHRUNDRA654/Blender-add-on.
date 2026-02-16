@@ -15,6 +15,7 @@ The awesome-machine-learning repository (gh: josephmisiti/awesome-machine-learni
 - ✅ TripoSR - Single image to 3D
 - ✅ Instant-NGP - NeRF reconstruction
 - ✅ Real-ESRGAN - Image upscaling
+- ✅ ZoeDepth - Monocular depth estimation
 
 **Additional Tools from awesome-ml:**
 - OpenCV - Image processing fundamentals
@@ -71,6 +72,26 @@ The awesome-machine-learning repository (gh: josephmisiti/awesome-machine-learni
 - Neural Textures - Texture learning
 - GANpaint - Interactive editing
 - SPADE - Semantic synthesis
+
+### Depth Estimation
+**Relevance**: Converting 2D images to depth maps for 3D reconstruction
+
+**Key Tools Already Integrated:**
+- ✅ ZoeDepth - Monocular depth estimation (Intel ISL)
+
+**ZoeDepth Features:**
+- Zero-shot transfer learning for depth estimation
+- Multiple model variants (indoor, outdoor, general)
+- High-quality depth maps from single RGB images
+- No stereo cameras or depth sensors required
+- Based on MiDaS with relative + metric depth
+- Repository: `gh repo clone isl-org/ZoeDepth`
+
+**Additional Depth Tools:**
+- MiDaS - Original monocular depth estimation
+- DPT (Dense Prediction Transformer) - Vision transformer for depth
+- LeReS - Learning to Recover 3D Scene Shape
+- Metric3D - Metric depth estimation
 
 ## Framework Recommendations
 

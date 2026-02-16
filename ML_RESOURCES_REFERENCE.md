@@ -27,9 +27,17 @@ The awesome-machine-learning repository (gh: josephmisiti/awesome-machine-learni
 **Relevance**: Image and texture generation
 
 **Key Tools Already Integrated:**
-- ✅ Diffusers (Stable Diffusion, SDXL)
+- ✅ Diffusers (Stable Diffusion 1.5, 2.1, SDXL, SD 3.5 Large)
 - ✅ StyleGAN2 - Texture generation
 - ✅ GET3D - 3D generation
+
+**Stable Diffusion 3.5 Large:**
+- Latest model from Stability AI (2024)
+- State-of-the-art image quality
+- Repository: `git clone https://huggingface.co/stabilityai/stable-diffusion-3.5-large`
+- Via diffusers: `from_pretrained('stabilityai/stable-diffusion-3.5-large')`
+- 16GB+ VRAM recommended
+- Best for high-quality reference image generation
 
 **Additional Tools from awesome-ml:**
 - DALL-E - Text-to-image
@@ -216,6 +224,7 @@ Optimization (Traditional):
 - Multi-view reconstruction
 
 **Extreme (16GB+ VRAM):**
+- Stable Diffusion 3.5 Large (16-24GB)
 - Large batch processing
 - Multiple models loaded
 - High-resolution generation
@@ -250,6 +259,7 @@ Optimization (Traditional):
 | SD 1.5 | ⚡⚡⚡⚡⚡ | ⭐⭐⭐⭐ | 4GB | ✅✅✅ |
 | SD 2.1 | ⚡⚡⚡⚡ | ⭐⭐⭐⭐ | 6GB | ✅✅✅ |
 | SDXL | ⚡⚡⚡ | ⭐⭐⭐⭐⭐ | 12GB | ✅✅ |
+| SD 3.5 Large | ⚡⚡ | ⭐⭐⭐⭐⭐⭐ | 16GB | ✅✅ |
 | StyleGAN2 | ⚡⚡⚡⚡ | ⭐⭐⭐⭐ | 6GB | ✅✅ |
 
 ## Integration Roadmap

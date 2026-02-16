@@ -312,6 +312,116 @@ Once installed, you'll see a "Depth Estimation (ZoeDepth)" section in the Image 
 - GPU recommended for real-time performance
 - Generated depth maps can be saved for reuse
 
+## Optional: Stable Diffusion 3.5 Large for Image Generation
+
+For state-of-the-art AI image generation, use Stable Diffusion 3.5 Large:
+
+### What is Stable Diffusion 3.5 Large?
+
+Stable Diffusion 3.5 Large is Stability AI's latest and most advanced text-to-image model:
+- State-of-the-art image quality and prompt adherence
+- Superior text rendering and composition
+- Better understanding of complex prompts
+- Ideal for generating reference images for 3D modeling
+- Can be used via the diffusers library
+
+### Prerequisites
+
+**Hardware Requirements:**
+- NVIDIA GPU with 16GB+ VRAM (24GB+ recommended)
+- 30GB+ free disk space (for model weights)
+- 16GB+ system RAM
+
+**Software Requirements:**
+- PyTorch with CUDA support
+- Hugging Face diffusers library
+- transformers, accelerate, safetensors
+
+### Installation Steps
+
+**Option 1: Use via Diffusers (Recommended)**
+
+1. **Install dependencies** (in Blender's Python environment):
+```bash
+# Windows
+cd "C:\Program Files\Blender Foundation\Blender X.X\X.X\python\bin"
+python.exe -m pip install diffusers[torch] transformers accelerate safetensors
+
+# macOS/Linux
+cd /path/to/blender/X.X/python/bin
+./python3.xx -m pip install diffusers[torch] transformers accelerate safetensors
+```
+
+2. **Use in Python** (model downloads automatically on first use):
+```python
+from diffusers import StableDiffusion3Pipeline
+import torch
+
+pipe = StableDiffusion3Pipeline.from_pretrained(
+    "stabilityai/stable-diffusion-3.5-large",
+    torch_dtype=torch.float16
+).to("cuda")
+
+image = pipe("a detailed sci-fi weapon, metallic texture").images[0]
+image.save("output.png")
+```
+
+**Option 2: Clone Model Repository**
+
+For offline use or manual model management:
+
+```bash
+# Using git with git-lfs (Large File Storage)
+git lfs install
+git clone https://huggingface.co/stabilityai/stable-diffusion-3.5-large
+
+# Or using Hugging Face CLI
+huggingface-cli download stabilityai/stable-diffusion-3.5-large
+```
+
+3. **Restart Blender**
+
+### Using SD3.5 Large
+
+**Workflow for 3D Asset Creation:**
+
+1. **Generate Reference Image**:
+   - Use SD3.5 Large to create high-quality concept art
+   - Generate texture references
+   - Create multiple variations for the best result
+
+2. **Convert to 3D**:
+   - Use the generated image with TripoSR or other image-to-3D tools
+   - Or use as reference for manual modeling
+
+3. **Texture Application**:
+   - Use generated images directly as textures
+   - Generate texture maps (diffuse, normal, roughness)
+   - Create seamless texture variations
+
+### Benefits over Earlier Versions
+
+- **Better Quality**: Superior detail and realism
+- **Text Rendering**: Can accurately render text in images
+- **Prompt Understanding**: Better comprehension of complex descriptions
+- **Composition**: More coherent and well-composed images
+- **Consistency**: More consistent results across generations
+
+### Integration with Other Tools
+
+- **TripoSR**: Generate reference images → Convert to 3D meshes
+- **ZoeDepth**: Generate images → Estimate depth → Create meshes
+- **ControlNet**: Guide generation with pose, depth, or edge maps
+- **Inpainting**: Fill in missing texture areas
+
+### Note on Usage
+
+- SD3.5 Large requires significant VRAM (16GB minimum)
+- First run will download ~12GB of model weights
+- For lower VRAM, use SD 1.5 (4GB) or SDXL (8GB) instead
+- GPU strongly recommended - CPU inference is extremely slow
+- Model downloads automatically via diffusers library
+
 ## Optional: HY-Motion-1.0 for Motion Generation
 
 For AI-powered animation and motion generation, install HY-Motion-1.0:

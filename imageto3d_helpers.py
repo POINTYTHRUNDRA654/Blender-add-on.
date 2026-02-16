@@ -3179,20 +3179,7 @@ See NVIDIA_RESOURCES.md for all AI tools.
     @staticmethod
     def is_oneclick_imageto3d_available():
         """Check if oneClick Windows ImageTo3D is available"""
-        possible_paths = [
-            os.path.expanduser('~/oneClick_Windows_ImageTo3D_install'),
-            os.path.expanduser('~/Projects/oneClick_Windows_ImageTo3D_install'),
-            os.path.expanduser('~/Documents/oneClick_Windows_ImageTo3D_install'),
-            '/opt/oneClick_Windows_ImageTo3D_install',
-            'C:/Projects/oneClick_Windows_ImageTo3D_install',
-            'C:/oneClick_Windows_ImageTo3D_install',
-        ]
-        
-        for path in possible_paths:
-            if os.path.exists(path):
-                return True
-        
-        return False
+        return ImageTo3DHelpers.find_oneclick_imageto3d_path() is not None
     
     @staticmethod
     def find_oneclick_imageto3d_path():

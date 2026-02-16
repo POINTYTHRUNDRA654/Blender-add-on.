@@ -1,8 +1,16 @@
 # Python
+# Blender files
+*.blend1
+*.blend2
+*.blend@
+
+# Python cache
 __pycache__/
 *.py[cod]
 *$py.class
 *.so
+
+# Distribution / packaging
 .Python
 build/
 develop-eggs/
@@ -38,6 +46,7 @@ env/
 *.blend@
 
 # OS
+# OS files
 .DS_Store
 Thumbs.db
 
@@ -50,3 +59,6 @@ htmlcov/
 tmp/
 temp/
 *.tmp
+/tmp/
+*.tmp
+*.bak

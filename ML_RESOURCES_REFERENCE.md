@@ -15,6 +15,7 @@ The awesome-machine-learning repository (gh: josephmisiti/awesome-machine-learni
 - ✅ TripoSR - Single image to 3D
 - ✅ Instant-NGP - NeRF reconstruction
 - ✅ Real-ESRGAN - Image upscaling
+- ✅ ZoeDepth - Monocular depth estimation
 
 **Additional Tools from awesome-ml:**
 - OpenCV - Image processing fundamentals
@@ -26,9 +27,17 @@ The awesome-machine-learning repository (gh: josephmisiti/awesome-machine-learni
 **Relevance**: Image and texture generation
 
 **Key Tools Already Integrated:**
-- ✅ Diffusers (Stable Diffusion, SDXL)
+- ✅ Diffusers (Stable Diffusion 1.5, 2.1, SDXL, SD 3.5 Large)
 - ✅ StyleGAN2 - Texture generation
 - ✅ GET3D - 3D generation
+
+**Stable Diffusion 3.5 Large:**
+- Latest model from Stability AI (2024)
+- State-of-the-art image quality
+- Repository: `git clone https://huggingface.co/stabilityai/stable-diffusion-3.5-large`
+- Via diffusers: `from_pretrained('stabilityai/stable-diffusion-3.5-large')`
+- 16GB+ VRAM recommended
+- Best for high-quality reference image generation
 
 **Additional Tools from awesome-ml:**
 - DALL-E - Text-to-image
@@ -71,6 +80,26 @@ The awesome-machine-learning repository (gh: josephmisiti/awesome-machine-learni
 - Neural Textures - Texture learning
 - GANpaint - Interactive editing
 - SPADE - Semantic synthesis
+
+### Depth Estimation
+**Relevance**: Converting 2D images to depth maps for 3D reconstruction
+
+**Key Tools Already Integrated:**
+- ✅ ZoeDepth - Monocular depth estimation (Intel ISL)
+
+**ZoeDepth Features:**
+- Zero-shot transfer learning for depth estimation
+- Multiple model variants (indoor, outdoor, general)
+- High-quality depth maps from single RGB images
+- No stereo cameras or depth sensors required
+- Based on MiDaS with relative + metric depth
+- Repository: `gh repo clone isl-org/ZoeDepth`
+
+**Additional Depth Tools:**
+- MiDaS - Original monocular depth estimation
+- DPT (Dense Prediction Transformer) - Vision transformer for depth
+- LeReS - Learning to Recover 3D Scene Shape
+- Metric3D - Metric depth estimation
 
 ## Framework Recommendations
 
@@ -195,6 +224,7 @@ Optimization (Traditional):
 - Multi-view reconstruction
 
 **Extreme (16GB+ VRAM):**
+- Stable Diffusion 3.5 Large (16-24GB)
 - Large batch processing
 - Multiple models loaded
 - High-resolution generation
@@ -229,6 +259,7 @@ Optimization (Traditional):
 | SD 1.5 | ⚡⚡⚡⚡⚡ | ⭐⭐⭐⭐ | 4GB | ✅✅✅ |
 | SD 2.1 | ⚡⚡⚡⚡ | ⭐⭐⭐⭐ | 6GB | ✅✅✅ |
 | SDXL | ⚡⚡⚡ | ⭐⭐⭐⭐⭐ | 12GB | ✅✅ |
+| SD 3.5 Large | ⚡⚡ | ⭐⭐⭐⭐⭐⭐ | 16GB | ✅✅ |
 | StyleGAN2 | ⚡⚡⚡⚡ | ⭐⭐⭐⭐ | 6GB | ✅✅ |
 
 ## Integration Roadmap

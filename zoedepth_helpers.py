@@ -237,3 +237,22 @@ def get_status_message():
         return f"✓ {message}"
     else:
         return f"✗ {message}"
+
+
+def register():
+    """Register ZoeDepth helper functions"""
+    global ZOEDEPTH_AVAILABLE, ZOEDEPTH_ERROR
+    
+    # Check availability on registration
+    ZOEDEPTH_AVAILABLE, ZOEDEPTH_ERROR = check_zoedepth_availability()
+    
+    if ZOEDEPTH_AVAILABLE:
+        print("✓ ZoeDepth is available")
+    else:
+        print(f"ℹ ZoeDepth not available: {ZOEDEPTH_ERROR}")
+        print("  (This is optional - the add-on works without it)")
+
+
+def unregister():
+    """Unregister ZoeDepth helper functions"""
+    pass

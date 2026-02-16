@@ -27,6 +27,7 @@ from . import export_helpers
 from . import notification_system
 from . import image_to_mesh_helpers
 from . import hunyuan3d_helpers
+from . import zoedepth_helpers
 from . import gradio_helpers
 from . import hymotion_helpers
 from . import nvtt_helpers
@@ -50,6 +51,7 @@ modules = [
     export_helpers,
     image_to_mesh_helpers,
     hunyuan3d_helpers,
+    zoedepth_helpers,
     gradio_helpers,
     hymotion_helpers,
     nvtt_helpers,

@@ -157,6 +157,7 @@ A comprehensive Blender add-on that provides a desktop tutorial system and helpe
 
 ### 🖼️ Image to Mesh Conversion
 - Convert images to 3D meshes using height maps
+- **NEW**: AI-powered depth estimation with ZoeDepth (optional)
 - Support for common image formats (PNG, JPG, BMP, TIFF, TGA)
 - Adjustable displacement strength and mesh resolution
 - Apply displacement maps to existing meshes
@@ -358,6 +359,196 @@ Then in Blender:
 - User-friendly interface
 - Works on any device with a browser
 - Can create a shareable public link (optional)
+
+## Optional: ZoeDepth for Depth Estimation
+
+For AI-powered depth estimation from RGB images, install ZoeDepth:
+
+### What is ZoeDepth?
+
+ZoeDepth is a state-of-the-art monocular depth estimation model from Intel ISL that can:
+- Estimate depth from any RGB image without requiring stereo cameras
+- Generate high-quality depth maps for image-to-mesh conversion
+- Provide better results than simple height map extraction
+- Work on indoor scenes, outdoor scenes, or general purpose
+
+### Prerequisites
+
+**Hardware Requirements:**
+- GPU recommended for faster inference (CPU supported)
+- 4GB+ free disk space
+- 8GB+ RAM recommended
+
+**Software Requirements:**
+- PyTorch
+- ZoeDepth repository
+
+### Installation Steps
+
+1. **Install PyTorch** (in Blender's Python environment):
+```bash
+# Windows
+cd "C:\Program Files\Blender Foundation\Blender X.X\X.X\python\bin"
+python.exe -m pip install torch torchvision --index-url https://download.pytorch.org/whl/cu118
+
+# macOS/Linux
+cd /path/to/blender/X.X/python/bin
+./python3.xx -m pip install torch torchvision
+```
+
+2. **Clone ZoeDepth repository**:
+```bash
+# Using GitHub CLI (recommended)
+gh repo clone isl-org/ZoeDepth
+
+# Or using git
+git clone https://github.com/isl-org/ZoeDepth.git
+```
+
+3. **Install ZoeDepth dependencies**:
+```bash
+cd ZoeDepth
+pip install -r requirements.txt
+```
+
+4. **Restart Blender**
+
+The add-on will automatically detect if ZoeDepth is installed and enable depth estimation features.
+
+### Using ZoeDepth
+
+Once installed, you'll see a "Depth Estimation (ZoeDepth)" section in the Image to Mesh panel:
+
+- **Estimate Depth**: Select an RGB image and generate a depth map
+- **Model Selection**: Choose between three model variants:
+  - **ZoeD_N**: Best for indoor scenes (NYU-trained)
+  - **ZoeD_K**: Best for outdoor/driving scenes (KITTI-trained)
+  - **ZoeD_NK**: General purpose (combined model)
+- **Create Mesh**: Convert depth map to 3D mesh with adjustable scale
+
+### Benefits over Height Maps
+
+- Works with any RGB image (not just grayscale height maps)
+- Understands 3D scene structure
+- Better depth accuracy for realistic scenes
+- No manual height map creation needed
+
+### Note on Depth Estimation
+
+- Depth estimation is **optional** - height map method still works
+- First inference may take time to download model weights
+- GPU recommended for real-time performance
+- Generated depth maps can be saved for reuse
+
+## Optional: Stable Diffusion 3.5 Large for Image Generation
+
+For state-of-the-art AI image generation, use Stable Diffusion 3.5 Large:
+
+### What is Stable Diffusion 3.5 Large?
+
+Stable Diffusion 3.5 Large is Stability AI's latest and most advanced text-to-image model:
+- State-of-the-art image quality and prompt adherence
+- Superior text rendering and composition
+- Better understanding of complex prompts
+- Ideal for generating reference images for 3D modeling
+- Can be used via the diffusers library
+
+### Prerequisites
+
+**Hardware Requirements:**
+- NVIDIA GPU with 16GB+ VRAM (24GB+ recommended)
+- 30GB+ free disk space (for model weights)
+- 16GB+ system RAM
+
+**Software Requirements:**
+- PyTorch with CUDA support
+- Hugging Face diffusers library
+- transformers, accelerate, safetensors
+
+### Installation Steps
+
+**Option 1: Use via Diffusers (Recommended)**
+
+1. **Install dependencies** (in Blender's Python environment):
+```bash
+# Windows
+cd "C:\Program Files\Blender Foundation\Blender X.X\X.X\python\bin"
+python.exe -m pip install diffusers[torch] transformers accelerate safetensors
+
+# macOS/Linux
+cd /path/to/blender/X.X/python/bin
+./python3.xx -m pip install diffusers[torch] transformers accelerate safetensors
+```
+
+2. **Use in Python** (model downloads automatically on first use):
+```python
+from diffusers import StableDiffusion3Pipeline
+import torch
+
+pipe = StableDiffusion3Pipeline.from_pretrained(
+    "stabilityai/stable-diffusion-3.5-large",
+    torch_dtype=torch.float16
+).to("cuda")
+
+image = pipe("a detailed sci-fi weapon, metallic texture").images[0]
+image.save("output.png")
+```
+
+**Option 2: Clone Model Repository**
+
+For offline use or manual model management:
+
+```bash
+# Using git with git-lfs (Large File Storage)
+git lfs install
+git clone https://huggingface.co/stabilityai/stable-diffusion-3.5-large
+
+# Or using Hugging Face CLI
+huggingface-cli download stabilityai/stable-diffusion-3.5-large
+```
+
+3. **Restart Blender**
+
+### Using SD3.5 Large
+
+**Workflow for 3D Asset Creation:**
+
+1. **Generate Reference Image**:
+   - Use SD3.5 Large to create high-quality concept art
+   - Generate texture references
+   - Create multiple variations for the best result
+
+2. **Convert to 3D**:
+   - Use the generated image with TripoSR or other image-to-3D tools
+   - Or use as reference for manual modeling
+
+3. **Texture Application**:
+   - Use generated images directly as textures
+   - Generate texture maps (diffuse, normal, roughness)
+   - Create seamless texture variations
+
+### Benefits over Earlier Versions
+
+- **Better Quality**: Superior detail and realism
+- **Text Rendering**: Can accurately render text in images
+- **Prompt Understanding**: Better comprehension of complex descriptions
+- **Composition**: More coherent and well-composed images
+- **Consistency**: More consistent results across generations
+
+### Integration with Other Tools
+
+- **TripoSR**: Generate reference images → Convert to 3D meshes
+- **ZoeDepth**: Generate images → Estimate depth → Create meshes
+- **ControlNet**: Guide generation with pose, depth, or edge maps
+- **Inpainting**: Fill in missing texture areas
+
+### Note on Usage
+
+- SD3.5 Large requires significant VRAM (16GB minimum)
+- First run will download ~12GB of model weights
+- For lower VRAM, use SD 1.5 (4GB) or SDXL (8GB) instead
+- GPU strongly recommended - CPU inference is extremely slow
+- Model downloads automatically via diffusers library
 
 ## Optional: HY-Motion-1.0 for Motion Generation
 

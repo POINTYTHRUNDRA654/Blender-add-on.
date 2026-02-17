@@ -240,6 +240,37 @@ class FO4_PT_AIGenerationPanel(Panel):
             shap_e_box.operator("fo4.show_shap_e_info", text="Installation Instructions", icon='INFO')
         
         shap_e_box.operator("fo4.check_shap_e_installation", text="Check Installation", icon='SYSTEM')
+        
+        # Point-E section
+        layout.separator()
+        point_e_box = layout.box()
+        point_e_box.label(text="Point-E (Text/Image to Point Cloud)", icon='OUTLINER_OB_POINTCLOUD')
+        
+        from . import point_e_helpers
+        point_e_installed, _ = point_e_helpers.PointEHelpers.is_point_e_installed()
+        
+        if point_e_installed:
+            point_e_box.label(text="Status: Installed ✓", icon='CHECKMARK')
+            
+            # Text-to-3D
+            text_box = point_e_box.box()
+            text_box.label(text="Text to Point Cloud:", icon='FILE_TEXT')
+            text_box.prop(scene, "fo4_point_e_prompt", text="")
+            text_box.prop(scene, "fo4_point_e_num_samples")
+            text_box.prop(scene, "fo4_point_e_grid_size")
+            text_box.prop(scene, "fo4_point_e_reconstruction_method")
+            text_box.operator("fo4.generate_point_e_text", text="Generate from Text", icon='MESH_CUBE')
+            
+            # Image-to-3D
+            image_box = point_e_box.box()
+            image_box.label(text="Image to Point Cloud:", icon='IMAGE_DATA')
+            image_box.prop(scene, "fo4_point_e_image_path", text="")
+            image_box.operator("fo4.generate_point_e_image", text="Generate from Image", icon='TEXTURE')
+        else:
+            point_e_box.label(text="Status: Not Installed ✗", icon='ERROR')
+            point_e_box.operator("fo4.show_point_e_info", text="Installation Instructions", icon='INFO')
+        
+        point_e_box.operator("fo4.check_point_e_installation", text="Check Installation", icon='SYSTEM')
 
 
 class FO4_PT_AnimationPanel(Panel):

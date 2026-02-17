@@ -254,6 +254,27 @@ Benefits of GGUF format:
 - ✅ Quantized models (4-bit, 8-bit)
 - ✅ Better performance on consumer hardware
 
+#### Stable Diffusion WebUI (AUTOMATIC1111) - Alternative
+
+```bash
+# Clone SD WebUI
+git clone https://github.com/AUTOMATIC1111/stable-diffusion-webui.git
+cd stable-diffusion-webui
+
+# Run setup (auto-installs dependencies)
+# Windows:
+webui-user.bat
+
+# Linux/macOS:
+./webui.sh
+```
+
+**SD WebUI vs ComfyUI:**
+- **WebUI**: Form-based, user-friendly, huge extension library
+- **ComfyUI**: Node-based, advanced workflows, technical
+
+**Recommendation:** Install both! Use WebUI for quick work, ComfyUI for complex workflows.
+
 **FLUX.1-dev Model** (State-of-the-art image generation):
 ```bash
 # Clone FLUX.1-dev model (large download ~24GB)
@@ -282,6 +303,14 @@ git clone https://huggingface.co/black-forest-labs/FLUX.1-schnell
 git clone https://huggingface.co/stabilityai/stable-diffusion-3.5-large
 
 # 8GB VRAM compatible, excellent quality
+```
+
+**Stable Diffusion 3.5 Medium** (Budget-friendly):
+```bash
+# Clone SD 3.5 Medium
+git clone https://huggingface.co/stabilityai/stable-diffusion-3.5-medium
+
+# 6GB VRAM compatible, good quality, smaller size
 ```
 
 ### GPU Acceleration (Recommended for AI)

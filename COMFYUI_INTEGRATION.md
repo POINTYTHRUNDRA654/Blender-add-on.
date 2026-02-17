@@ -109,6 +109,28 @@ cd ComfyUI\custom_nodes\ComfyUI-GGUF
 python -m pip install -r requirements.txt
 ```
 
+### Step 4: Install Additional Useful Extensions (Optional)
+
+These extensions significantly improve the ComfyUI experience:
+
+```bash
+cd ComfyUI/custom_nodes
+
+# ComfyUI Manager (highly recommended)
+git clone https://github.com/ltdrdata/ComfyUI-Manager.git
+
+# ComfyUI Custom Scripts (UI improvements)
+git clone https://github.com/pythongosssss/ComfyUI-Custom-Scripts.git
+
+# Z-Tipo Extension (quality improvements)
+git clone https://github.com/KohakuBlueleaf/z-tipo-extension.git
+```
+
+**Benefits:**
+- **ComfyUI Manager**: Install/update extensions from UI
+- **Custom Scripts**: Autocomplete, better UI, workflow management
+- **Z-Tipo**: Better type handling, improved quality
+
 ### Step 4: Download Models
 
 ComfyUI requires at least one generative model. We recommend starting with FLUX.1-dev:
@@ -270,20 +292,77 @@ Install in `custom_nodes/` directory:
 ```bash
 cd ComfyUI/custom_nodes
 
-# 1. ComfyUI Manager (highly recommended)
+# 1. ComfyUI Manager (highly recommended - must-have!)
 git clone https://github.com/ltdrdata/ComfyUI-Manager.git
 
-# 2. ControlNet
+# 2. ComfyUI-GGUF (efficient model loading)
+git clone https://github.com/city96/ComfyUI-GGUF.git
+cd ComfyUI-GGUF && pip install -r requirements.txt
+cd ..
+
+# 3. ComfyUI-Custom-Scripts (quality of life improvements)
+git clone https://github.com/pythongosssss/ComfyUI-Custom-Scripts.git
+
+# 4. Z-Tipo Extension (quality improvements & type handling)
+git clone https://github.com/KohakuBlueleaf/z-tipo-extension.git
+
+# 5. ControlNet Auxiliary Preprocessors
 git clone https://github.com/Fannovel16/comfyui_controlnet_aux.git
 
-# 3. Image Enhancement
+# 6. WAS Node Suite (image processing utilities)
 git clone https://github.com/WASasquatch/was-node-suite-comfyui.git
 
-# 4. Upscaling
+# 7. Ultimate SD Upscale
 git clone https://github.com/ssitu/ComfyUI_UltimateSDUpscale.git
 ```
 
 Restart ComfyUI after installing extensions.
+
+### Extension Details
+
+#### ComfyUI Manager ⭐ (Essential)
+- **Purpose**: Install/update extensions from within ComfyUI UI
+- **Why**: Makes managing extensions much easier
+- **Features**: One-click install, update all, missing nodes detection
+
+#### ComfyUI-GGUF ⭐ (Essential for FLUX)
+- **Purpose**: Load quantized GGUF models
+- **Why**: Use FLUX and other large models with less VRAM
+- **Features**: Q4/Q5/Q8 quantization support
+
+#### ComfyUI-Custom-Scripts ⭐ (Quality of Life)
+- **Purpose**: UI improvements and workflow enhancements
+- **Why**: Better user experience, autocomplete, history
+- **Features**:
+  - Node autocomplete
+  - Image feed
+  - Show text in workflow
+  - Better organization
+  - Workflow management
+
+#### Z-Tipo Extension ⭐ (Quality Improvements)
+- **Purpose**: Type handling and quality improvements
+- **Why**: Better data flow between nodes, cleaner workflows
+- **Features**:
+  - Improved type conversion
+  - Better node compatibility
+  - Quality enhancements
+  - Automatic casting
+
+#### ControlNet Auxiliary
+- **Purpose**: Preprocessors for ControlNet
+- **Why**: Generate control images (depth, normal, canny, etc.)
+- **Use Case**: Match textures to geometry
+
+#### WAS Node Suite
+- **Purpose**: Image processing utilities
+- **Why**: Text rendering, color correction, batch operations
+- **Use Case**: Post-processing generated textures
+
+#### Ultimate SD Upscale
+- **Purpose**: High-quality upscaling
+- **Why**: Generate at low res, upscale for details
+- **Use Case**: Create 4K textures from 1K generations
 
 ## Workflows for FO4 Modding
 

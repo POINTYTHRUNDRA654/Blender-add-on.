@@ -36,17 +36,18 @@ FLUX.1 excels at creating:
 
 ### Model Comparison
 
-| Feature | FLUX.1-dev | FLUX.1-schnell | SD 3.5 Large | SDXL | SD 1.5 |
-|---------|------------|----------------|--------------|------|--------|
-| Quality | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐ |
-| Text in Images | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐ |
-| Prompt Following | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐ |
-| Consistency | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐ |
-| Speed (GPU) | ⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ |
-| VRAM Usage | High (12GB+) | Med (8GB+) | Med (8GB+) | Med (8GB) | Low (4GB) |
-| Steps Required | 25-35 | 4-8 | 20-30 | 25-35 | 20-30 |
-| Best For | Final assets | Iteration | Balanced | Mid-range | Budget |
-| License | Apache 2.0 | Apache 2.0 | Stability AI | CreativeML | CreativeML |
+| Feature | FLUX.1-dev | FLUX.1-schnell | SD 3.5 Large | SD 3.5 Medium | SDXL | SD 1.5 |
+|---------|------------|----------------|--------------|---------------|------|--------|
+| Quality | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐ |
+| Text in Images | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐ |
+| Prompt Following | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐ |
+| Consistency | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐ |
+| Speed (GPU) | ⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ |
+| VRAM Usage | High (12GB+) | Med (8GB+) | Med (8GB+) | Low-Med (6GB+) | Med (8GB) | Low (4GB) |
+| Model Size | ~24GB | ~24GB | ~12GB | ~5GB | ~7GB | ~4GB |
+| Steps Required | 25-35 | 4-8 | 20-30 | 20-30 | 25-35 | 20-30 |
+| Best For | Final assets | Iteration | Balanced | Budget+ | Mid-range | Budget |
+| License | Apache 2.0 | Apache 2.0 | Stability AI | Stability AI | CreativeML | CreativeML |
 
 ## Installation
 
@@ -169,6 +170,32 @@ huggingface-cli download stabilityai/stable-diffusion-3.5-large --local-dir ./st
 - ✅ Good prompt understanding
 - ✅ Faster than FLUX.1-dev
 - ✅ Great for textures
+
+#### Stable Diffusion 3.5 Medium (Budget-Friendly)
+
+**Recommended for:** Budget hardware, 6-8GB VRAM, good quality
+
+**Using Git LFS:**
+```bash
+# Clone SD 3.5 Medium
+git clone https://huggingface.co/stabilityai/stable-diffusion-3.5-medium
+
+# Copy to ComfyUI models directory
+# Place in: ComfyUI/models/checkpoints/
+```
+
+**Using Hugging Face CLI:**
+```bash
+# Download SD 3.5 Medium
+huggingface-cli download stabilityai/stable-diffusion-3.5-medium --local-dir ./stable-diffusion-3.5-medium
+```
+
+**SD 3.5 Medium Features:**
+- ✅ Good quality (better than SD 1.5)
+- ✅ 6GB VRAM compatible
+- ✅ Smaller model size (~5GB vs ~12GB)
+- ✅ Faster generation
+- ✅ Lower system requirements
 
 ### Step 3: Install GGUF Extension (Optional but Recommended)
 
@@ -537,6 +564,7 @@ For related textures (same object set):
 - ✅ Creating final production assets
 - ✅ You have 12GB+ VRAM
 - ✅ Quality > Speed
+- ✅ Budget allows for powerful hardware
 
 **Choose FLUX.1-schnell when:**
 - ✅ You need fast iteration
@@ -552,22 +580,42 @@ For related textures (same object set):
 - ✅ Balance between FLUX and older SD models
 - ✅ Good texture generation capabilities
 
+**Choose Stable Diffusion 3.5 Medium when:**
+- ✅ You have 6-8GB VRAM
+- ✅ You want good quality with smaller model size
+- ✅ Faster generation than Large variant
+- ✅ Budget-conscious setup
+- ✅ Good balance of quality and performance
+
 **Choose SDXL when:**
 - ✅ You have 8GB VRAM
 - ✅ Proven track record needed
 - ✅ Extensive LoRA/fine-tune ecosystem
+- ✅ Community support important
 
 **Choose Stable Diffusion 1.5 when:**
 - ✅ You have limited VRAM (4-6GB)
 - ✅ Budget hardware
 - ✅ Basic texture needs
 - ✅ Access to many trained models/LoRAs
+- ✅ Maximum speed needed
 
 **Recommended Multi-Model Workflow:**
 1. Use **FLUX.1-schnell** for ultra-fast prototyping (100+ variations in minutes)
-2. Use **SD 3.5 Large** for good quality iterations (balanced speed/quality)
-3. Use **FLUX.1-dev** to regenerate finals at highest quality
-4. Use **SD 1.5** if you need specific style LoRAs
+2. Use **SD 3.5 Medium** for budget-friendly good quality iterations
+3. Use **SD 3.5 Large** for balanced speed/quality production work
+4. Use **FLUX.1-dev** to regenerate finals at highest quality
+5. Use **SD 1.5** if you need specific style LoRAs
+
+**Hardware-Based Recommendations:**
+
+| VRAM | Recommended Models | Usage Pattern |
+|------|-------------------|---------------|
+| 4-6GB | SD 1.5, SD 3.5 Medium (low res) | Basic work |
+| 6-8GB | SD 3.5 Medium, FLUX.1-schnell | Good quality |
+| 8-10GB | SD 3.5 Large, FLUX.1-schnell | Balanced |
+| 10-12GB | SD 3.5 Large, FLUX.1-dev (optimized) | High quality |
+| 12GB+ | FLUX.1-dev, All models | Maximum quality |
 
 ## Summary
 

@@ -5,7 +5,7 @@ Operators for the Fallout 4 Tutorial Add-on
 import bpy
 from bpy.types import Operator
 from bpy.props import StringProperty, EnumProperty, IntProperty, FloatProperty, BoolProperty
-from . import tutorial_system, mesh_helpers, texture_helpers, animation_helpers, export_helpers, notification_system, image_to_mesh_helpers, hunyuan3d_helpers, gradio_helpers, hymotion_helpers, nvtt_helpers, realesrgan_helpers, get3d_helpers, stylegan2_helpers, instantngp_helpers, imageto3d_helpers, advanced_mesh_helpers, rignet_helpers, motion_generation_helpers, quest_helpers, npc_helpers, world_building_helpers, item_helpers, preset_library, automation_system
+from . import tutorial_system, mesh_helpers, texture_helpers, animation_helpers, export_helpers, notification_system, image_to_mesh_helpers, hunyuan3d_helpers, gradio_helpers, hymotion_helpers, nvtt_helpers, realesrgan_helpers, get3d_helpers, stylegan2_helpers, instantngp_helpers, imageto3d_helpers, advanced_mesh_helpers, rignet_helpers, motion_generation_helpers, quest_helpers, npc_helpers, world_building_helpers, item_helpers, preset_library, automation_system, desktop_tutorial_client
 
 # Tutorial Operators
 
@@ -5422,6 +5422,231 @@ class FO4_OT_ExecuteWorkflowTemplate(Operator):
         return context.window_manager.invoke_props_dialog(self)
 
 
+# Desktop Tutorial App Integration Operators
+
+class FO4_OT_ConnectDesktopApp(Operator):
+    """Connect to desktop tutorial application"""
+    bl_idname = "fo4.connect_desktop_app"
+    bl_label = "Connect to Desktop App"
+    bl_options = {'REGISTER'}
+    
+    def execute(self, context):
+        scene = context.scene
+        
+        # Set server URL
+        desktop_tutorial_client.DesktopTutorialClient.set_server_url(
+            scene.fo4_desktop_server_host,
+            scene.fo4_desktop_server_port
+        )
+        
+        # Attempt connection
+        success, message = desktop_tutorial_client.DesktopTutorialClient.connect()
+        
+        if success:
+            scene.fo4_desktop_connected = True
+            self.report({'INFO'}, f"Connected: {message}")
+            notification_system.FO4_NotificationSystem.notify(
+                "Connected to desktop tutorial app", 'INFO'
+            )
+        else:
+            scene.fo4_desktop_connected = False
+            self.report({'ERROR'}, f"Connection failed: {message}")
+            notification_system.FO4_NotificationSystem.notify(
+                f"Connection failed: {message}", 'ERROR'
+            )
+        
+        return {'FINISHED'} if success else {'CANCELLED'}
+
+
+class FO4_OT_DisconnectDesktopApp(Operator):
+    """Disconnect from desktop tutorial application"""
+    bl_idname = "fo4.disconnect_desktop_app"
+    bl_label = "Disconnect from Desktop App"
+    bl_options = {'REGISTER'}
+    
+    def execute(self, context):
+        scene = context.scene
+        
+        success, message = desktop_tutorial_client.DesktopTutorialClient.disconnect()
+        
+        scene.fo4_desktop_connected = False
+        self.report({'INFO'}, message)
+        notification_system.FO4_NotificationSystem.notify(
+            "Disconnected from desktop app", 'INFO'
+        )
+        
+        return {'FINISHED'}
+
+
+class FO4_OT_CheckDesktopConnection(Operator):
+    """Check connection status with desktop tutorial app"""
+    bl_idname = "fo4.check_desktop_connection"
+    bl_label = "Check Connection"
+    bl_options = {'REGISTER'}
+    
+    def execute(self, context):
+        status = desktop_tutorial_client.DesktopTutorialClient.get_connection_status()
+        
+        if status['connected']:
+            self.report({'INFO'}, f"Connected to {status['server_url']}")
+        else:
+            error_msg = status.get('last_error', 'Not connected')
+            self.report({'WARNING'}, f"Not connected: {error_msg}")
+        
+        return {'FINISHED'}
+
+
+class FO4_OT_SyncDesktopStep(Operator):
+    """Synchronize current tutorial step with desktop app"""
+    bl_idname = "fo4.sync_desktop_step"
+    bl_label = "Sync Tutorial Step"
+    bl_options = {'REGISTER'}
+    
+    def execute(self, context):
+        scene = context.scene
+        
+        if not scene.fo4_desktop_connected:
+            self.report({'ERROR'}, "Not connected to desktop app")
+            return {'CANCELLED'}
+        
+        # Get current step from server
+        step_data, message = desktop_tutorial_client.DesktopTutorialClient.get_current_step()
+        
+        if step_data:
+            scene.fo4_desktop_current_step_id = step_data.get('step_id', 0)
+            scene.fo4_desktop_current_step_title = step_data.get('title', '')
+            
+            import datetime
+            scene.fo4_desktop_last_sync = datetime.datetime.now().strftime("%H:%M:%S")
+            
+            self.report({'INFO'}, f"Synced: {step_data.get('title', 'Step')}")
+            notification_system.FO4_NotificationSystem.notify(
+                f"Tutorial step synced: {step_data.get('title', '')}", 'INFO'
+            )
+        else:
+            self.report({'ERROR'}, f"Sync failed: {message}")
+        
+        return {'FINISHED'} if step_data else {'CANCELLED'}
+
+
+class FO4_OT_DesktopNextStep(Operator):
+    """Move to next tutorial step on desktop app"""
+    bl_idname = "fo4.desktop_next_step"
+    bl_label = "Next Step (Desktop)"
+    bl_options = {'REGISTER'}
+    
+    def execute(self, context):
+        scene = context.scene
+        
+        if not scene.fo4_desktop_connected:
+            self.report({'ERROR'}, "Not connected to desktop app")
+            return {'CANCELLED'}
+        
+        success, message = desktop_tutorial_client.DesktopTutorialClient.next_step()
+        
+        if success:
+            # Sync to get updated step
+            bpy.ops.fo4.sync_desktop_step()
+            self.report({'INFO'}, "Moved to next step")
+        else:
+            self.report({'WARNING'}, message)
+        
+        return {'FINISHED'} if success else {'CANCELLED'}
+
+
+class FO4_OT_DesktopPreviousStep(Operator):
+    """Move to previous tutorial step on desktop app"""
+    bl_idname = "fo4.desktop_previous_step"
+    bl_label = "Previous Step (Desktop)"
+    bl_options = {'REGISTER'}
+    
+    def execute(self, context):
+        scene = context.scene
+        
+        if not scene.fo4_desktop_connected:
+            self.report({'ERROR'}, "Not connected to desktop app")
+            return {'CANCELLED'}
+        
+        success, message = desktop_tutorial_client.DesktopTutorialClient.previous_step()
+        
+        if success:
+            # Sync to get updated step
+            bpy.ops.fo4.sync_desktop_step()
+            self.report({'INFO'}, "Moved to previous step")
+        else:
+            self.report({'WARNING'}, message)
+        
+        return {'FINISHED'} if success else {'CANCELLED'}
+
+
+class FO4_OT_SendEventToDesktop(Operator):
+    """Send event to desktop tutorial app"""
+    bl_idname = "fo4.send_event_to_desktop"
+    bl_label = "Send Event to Desktop"
+    bl_options = {'REGISTER'}
+    
+    event_type: StringProperty(
+        name="Event Type",
+        description="Type of event to send",
+        default="action_completed"
+    )
+    
+    event_data: StringProperty(
+        name="Event Data",
+        description="Event data",
+        default=""
+    )
+    
+    def execute(self, context):
+        scene = context.scene
+        
+        if not scene.fo4_desktop_connected:
+            self.report({'ERROR'}, "Not connected to desktop app")
+            return {'CANCELLED'}
+        
+        success, message = desktop_tutorial_client.DesktopTutorialClient.send_event(
+            self.event_type,
+            self.event_data
+        )
+        
+        if success:
+            self.report({'INFO'}, f"Event sent: {self.event_type}")
+        else:
+            self.report({'ERROR'}, f"Failed to send event: {message}")
+        
+        return {'FINISHED'} if success else {'CANCELLED'}
+
+
+class FO4_OT_GetDesktopProgress(Operator):
+    """Get tutorial progress from desktop app"""
+    bl_idname = "fo4.get_desktop_progress"
+    bl_label = "Get Tutorial Progress"
+    bl_options = {'REGISTER'}
+    
+    def execute(self, context):
+        scene = context.scene
+        
+        if not scene.fo4_desktop_connected:
+            self.report({'ERROR'}, "Not connected to desktop app")
+            return {'CANCELLED'}
+        
+        progress, message = desktop_tutorial_client.DesktopTutorialClient.get_progress()
+        
+        if progress:
+            completed = progress.get('completed', 0)
+            total = progress.get('total', 0)
+            percentage = progress.get('percentage', 0)
+            
+            self.report({'INFO'}, f"Progress: {completed}/{total} steps ({percentage:.0f}%)")
+            notification_system.FO4_NotificationSystem.notify(
+                f"Tutorial progress: {completed}/{total} steps", 'INFO'
+            )
+        else:
+            self.report({'ERROR'}, f"Failed to get progress: {message}")
+        
+        return {'FINISHED'} if progress else {'CANCELLED'}
+
+
 # Register all operators
 
 classes = (
@@ -5562,6 +5787,15 @@ classes = (
     FO4_OT_ExecuteMacro,
     FO4_OT_DeleteMacro,
     FO4_OT_ExecuteWorkflowTemplate,
+    # Desktop tutorial app operators
+    FO4_OT_ConnectDesktopApp,
+    FO4_OT_DisconnectDesktopApp,
+    FO4_OT_CheckDesktopConnection,
+    FO4_OT_SyncDesktopStep,
+    FO4_OT_DesktopNextStep,
+    FO4_OT_DesktopPreviousStep,
+    FO4_OT_SendEventToDesktop,
+    FO4_OT_GetDesktopProgress,
 )
 
 def register():

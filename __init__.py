@@ -42,6 +42,9 @@ from . import quest_helpers
 from . import npc_helpers
 from . import world_building_helpers
 from . import item_helpers
+from . import preset_library
+from . import automation_system
+from . import addon_integration
 
 modules = [
     tutorial_system,
@@ -56,6 +59,9 @@ modules = [
     npc_helpers,
     world_building_helpers,
     item_helpers,
+    preset_library,
+    automation_system,
+    addon_integration,
     export_helpers,
     image_to_mesh_helpers,
     hunyuan3d_helpers,

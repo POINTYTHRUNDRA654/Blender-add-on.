@@ -5,7 +5,7 @@ Operators for the Fallout 4 Tutorial Add-on
 import bpy
 from bpy.types import Operator
 from bpy.props import StringProperty, EnumProperty, IntProperty, FloatProperty, BoolProperty
-from . import tutorial_system, mesh_helpers, texture_helpers, animation_helpers, export_helpers, notification_system, image_to_mesh_helpers, hunyuan3d_helpers, gradio_helpers, hymotion_helpers, nvtt_helpers, realesrgan_helpers, get3d_helpers, stylegan2_helpers, instantngp_helpers, imageto3d_helpers, advanced_mesh_helpers, rignet_helpers, motion_generation_helpers, quest_helpers, npc_helpers, world_building_helpers, item_helpers
+from . import tutorial_system, mesh_helpers, texture_helpers, animation_helpers, export_helpers, notification_system, image_to_mesh_helpers, hunyuan3d_helpers, gradio_helpers, hymotion_helpers, nvtt_helpers, realesrgan_helpers, get3d_helpers, stylegan2_helpers, instantngp_helpers, imageto3d_helpers, advanced_mesh_helpers, rignet_helpers, motion_generation_helpers, quest_helpers, npc_helpers, world_building_helpers, item_helpers, preset_library, automation_system
 
 # Tutorial Operators
 
@@ -5079,6 +5079,349 @@ class FO4_OT_CreateClutterObject(Operator):
         return context.window_manager.invoke_props_dialog(self)
 
 
+# Preset Library Operators
+
+class FO4_OT_SavePreset(Operator):
+    """Save current object(s) as a preset"""
+    bl_idname = "fo4.save_preset"
+    bl_label = "Save Preset"
+    bl_options = {'REGISTER', 'UNDO'}
+    
+    preset_name: StringProperty(
+        name="Preset Name",
+        description="Name for this preset",
+        default="New Preset"
+    )
+    
+    category: EnumProperty(
+        name="Category",
+        items=[
+            ('MESH', "Mesh", "Mesh preset"),
+            ('MATERIAL', "Material", "Material preset"),
+            ('VEGETATION', "Vegetation", "Vegetation preset"),
+            ('WEAPON', "Weapon", "Weapon preset"),
+            ('ARMOR', "Armor", "Armor preset"),
+            ('NPC', "NPC", "NPC preset"),
+            ('ITEM', "Item", "Item preset"),
+            ('WORLD', "World Building", "World building preset"),
+            ('WORKFLOW', "Workflow", "Complete workflow preset"),
+        ],
+        default='MESH'
+    )
+    
+    description: StringProperty(
+        name="Description",
+        description="Description of this preset",
+        default=""
+    )
+    
+    tags: StringProperty(
+        name="Tags",
+        description="Search tags (comma separated)",
+        default=""
+    )
+    
+    def execute(self, context):
+        selected = context.selected_objects
+        
+        if not selected:
+            self.report({'ERROR'}, "No objects selected")
+            return {'CANCELLED'}
+        
+        # Collect data from selected objects
+        preset_data = {
+            'objects': [],
+            'blender_version': bpy.app.version_string
+        }
+        
+        for obj in selected:
+            obj_data = {
+                'name': obj.name,
+                'type': obj.type,
+                'location': list(obj.location),
+                'rotation': list(obj.rotation_euler),
+                'scale': list(obj.scale),
+            }
+            
+            if obj.type == 'MESH':
+                obj_data['vertex_count'] = len(obj.data.vertices)
+                obj_data['polygon_count'] = len(obj.data.polygons)
+            
+            # Save materials
+            if obj.data.materials:
+                obj_data['materials'] = [mat.name for mat in obj.data.materials if mat]
+            
+            preset_data['objects'].append(obj_data)
+        
+        # Save preset
+        success, message = preset_library.PresetLibrary.save_preset(
+            self.preset_name,
+            self.category,
+            preset_data,
+            self.description,
+            self.tags
+        )
+        
+        if success:
+            self.report({'INFO'}, message)
+            notification_system.FO4_NotificationSystem.notify(
+                f"Preset saved: {self.preset_name}", 'INFO'
+            )
+        else:
+            self.report({'ERROR'}, message)
+        
+        return {'FINISHED'} if success else {'CANCELLED'}
+    
+    def invoke(self, context, event):
+        return context.window_manager.invoke_props_dialog(self)
+
+
+class FO4_OT_LoadPreset(Operator):
+    """Load a preset from the library"""
+    bl_idname = "fo4.load_preset"
+    bl_label = "Load Preset"
+    bl_options = {'REGISTER', 'UNDO'}
+    
+    filepath: StringProperty(
+        name="Preset File",
+        description="Path to preset file",
+        subtype='FILE_PATH'
+    )
+    
+    def execute(self, context):
+        if not self.filepath:
+            self.report({'ERROR'}, "No preset file specified")
+            return {'CANCELLED'}
+        
+        preset_data = preset_library.PresetLibrary.load_preset(self.filepath)
+        
+        if not preset_data:
+            self.report({'ERROR'}, "Failed to load preset")
+            return {'CANCELLED'}
+        
+        # Increment use count
+        preset_library.PresetLibrary.increment_use_count(self.filepath)
+        
+        self.report({'INFO'}, f"Loaded preset with {len(preset_data.get('objects', []))} objects")
+        notification_system.FO4_NotificationSystem.notify("Preset loaded", 'INFO')
+        
+        return {'FINISHED'}
+
+
+class FO4_OT_DeletePreset(Operator):
+    """Delete a preset from the library"""
+    bl_idname = "fo4.delete_preset"
+    bl_label = "Delete Preset"
+    bl_options = {'REGISTER'}
+    
+    filepath: StringProperty(
+        name="Preset File",
+        description="Path to preset file",
+        subtype='FILE_PATH'
+    )
+    
+    def execute(self, context):
+        if not self.filepath:
+            self.report({'ERROR'}, "No preset file specified")
+            return {'CANCELLED'}
+        
+        success, message = preset_library.PresetLibrary.delete_preset(self.filepath)
+        
+        if success:
+            self.report({'INFO'}, message)
+            notification_system.FO4_NotificationSystem.notify("Preset deleted", 'INFO')
+        else:
+            self.report({'ERROR'}, message)
+        
+        return {'FINISHED'} if success else {'CANCELLED'}
+    
+    def invoke(self, context, event):
+        return context.window_manager.invoke_confirm(self, event)
+
+
+class FO4_OT_RefreshPresetLibrary(Operator):
+    """Refresh the preset library"""
+    bl_idname = "fo4.refresh_preset_library"
+    bl_label = "Refresh Library"
+    bl_options = {'REGISTER'}
+    
+    def execute(self, context):
+        # Reload index
+        index = preset_library.PresetLibrary.load_index()
+        preset_count = len(index.get('presets', []))
+        
+        self.report({'INFO'}, f"Library refreshed: {preset_count} presets")
+        return {'FINISHED'}
+
+
+# Automation System Operators
+
+class FO4_OT_StartRecording(Operator):
+    """Start recording actions for macro creation"""
+    bl_idname = "fo4.start_recording"
+    bl_label = "Start Recording"
+    bl_options = {'REGISTER'}
+    
+    def execute(self, context):
+        automation_system.AutomationSystem.start_recording()
+        context.scene.fo4_is_recording = True
+        
+        self.report({'INFO'}, "Recording started")
+        notification_system.FO4_NotificationSystem.notify(
+            "Recording started - perform actions to record", 'INFO'
+        )
+        
+        return {'FINISHED'}
+
+
+class FO4_OT_StopRecording(Operator):
+    """Stop recording actions"""
+    bl_idname = "fo4.stop_recording"
+    bl_label = "Stop Recording"
+    bl_options = {'REGISTER'}
+    
+    def execute(self, context):
+        automation_system.AutomationSystem.stop_recording()
+        context.scene.fo4_is_recording = False
+        
+        action_count = len(automation_system.AutomationSystem.recorded_actions)
+        self.report({'INFO'}, f"Recording stopped: {action_count} actions captured")
+        notification_system.FO4_NotificationSystem.notify(
+            f"Recorded {action_count} actions", 'INFO'
+        )
+        
+        return {'FINISHED'}
+
+
+class FO4_OT_SaveMacro(Operator):
+    """Save recorded actions as a macro"""
+    bl_idname = "fo4.save_macro"
+    bl_label = "Save Macro"
+    bl_options = {'REGISTER'}
+    
+    macro_name: StringProperty(
+        name="Macro Name",
+        description="Name for this macro",
+        default="New Macro"
+    )
+    
+    description: StringProperty(
+        name="Description",
+        description="Description of what this macro does",
+        default=""
+    )
+    
+    def execute(self, context):
+        success, message = automation_system.AutomationSystem.save_macro(
+            self.macro_name,
+            self.description
+        )
+        
+        if success:
+            self.report({'INFO'}, message)
+            notification_system.FO4_NotificationSystem.notify(
+                f"Macro saved: {self.macro_name}", 'INFO'
+            )
+        else:
+            self.report({'ERROR'}, message)
+        
+        return {'FINISHED'} if success else {'CANCELLED'}
+    
+    def invoke(self, context, event):
+        return context.window_manager.invoke_props_dialog(self)
+
+
+class FO4_OT_ExecuteMacro(Operator):
+    """Execute a saved macro"""
+    bl_idname = "fo4.execute_macro"
+    bl_label = "Execute Macro"
+    bl_options = {'REGISTER', 'UNDO'}
+    
+    filepath: StringProperty(
+        name="Macro File",
+        description="Path to macro file",
+        subtype='FILE_PATH'
+    )
+    
+    def execute(self, context):
+        if not self.filepath:
+            self.report({'ERROR'}, "No macro file specified")
+            return {'CANCELLED'}
+        
+        success, message = automation_system.AutomationSystem.execute_macro(self.filepath)
+        
+        if success:
+            self.report({'INFO'}, message)
+            notification_system.FO4_NotificationSystem.notify("Macro executed", 'INFO')
+        else:
+            self.report({'ERROR'}, message)
+        
+        return {'FINISHED'} if success else {'CANCELLED'}
+
+
+class FO4_OT_DeleteMacro(Operator):
+    """Delete a macro"""
+    bl_idname = "fo4.delete_macro"
+    bl_label = "Delete Macro"
+    bl_options = {'REGISTER'}
+    
+    filepath: StringProperty(
+        name="Macro File",
+        description="Path to macro file",
+        subtype='FILE_PATH'
+    )
+    
+    def execute(self, context):
+        success, message = automation_system.AutomationSystem.delete_macro(self.filepath)
+        
+        if success:
+            self.report({'INFO'}, message)
+            notification_system.FO4_NotificationSystem.notify("Macro deleted", 'INFO')
+        else:
+            self.report({'ERROR'}, message)
+        
+        return {'FINISHED'} if success else {'CANCELLED'}
+    
+    def invoke(self, context, event):
+        return context.window_manager.invoke_confirm(self, event)
+
+
+class FO4_OT_ExecuteWorkflowTemplate(Operator):
+    """Execute a pre-defined workflow template"""
+    bl_idname = "fo4.execute_workflow_template"
+    bl_label = "Execute Workflow Template"
+    bl_options = {'REGISTER', 'UNDO'}
+    
+    template_id: EnumProperty(
+        name="Template",
+        items=[
+            ('complete_weapon', "Complete Weapon", "Full weapon creation workflow"),
+            ('vegetation_patch', "Vegetation Patch", "Create optimized vegetation area"),
+            ('npc_creation', "NPC Creation", "Create and setup an NPC"),
+            ('batch_export', "Batch Export", "Optimize and export multiple objects"),
+        ]
+    )
+    
+    def execute(self, context):
+        success, message = automation_system.WorkflowTemplate.execute_template(
+            self.template_id,
+            context
+        )
+        
+        if success:
+            self.report({'INFO'}, message)
+            notification_system.FO4_NotificationSystem.notify(
+                "Workflow template executed", 'INFO'
+            )
+        else:
+            self.report({'ERROR'}, message)
+        
+        return {'FINISHED'} if success else {'CANCELLED'}
+    
+    def invoke(self, context, event):
+        return context.window_manager.invoke_props_dialog(self)
+
+
 # Register all operators
 
 classes = (
@@ -5207,6 +5550,18 @@ classes = (
     FO4_OT_CreateConsumable,
     FO4_OT_CreateMiscItem,
     FO4_OT_CreateClutterObject,
+    # Preset library operators
+    FO4_OT_SavePreset,
+    FO4_OT_LoadPreset,
+    FO4_OT_DeletePreset,
+    FO4_OT_RefreshPresetLibrary,
+    # Automation system operators
+    FO4_OT_StartRecording,
+    FO4_OT_StopRecording,
+    FO4_OT_SaveMacro,
+    FO4_OT_ExecuteMacro,
+    FO4_OT_DeleteMacro,
+    FO4_OT_ExecuteWorkflowTemplate,
 )
 
 def register():

@@ -182,3 +182,79 @@ Model Selection Guide:
   - Maximum quality: FLUX.1-dev (25-35 steps)
   - Budget hardware: SD 1.5 (20-30 steps, 4GB VRAM)
 
+
+Stable Diffusion 3.5 Medium (Budget-Friendly):
+  git clone https://huggingface.co/stabilityai/stable-diffusion-3.5-medium
+  # Place in: ComfyUI/models/checkpoints/
+  # Steps: 20-30, Time: ~10-20s, VRAM: 6GB+
+  # Good quality, smaller model, faster
+
+Complete Model Lineup:
+  Highest Quality → FLUX.1-dev (12GB VRAM)
+  Fast Iteration → FLUX.1-schnell (8GB VRAM)
+  Balanced → SD 3.5 Large (8GB VRAM)
+  Budget-Friendly → SD 3.5 Medium (6GB VRAM)
+  Maximum Speed → SD 1.5 (4GB VRAM)
+
+
+═══════════════════════════════════════════════════════════════
+🔌 COMFYUI EXTENSIONS (Custom Nodes)
+═══════════════════════════════════════════════════════════════
+
+Essential Extensions:
+  cd ComfyUI/custom_nodes
+  
+  # ComfyUI Manager (must-have!)
+  git clone https://github.com/ltdrdata/ComfyUI-Manager.git
+  
+  # ComfyUI-GGUF (efficient models)
+  git clone https://github.com/city96/ComfyUI-GGUF.git
+  
+  # Custom Scripts (UI improvements)
+  git clone https://github.com/pythongosssss/ComfyUI-Custom-Scripts.git
+  
+  # Z-Tipo Extension (quality improvements)
+  git clone https://github.com/KohakuBlueleaf/z-tipo-extension.git
+
+Benefits:
+  - Manager: Install extensions from UI
+  - GGUF: Use quantized models (less VRAM)
+  - Custom Scripts: Better UX, autocomplete, history
+  - Z-Tipo: Better type handling, quality boost
+
+
+═══════════════════════════════════════════════════════════════
+🖼️ SD WEBUI (AUTOMATIC1111) - Alternative to ComfyUI
+═══════════════════════════════════════════════════════════════
+
+Installation:
+  git clone https://github.com/AUTOMATIC1111/stable-diffusion-webui.git
+  cd stable-diffusion-webui
+  
+  # Windows:
+  webui-user.bat
+  
+  # Linux/macOS:
+  ./webui.sh
+  
+  # Access: http://localhost:7860
+
+SD WebUI vs ComfyUI:
+  - SD WebUI: Form-based, easy, beginner-friendly
+  - ComfyUI: Node-based, advanced, for complex workflows
+  
+  Recommendation: Install BOTH!
+  - Use SD WebUI for quick texture generation
+  - Use ComfyUI for complex multi-step workflows
+
+Popular Extensions:
+  - ControlNet (guided generation)
+  - Ultimate SD Upscale (high-quality upscaling)
+  - Additional Networks (LoRA support)
+
+Performance Args:
+  --lowvram       # 4-6GB VRAM
+  --medvram       # 6-8GB VRAM
+  --xformers      # Faster, less VRAM
+  --api           # Enable REST API
+

@@ -146,21 +146,26 @@ cd ComfyUI
 .\python_embeded\python.exe -s -m pip install torch torchvision --index-url https://download.pytorch.org/whl/cu118
 ```
 
-**Step 3: Install custom node dependencies**
+**Step 4: Install ComfyUI extensions**
 ```cmd
-# For ComfyUI-GGUF
-.\python_embeded\python.exe -s -m pip install -r .\custom_nodes\ComfyUI-GGUF\requirements.txt
+cd custom_nodes
 
-# For other nodes
-.\python_embeded\python.exe -s -m pip install -r .\custom_nodes\[NODE_NAME]\requirements.txt
+# Essential extensions
+git clone https://github.com/ltdrdata/ComfyUI-Manager.git
+git clone https://github.com/city96/ComfyUI-GGUF.git
+git clone https://github.com/pythongosssss/ComfyUI-Custom-Scripts.git
+git clone https://github.com/KohakuBlueleaf/z-tipo-extension.git
+
+cd ..
+.\python_embeded\python.exe -s -m pip install -r .\custom_nodes\ComfyUI-GGUF\requirements.txt
 ```
 
-**Step 4: Verify installation**
+**Step 5: Verify installation**
 ```cmd
 .\python_embeded\python.exe -m pip list
 ```
 
-**Step 5: Run ComfyUI**
+**Step 6: Run ComfyUI**
 ```cmd
 .\python_embeded\python.exe main.py
 ```

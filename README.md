@@ -1,8 +1,31 @@
-# Desktop Tutorial Integration Add-on for Blender
+# Fallout 4 Mod Creation Add-on for Blender
 
-A Blender add-on that integrates with a desktop tutorial application, allowing seamless communication between Blender and your tutorial software.
+**A comprehensive, user-friendly, and highly automated Blender add-on for creating Fallout 4 mods with desktop tutorial integration.**
 
-## Features
+## 🆕 What's New - Enhanced Features!
+
+This add-on has been significantly enhanced to be more:
+- **Comprehensive**: Complete workflows for weapons, armor, and props
+- **Advanced**: 70+ operators including AI/ML integrations
+- **User-Friendly**: Smart presets, batch processing, and automation tools
+- **Automated**: One-click preparation, auto-fixing, and smart material setup
+
+### Key New Features:
+- ✅ **Batch Processing**: Process multiple meshes at once
+- ✅ **Smart Presets**: Quick-start templates for weapons, armor, and props
+- ✅ **One-Click Automation**: Quick prepare for export, auto-fix issues
+- ✅ **Collision Mesh Generation**: Automatic collision mesh creation
+- ✅ **Smart Material Setup**: Auto-detect and load textures
+- ✅ **Enhanced Tutorials**: 7 comprehensive tutorials including complete workflows
+- ✅ **Desktop Tutorial Integration**: Seamless communication with tutorial app
+
+See [NEW_FEATURES.md](NEW_FEATURES.md) for detailed information about all enhancements!
+
+---
+
+## Features Overview
+
+### Desktop Tutorial Integration
 
 - **Connection Management**: Connect and disconnect from your desktop tutorial app
 - **Tutorial Controls**: Navigate through tutorial steps directly from Blender

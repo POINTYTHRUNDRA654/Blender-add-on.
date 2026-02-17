@@ -215,12 +215,16 @@ Essential Extensions:
   
   # Z-Tipo Extension (quality improvements)
   git clone https://github.com/KohakuBlueleaf/z-tipo-extension.git
+  
+  # IPAdapter_plus (image prompting & style transfer)
+  git clone https://github.com/cubiq/ComfyUI_IPAdapter_plus.git
 
 Benefits:
   - Manager: Install extensions from UI
   - GGUF: Use quantized models (less VRAM)
   - Custom Scripts: Better UX, autocomplete, history
   - Z-Tipo: Better type handling, quality boost
+  - IPAdapter: Image-based conditioning, style consistency
 
 
 ═══════════════════════════════════════════════════════════════

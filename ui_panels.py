@@ -758,6 +758,198 @@ class FO4_PT_ItemCreationPanel(Panel):
         info_box.label(text="5. Export as FBX")
 
 
+class FO4_PT_PresetLibraryPanel(Panel):
+    """Preset library panel for saving and loading creations"""
+    bl_label = "Preset Library"
+    bl_idname = "FO4_PT_preset_library_panel"
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'UI'
+    bl_category = 'Fallout 4'
+    bl_parent_id = "FO4_PT_main_panel"
+    bl_options = {'DEFAULT_CLOSED'}
+    
+    def draw(self, context):
+        layout = self.layout
+        scene = context.scene
+        
+        # Save preset section
+        box = layout.box()
+        box.label(text="Save Preset", icon='FILE_NEW')
+        box.operator("fo4.save_preset", text="Save Current Objects", icon='ADD')
+        
+        # Category filter
+        box = layout.box()
+        box.label(text="Browse Library", icon='BOOKMARKS')
+        box.prop(scene, "fo4_preset_filter_category", text="Category")
+        box.prop(scene, "fo4_preset_search", text="", icon='VIEWZOOM')
+        box.operator("fo4.refresh_preset_library", text="Refresh", icon='FILE_REFRESH')
+        
+        # Recent presets
+        from . import preset_library
+        recent = preset_library.PresetLibrary.get_recent_presets(5)
+        
+        if recent:
+            recent_box = layout.box()
+            recent_box.label(text="Recent Presets", icon='TIME')
+            for preset in recent:
+                row = recent_box.row()
+                row.label(text=preset['name'], icon='FILE')
+                op = row.operator("fo4.load_preset", text="", icon='IMPORT')
+                op.filepath = preset['filepath']
+                op = row.operator("fo4.delete_preset", text="", icon='TRASH')
+                op.filepath = preset['filepath']
+        
+        # Popular presets
+        popular = preset_library.PresetLibrary.get_popular_presets(5)
+        if popular:
+            pop_box = layout.box()
+            pop_box.label(text="Most Used", icon='SOLO_ON')
+            for preset in popular:
+                row = pop_box.row()
+                uses = preset.get('use_count', 0)
+                row.label(text=f"{preset['name']} ({uses}x)", icon='FILE')
+                op = row.operator("fo4.load_preset", text="", icon='IMPORT')
+                op.filepath = preset['filepath']
+        
+        # Info
+        info_box = layout.box()
+        info_box.label(text="Preset Library:", icon='INFO')
+        info_box.label(text="• Save any creation for reuse")
+        info_box.label(text="• Load presets instantly")
+        info_box.label(text="• Search by name/tags")
+        info_box.label(text="• Track usage statistics")
+
+
+class FO4_PT_AutomationPanel(Panel):
+    """Automation and macro system panel"""
+    bl_label = "Automation & Macros"
+    bl_idname = "FO4_PT_automation_panel"
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'UI'
+    bl_category = 'Fallout 4'
+    bl_parent_id = "FO4_PT_main_panel"
+    bl_options = {'DEFAULT_CLOSED'}
+    
+    def draw(self, context):
+        layout = self.layout
+        scene = context.scene
+        
+        # Recording controls
+        box = layout.box()
+        box.label(text="Macro Recording", icon='REC')
+        
+        if scene.fo4_is_recording:
+            box.label(text="● RECORDING", icon='RADIOBUT_ON')
+            from . import automation_system
+            action_count = len(automation_system.AutomationSystem.recorded_actions)
+            box.label(text=f"Actions recorded: {action_count}")
+            box.operator("fo4.stop_recording", text="Stop Recording", icon='SNAP_FACE')
+        else:
+            box.operator("fo4.start_recording", text="Start Recording", icon='REC')
+            box.label(text="Record your actions to create macros")
+        
+        # Save macro
+        if not scene.fo4_is_recording:
+            from . import automation_system
+            if automation_system.AutomationSystem.recorded_actions:
+                save_box = layout.box()
+                save_box.label(text="Save Recorded Macro", icon='FILE_NEW')
+                save_box.operator("fo4.save_macro", text="Save as Macro", icon='FILE_TICK')
+        
+        # Workflow templates
+        template_box = layout.box()
+        template_box.label(text="Workflow Templates", icon='SCRIPT')
+        template_box.operator("fo4.execute_workflow_template", text="Execute Template", icon='PLAY')
+        
+        # Saved macros
+        from . import automation_system
+        macros = automation_system.AutomationSystem.get_all_macros()
+        
+        if macros:
+            macro_box = layout.box()
+            macro_box.label(text="Saved Macros", icon='BOOKMARKS')
+            for macro in macros[:10]:  # Show first 10
+                row = macro_box.row()
+                action_count = macro.get('action_count', 0)
+                row.label(text=f"{macro['name']} ({action_count} steps)", icon='SCRIPT')
+                op = row.operator("fo4.execute_macro", text="", icon='PLAY')
+                op.filepath = macro['filepath']
+                op = row.operator("fo4.delete_macro", text="", icon='TRASH')
+                op.filepath = macro['filepath']
+        
+        # Info
+        info_box = layout.box()
+        info_box.label(text="Automation Features:", icon='INFO')
+        info_box.label(text="• Record repetitive tasks")
+        info_box.label(text="• Replay macros instantly")
+        info_box.label(text="• Use workflow templates")
+        info_box.label(text="• Boost productivity 10x")
+
+
+class FO4_PT_AddonIntegrationPanel(Panel):
+    """Third-party add-on integration panel"""
+    bl_label = "Add-on Integrations"
+    bl_idname = "FO4_PT_addon_integration_panel"
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'UI'
+    bl_category = 'Fallout 4'
+    bl_parent_id = "FO4_PT_main_panel"
+    bl_options = {'DEFAULT_CLOSED'}
+    
+    def draw(self, context):
+        layout = self.layout
+        
+        # Scan for add-ons
+        box = layout.box()
+        box.label(text="Useful Add-ons for FO4", icon='PLUGIN')
+        
+        from . import addon_integration
+        detected = addon_integration.AddonIntegrationSystem.scan_for_known_addons()
+        
+        for addon in detected:
+            addon_box = layout.box()
+            
+            # Status indicator
+            if addon['is_enabled']:
+                status_icon = 'CHECKMARK'
+                status_text = "Enabled"
+            elif addon['is_installed']:
+                status_icon = 'DOT'
+                status_text = "Installed (not enabled)"
+            else:
+                status_icon = 'X'
+                status_text = "Not installed"
+            
+            row = addon_box.row()
+            row.label(text=addon['name'], icon=status_icon)
+            row.label(text=status_text)
+            
+            addon_box.label(text=addon['description'])
+            
+            # FO4 use case
+            use_box = addon_box.box()
+            use_box.label(text="FO4 Use:", icon='INFO')
+            use_box.label(text=addon['fo4_use_cases'])
+            
+            # Download link if not installed
+            if not addon['is_installed']:
+                addon_box.label(text=f"Get it: {addon.get('download_url', 'Search online')}")
+        
+        # Integration tutorials
+        integrations_box = layout.box()
+        integrations_box.label(text="Integration Tutorials", icon='HELP')
+        integrations_box.label(text="Tutorials show how to use these")
+        integrations_box.label(text="add-ons with FO4 modding")
+        
+        # Info
+        info_box = layout.box()
+        info_box.label(text="Add-on Integration:", icon='INFO')
+        info_box.label(text="• Detects useful add-ons")
+        info_box.label(text="• Provides FO4-specific tutorials")
+        info_box.label(text="• Seamless workflow integration")
+        info_box.label(text="• Community integration packs")
+
+
 classes = (
     FO4_PT_MainPanel,
     FO4_PT_MeshPanel,
@@ -778,6 +970,10 @@ classes = (
     FO4_PT_NPCPanel,
     FO4_PT_WorldBuildingPanel,
     FO4_PT_ItemCreationPanel,
+    # New panels for productivity
+    FO4_PT_PresetLibraryPanel,
+    FO4_PT_AutomationPanel,
+    FO4_PT_AddonIntegrationPanel,
 )
 
 def register():

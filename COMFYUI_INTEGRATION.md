@@ -306,13 +306,16 @@ git clone https://github.com/pythongosssss/ComfyUI-Custom-Scripts.git
 # 4. Z-Tipo Extension (quality improvements & type handling)
 git clone https://github.com/KohakuBlueleaf/z-tipo-extension.git
 
-# 5. ControlNet Auxiliary Preprocessors
+# 5. IPAdapter_plus (image conditioning & style transfer)
+git clone https://github.com/cubiq/ComfyUI_IPAdapter_plus.git
+
+# 6. ControlNet Auxiliary Preprocessors
 git clone https://github.com/Fannovel16/comfyui_controlnet_aux.git
 
-# 6. WAS Node Suite (image processing utilities)
+# 7. WAS Node Suite (image processing utilities)
 git clone https://github.com/WASasquatch/was-node-suite-comfyui.git
 
-# 7. Ultimate SD Upscale
+# 8. Ultimate SD Upscale
 git clone https://github.com/ssitu/ComfyUI_UltimateSDUpscale.git
 ```
 
@@ -348,6 +351,81 @@ Restart ComfyUI after installing extensions.
   - Better node compatibility
   - Quality enhancements
   - Automatic casting
+
+#### IPAdapter_plus ⭐⭐ (Image Prompting - Essential for FO4!)
+- **Purpose**: Use images as prompts alongside text (IP-Adapter = Image Prompt Adapter)
+- **Why**: Maintain consistent style, character appearance, and design language
+- **Repository**: https://github.com/cubiq/ComfyUI_IPAdapter_plus
+- **Key Features**:
+  - **Style Transfer**: Match the aesthetic of reference images
+  - **Composition Control**: Use image structure as guide
+  - **Face Consistency**: Keep character faces consistent across generations
+  - **Multi-reference**: Combine multiple reference images
+  - **Adjustable Influence**: Control how much the image affects generation (weight 0.0-1.0)
+
+**IPAdapter Models Required:**
+You'll need to download IPAdapter model files:
+```bash
+# SD 1.5 IPAdapter models:
+# Download from: https://huggingface.co/h94/IP-Adapter
+# Place in: ComfyUI/models/ipadapter/
+
+# SDXL IPAdapter models:
+# Download from: https://huggingface.co/h94/IP-Adapter
+# Files needed:
+# - ip-adapter_sd15.safetensors (for SD 1.5)
+# - ip-adapter-plus_sd15.safetensors (enhanced version)
+# - ip-adapter_sdxl.safetensors (for SDXL)
+```
+
+**FO4 Modding Use Cases:**
+1. **Weapon Set Consistency**
+   - Generate multiple weapons matching your custom style
+   - Reference: Your hero weapon design
+   - Output: Variants (pistol, rifle, melee) in same style
+
+2. **Vanilla Style Matching**
+   - Reference: Screenshot of vanilla FO4 assets
+   - Output: New props that blend seamlessly with vanilla
+   - Perfect for lore-friendly mods
+
+3. **Texture Families**
+   - Reference: One wall/floor texture
+   - Output: Matching textures for full interior set
+   - Consistent weathering and color palette
+
+4. **NPC Appearance**
+   - Reference: Character concept art
+   - Output: Same character from multiple angles
+   - Consistent for character creation
+
+5. **Armor Set Design**
+   - Reference: Chest piece design
+   - Output: Helmet, arms, legs matching same design
+   - Unified armor set aesthetic
+
+**IPAdapter Node Types:**
+- **IPAdapter**: Basic image conditioning
+- **IPAdapter Plus**: Enhanced version with better detail preservation
+- **IPAdapter Face**: Specialized for facial consistency
+- **IPAdapter Advanced**: Multiple references, per-region control
+
+**Best Practices for FO4:**
+- Use weight 0.4-0.7 for style guidance (not copying)
+- Combine with text prompts for specific details
+- Use multiple references for complex styles
+- Lower weight (0.2-0.4) for loose style matching
+- Higher weight (0.7-0.9) for strict consistency
+
+**Example Workflow:**
+```
+1. Load SD/SDXL model
+2. Add "IPAdapter Apply" node
+3. Load your reference image (FO4 screenshot or concept)
+4. Set weight: 0.5
+5. Add text prompt: "rusty robot, military design"
+6. Generate → Output matches reference style + text description
+```
 
 #### ControlNet Auxiliary
 - **Purpose**: Preprocessors for ControlNet
@@ -387,6 +465,77 @@ Restart ComfyUI after installing extensions.
    - Input: Base texture
    - Output: Diffuse, normal, roughness maps
    - Nodes: Multiple generators, image processing
+
+5. **Style-Consistent Asset Generator (IPAdapter)**
+   - Input: Reference image + text prompt
+   - Output: New asset matching style
+   - Nodes: IPAdapter, text encoder, SD model
+   - **FO4 Use**: Generate weapon variants matching your mod's style
+
+6. **Texture Variation Generator (IPAdapter)**
+   - Input: Existing texture + variation prompt
+   - Output: Similar but different texture
+   - Nodes: IPAdapter, SD model, image processing
+   - **FO4 Use**: Create texture variations for LODs or variants
+
+### IPAdapter_plus Workflow Examples
+
+#### Example 1: Style-Consistent Weapon Set
+```
+Goal: Create 5 weapon variants with consistent design language
+
+Workflow:
+1. Load your first weapon concept/texture as reference
+2. Add IPAdapter_plus node
+3. Connect reference image to IPAdapter
+4. Text prompt: "assault rifle, military green, worn"
+5. Generate → Rifle
+6. Change prompt: "pistol, military green, worn"  
+7. Generate → Pistol (matching style!)
+8. Repeat for: shotgun, sniper, SMG
+Result: Complete weapon set with unified aesthetic
+```
+
+#### Example 2: Matching Vanilla FO4 Style
+```
+Goal: Generate new props that fit vanilla Fallout 4 aesthetic
+
+Workflow:
+1. Screenshot vanilla FO4 prop (e.g., desk, chair)
+2. Use as IPAdapter reference
+3. Text prompt: "rusty filing cabinet, post-apocalyptic"
+4. IPAdapter ensures Fallout 4 art style
+5. Generate multiple variations
+6. Select best matches
+Result: Props that blend perfectly with vanilla game
+```
+
+#### Example 3: Character/NPC Consistency
+```
+Goal: Generate same character from multiple angles
+
+Workflow:
+1. Create or find character concept art (front view)
+2. Load as IPAdapter reference
+3. Text prompt: "character side view, same person"
+4. Generate side view
+5. Text prompt: "character back view, same person"
+6. Generate back view
+Result: Consistent character from all angles for NPC creation
+```
+
+#### Example 4: Texture Variation with Style Lock
+```
+Goal: Create wall texture variations maintaining style
+
+Workflow:
+1. Load existing wall texture as reference
+2. Add IPAdapter with low strength (0.3-0.5)
+3. Text prompt: "concrete wall, damaged, different pattern"
+4. Generate variations
+5. All maintain base style/color/weathering
+Result: Diverse but cohesive texture set for interior cells
+```
 
 ### Save Workflows
 

@@ -600,6 +600,164 @@ class FO4_PT_VegetationPanel(Panel):
         tips_box.label(text="5. Export as single mesh")
 
 
+class FO4_PT_QuestPanel(Panel):
+    """Quest creation panel"""
+    bl_label = "Quest Creation"
+    bl_idname = "FO4_PT_quest_panel"
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'UI'
+    bl_category = 'Fallout 4'
+    bl_parent_id = "FO4_PT_main_panel"
+    bl_options = {'DEFAULT_CLOSED'}
+    
+    def draw(self, context):
+        layout = self.layout
+        
+        # Quest template
+        box = layout.box()
+        box.label(text="Quest Setup", icon='BOOKMARKS')
+        box.operator("fo4.create_quest_template", text="Create Quest Template", icon='ADD')
+        box.operator("fo4.export_quest_data", text="Export Quest Data", icon='EXPORT')
+        
+        # Papyrus script
+        box = layout.box()
+        box.label(text="Scripting", icon='SCRIPT')
+        box.operator("fo4.generate_papyrus_script", text="Generate Papyrus Script", icon='FILE_SCRIPT')
+        
+        # Info
+        info_box = layout.box()
+        info_box.label(text="Quest Workflow:", icon='INFO')
+        info_box.label(text="1. Create quest template")
+        info_box.label(text="2. Define stages & objectives")
+        info_box.label(text="3. Generate Papyrus script")
+        info_box.label(text="4. Export for Creation Kit")
+
+
+class FO4_PT_NPCPanel(Panel):
+    """NPC and creature creation panel"""
+    bl_label = "NPCs & Creatures"
+    bl_idname = "FO4_PT_npc_panel"
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'UI'
+    bl_category = 'Fallout 4'
+    bl_parent_id = "FO4_PT_main_panel"
+    bl_options = {'DEFAULT_CLOSED'}
+    
+    def draw(self, context):
+        layout = self.layout
+        
+        # NPC creation
+        box = layout.box()
+        box.label(text="Create NPC", icon='ARMATURE_DATA')
+        box.operator("fo4.create_npc", text="Create NPC", icon='ADD')
+        
+        # Creature creation
+        box = layout.box()
+        box.label(text="Create Creature", icon='MOD_ARMATURE')
+        box.operator("fo4.create_creature", text="Create Creature", icon='ADD')
+        
+        # Tips
+        tips_box = layout.box()
+        tips_box.label(text="Tips:", icon='INFO')
+        tips_box.label(text="• Customize base mesh")
+        tips_box.label(text="• Add armature for animation")
+        tips_box.label(text="• Setup materials & textures")
+        tips_box.label(text="• Export as FBX for import")
+
+
+class FO4_PT_WorldBuildingPanel(Panel):
+    """World building and cells panel"""
+    bl_label = "World Building"
+    bl_idname = "FO4_PT_world_building_panel"
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'UI'
+    bl_category = 'Fallout 4'
+    bl_parent_id = "FO4_PT_main_panel"
+    bl_options = {'DEFAULT_CLOSED'}
+    
+    def draw(self, context):
+        layout = self.layout
+        
+        # Interior cells
+        box = layout.box()
+        box.label(text="Interior Cells", icon='HOME')
+        box.operator("fo4.create_interior_cell", text="Create Interior Cell", icon='ADD')
+        box.operator("fo4.create_door_frame", text="Add Door Frame", icon='MESH_PLANE')
+        
+        # Workshop objects
+        box = layout.box()
+        box.label(text="Workshop/Settlement", icon='TOOL_SETTINGS')
+        box.operator("fo4.create_workshop_object", text="Create Workshop Object", icon='ADD')
+        
+        # Navigation
+        box = layout.box()
+        box.label(text="Navigation", icon='ORIENTATION_NORMAL')
+        box.operator("fo4.create_navmesh", text="Create NavMesh Helper", icon='MESH_GRID')
+        
+        # Lighting
+        box = layout.box()
+        box.label(text="Lighting Presets", icon='LIGHT')
+        box.operator("fo4.create_lighting_preset", text="Create Lighting Preset", icon='ADD')
+        
+        # Info
+        info_box = layout.box()
+        info_box.label(text="World Building:", icon='INFO')
+        info_box.label(text="• Start with cell template")
+        info_box.label(text="• Add doors & windows")
+        info_box.label(text="• Place workshop objects")
+        info_box.label(text="• Setup lighting")
+        info_box.label(text="• Create navmesh last")
+
+
+class FO4_PT_ItemCreationPanel(Panel):
+    """Item creation panel"""
+    bl_label = "Item Creation"
+    bl_idname = "FO4_PT_item_creation_panel"
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'UI'
+    bl_category = 'Fallout 4'
+    bl_parent_id = "FO4_PT_main_panel"
+    bl_options = {'DEFAULT_CLOSED'}
+    
+    def draw(self, context):
+        layout = self.layout
+        
+        # Weapons
+        box = layout.box()
+        box.label(text="Weapons", icon='MOD_ARMATURE')
+        box.operator("fo4.create_weapon_item", text="Create Weapon", icon='ADD')
+        
+        # Armor
+        box = layout.box()
+        box.label(text="Armor", icon='MESH_UVSPHERE')
+        box.operator("fo4.create_armor_item", text="Create Armor", icon='ADD')
+        box.operator("fo4.create_power_armor_piece", text="Create Power Armor", icon='ADD')
+        
+        # Consumables
+        box = layout.box()
+        box.label(text="Consumables", icon='FORCE_LENNARDJONES')
+        box.operator("fo4.create_consumable", text="Create Consumable", icon='ADD')
+        
+        # Misc items
+        box = layout.box()
+        box.label(text="Misc Items", icon='OBJECT_DATA')
+        box.operator("fo4.create_misc_item", text="Create Misc Item", icon='ADD')
+        
+        # Clutter
+        box = layout.box()
+        box.label(text="Clutter/Decoration", icon='PROP_OFF')
+        box.operator("fo4.create_clutter_object", text="Create Clutter", icon='ADD')
+        
+        # Info
+        info_box = layout.box()
+        info_box.label(text="Item Workflow:", icon='INFO')
+        info_box.label(text="1. Create item base")
+        info_box.label(text="2. Model details")
+        info_box.label(text="3. Setup textures")
+        info_box.label(text="4. Optimize & validate")
+        info_box.label(text="5. Export as FBX")
+
+
 classes = (
     FO4_PT_MainPanel,
     FO4_PT_MeshPanel,
@@ -610,11 +768,16 @@ classes = (
     FO4_PT_RigNetPanel,
     FO4_PT_NVTTPanel,
     FO4_PT_ExportPanel,
-    # New panels
+    # New panels for enhancements
     FO4_PT_BatchProcessingPanel,
     FO4_PT_PresetsPanel,
     FO4_PT_AutomationPanel,
     FO4_PT_VegetationPanel,
+    # New panels for comprehensive mod creation
+    FO4_PT_QuestPanel,
+    FO4_PT_NPCPanel,
+    FO4_PT_WorldBuildingPanel,
+    FO4_PT_ItemCreationPanel,
 )
 
 def register():

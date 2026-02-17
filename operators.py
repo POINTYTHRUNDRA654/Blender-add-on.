@@ -5,7 +5,7 @@ Operators for the Fallout 4 Tutorial Add-on
 import bpy
 from bpy.types import Operator
 from bpy.props import StringProperty, EnumProperty, IntProperty, FloatProperty, BoolProperty
-from . import tutorial_system, mesh_helpers, texture_helpers, animation_helpers, export_helpers, notification_system, image_to_mesh_helpers, hunyuan3d_helpers, gradio_helpers, hymotion_helpers, nvtt_helpers, realesrgan_helpers, get3d_helpers, stylegan2_helpers, instantngp_helpers, imageto3d_helpers, advanced_mesh_helpers, rignet_helpers, motion_generation_helpers
+from . import tutorial_system, mesh_helpers, texture_helpers, animation_helpers, export_helpers, notification_system, image_to_mesh_helpers, hunyuan3d_helpers, gradio_helpers, hymotion_helpers, nvtt_helpers, realesrgan_helpers, get3d_helpers, stylegan2_helpers, instantngp_helpers, imageto3d_helpers, advanced_mesh_helpers, rignet_helpers, motion_generation_helpers, quest_helpers, npc_helpers, world_building_helpers, item_helpers
 
 # Tutorial Operators
 
@@ -4558,6 +4558,527 @@ class FO4_OT_BakeVegetationAO(Operator):
             return {'CANCELLED'}
 
 
+# Quest Creation Operators
+
+class FO4_OT_CreateQuestTemplate(Operator):
+    """Create a quest template with stages and objectives"""
+    bl_idname = "fo4.create_quest_template"
+    bl_label = "Create Quest Template"
+    bl_options = {'REGISTER'}
+    
+    quest_name: StringProperty(
+        name="Quest Name",
+        description="Name of the quest",
+        default="My Quest"
+    )
+    
+    def execute(self, context):
+        try:
+            quest_data = quest_helpers.QuestHelpers.create_quest_template()
+            quest_data["quest_name"] = self.quest_name
+            
+            self.report({'INFO'}, f"Created quest template: {self.quest_name}")
+            self.report({'INFO'}, "Add stages and objectives in the Quest panel")
+            
+            notification_system.FO4_NotificationSystem.notify(
+                f"Quest template created: {self.quest_name}", 'INFO'
+            )
+            return {'FINISHED'}
+        except Exception as e:
+            self.report({'ERROR'}, f"Failed to create quest: {str(e)}")
+            return {'CANCELLED'}
+    
+    def invoke(self, context, event):
+        return context.window_manager.invoke_props_dialog(self)
+
+
+class FO4_OT_ExportQuestData(Operator):
+    """Export quest data to JSON file"""
+    bl_idname = "fo4.export_quest_data"
+    bl_label = "Export Quest Data"
+    bl_options = {'REGISTER'}
+    
+    filepath: StringProperty(subtype='FILE_PATH')
+    
+    def execute(self, context):
+        try:
+            quest_data = quest_helpers.QuestHelpers.create_quest_template()
+            # Add quest stages and objectives from scene
+            success, message = quest_helpers.QuestHelpers.export_quest_data(quest_data, self.filepath)
+            
+            if success:
+                self.report({'INFO'}, "Quest data exported successfully")
+                notification_system.FO4_NotificationSystem.notify("Quest exported", 'INFO')
+                return {'FINISHED'}
+            else:
+                self.report({'ERROR'}, message)
+                return {'CANCELLED'}
+        except Exception as e:
+            self.report({'ERROR'}, f"Export failed: {str(e)}")
+            return {'CANCELLED'}
+    
+    def invoke(self, context, event):
+        context.window_manager.fileselect_add(self)
+        return {'RUNNING_MODAL'}
+
+
+class FO4_OT_GeneratePapyrusScript(Operator):
+    """Generate Papyrus script template for quest"""
+    bl_idname = "fo4.generate_papyrus_script"
+    bl_label = "Generate Papyrus Script"
+    bl_options = {'REGISTER'}
+    
+    quest_id: StringProperty(
+        name="Quest ID",
+        description="Quest Editor ID",
+        default="MyQuest01"
+    )
+    
+    quest_name: StringProperty(
+        name="Quest Name",
+        description="Quest display name",
+        default="My Quest"
+    )
+    
+    def execute(self, context):
+        try:
+            script = quest_helpers.QuestHelpers.generate_papyrus_script(self.quest_id, self.quest_name)
+            
+            # Create text block in Blender
+            text = bpy.data.texts.new(f"{self.quest_id}Script.psc")
+            text.write(script)
+            
+            self.report({'INFO'}, f"Generated Papyrus script: {self.quest_id}Script.psc")
+            self.report({'INFO'}, "Check Text Editor for script")
+            
+            notification_system.FO4_NotificationSystem.notify(
+                "Papyrus script generated", 'INFO'
+            )
+            return {'FINISHED'}
+        except Exception as e:
+            self.report({'ERROR'}, f"Failed to generate script: {str(e)}")
+            return {'CANCELLED'}
+    
+    def invoke(self, context, event):
+        return context.window_manager.invoke_props_dialog(self)
+
+
+# NPC and Creature Operators
+
+class FO4_OT_CreateNPC(Operator):
+    """Create NPC base mesh"""
+    bl_idname = "fo4.create_npc"
+    bl_label = "Create NPC"
+    bl_options = {'REGISTER', 'UNDO'}
+    
+    npc_type: EnumProperty(
+        name="NPC Type",
+        items=[
+            ('HUMAN', "Human", "Human NPC"),
+            ('GHOUL', "Ghoul", "Ghoul NPC"),
+            ('SUPERMUTANT', "Super Mutant", "Super Mutant"),
+            ('ROBOT', "Robot", "Robot/Protectron"),
+        ]
+    )
+    
+    def execute(self, context):
+        try:
+            obj = npc_helpers.NPCHelpers.create_npc_base_mesh(self.npc_type)
+            
+            self.report({'INFO'}, f"Created {self.npc_type} NPC base")
+            notification_system.FO4_NotificationSystem.notify(
+                f"NPC created: {self.npc_type}", 'INFO'
+            )
+            return {'FINISHED'}
+        except Exception as e:
+            self.report({'ERROR'}, f"Failed to create NPC: {str(e)}")
+            return {'CANCELLED'}
+    
+    def invoke(self, context, event):
+        return context.window_manager.invoke_props_dialog(self)
+
+
+class FO4_OT_CreateCreature(Operator):
+    """Create creature base mesh"""
+    bl_idname = "fo4.create_creature"
+    bl_label = "Create Creature"
+    bl_options = {'REGISTER', 'UNDO'}
+    
+    creature_type: EnumProperty(
+        name="Creature Type",
+        items=[
+            ('RADROACH', "Radroach", "Small insect creature"),
+            ('MOLERAT', "Mole Rat", "Medium mammal creature"),
+            ('DEATHCLAW', "Deathclaw", "Large bipedal creature"),
+            ('MIRELURK', "Mirelurk", "Crab-like creature"),
+        ]
+    )
+    
+    def execute(self, context):
+        try:
+            obj = npc_helpers.CreatureHelpers.create_creature_base(self.creature_type)
+            
+            self.report({'INFO'}, f"Created {self.creature_type} creature base")
+            notification_system.FO4_NotificationSystem.notify(
+                f"Creature created: {self.creature_type}", 'INFO'
+            )
+            return {'FINISHED'}
+        except Exception as e:
+            self.report({'ERROR'}, f"Failed to create creature: {str(e)}")
+            return {'CANCELLED'}
+    
+    def invoke(self, context, event):
+        return context.window_manager.invoke_props_dialog(self)
+
+
+# World Building Operators
+
+class FO4_OT_CreateInteriorCell(Operator):
+    """Create interior cell template"""
+    bl_idname = "fo4.create_interior_cell"
+    bl_label = "Create Interior Cell"
+    bl_options = {'REGISTER', 'UNDO'}
+    
+    cell_type: EnumProperty(
+        name="Cell Type",
+        items=[
+            ('ROOM', "Room", "Standard room"),
+            ('CORRIDOR', "Corridor", "Hallway"),
+            ('VAULT', "Vault", "Vault room"),
+            ('CAVE', "Cave", "Cave interior"),
+        ]
+    )
+    
+    def execute(self, context):
+        try:
+            obj = world_building_helpers.WorldBuildingHelpers.create_interior_cell_template(self.cell_type)
+            
+            self.report({'INFO'}, f"Created {self.cell_type} interior cell")
+            notification_system.FO4_NotificationSystem.notify(
+                f"Interior cell created: {self.cell_type}", 'INFO'
+            )
+            return {'FINISHED'}
+        except Exception as e:
+            self.report({'ERROR'}, f"Failed to create cell: {str(e)}")
+            return {'CANCELLED'}
+    
+    def invoke(self, context, event):
+        return context.window_manager.invoke_props_dialog(self)
+
+
+class FO4_OT_CreateDoorFrame(Operator):
+    """Create door frame marker"""
+    bl_idname = "fo4.create_door_frame"
+    bl_label = "Create Door Frame"
+    bl_options = {'REGISTER', 'UNDO'}
+    
+    def execute(self, context):
+        try:
+            obj = world_building_helpers.WorldBuildingHelpers.create_door_frame()
+            
+            self.report({'INFO'}, "Created door frame marker")
+            notification_system.FO4_NotificationSystem.notify("Door frame created", 'INFO')
+            return {'FINISHED'}
+        except Exception as e:
+            self.report({'ERROR'}, f"Failed to create door frame: {str(e)}")
+            return {'CANCELLED'}
+
+
+class FO4_OT_CreateNavMesh(Operator):
+    """Create navmesh helper plane"""
+    bl_idname = "fo4.create_navmesh"
+    bl_label = "Create NavMesh Helper"
+    bl_options = {'REGISTER', 'UNDO'}
+    
+    width: FloatProperty(name="Width", default=10.0, min=1.0, max=100.0)
+    length: FloatProperty(name="Length", default=10.0, min=1.0, max=100.0)
+    
+    def execute(self, context):
+        try:
+            obj = world_building_helpers.WorldBuildingHelpers.create_navmesh_helper((self.width, self.length))
+            
+            self.report({'INFO'}, "Created navmesh helper")
+            notification_system.FO4_NotificationSystem.notify("NavMesh helper created", 'INFO')
+            return {'FINISHED'}
+        except Exception as e:
+            self.report({'ERROR'}, f"Failed to create navmesh: {str(e)}")
+            return {'CANCELLED'}
+    
+    def invoke(self, context, event):
+        return context.window_manager.invoke_props_dialog(self)
+
+
+class FO4_OT_CreateWorkshopObject(Operator):
+    """Create workshop settlement object"""
+    bl_idname = "fo4.create_workshop_object"
+    bl_label = "Create Workshop Object"
+    bl_options = {'REGISTER', 'UNDO'}
+    
+    object_type: EnumProperty(
+        name="Object Type",
+        items=[
+            ('FURNITURE', "Furniture", "Chair/seat"),
+            ('BED', "Bed", "Sleeping bed"),
+            ('WORKBENCH', "Workbench", "Crafting station"),
+            ('TURRET', "Turret", "Defense turret"),
+            ('GENERATOR', "Generator", "Power generator"),
+        ]
+    )
+    
+    def execute(self, context):
+        try:
+            obj = world_building_helpers.WorkshopHelpers.create_workshop_object(self.object_type)
+            
+            self.report({'INFO'}, f"Created workshop {self.object_type}")
+            notification_system.FO4_NotificationSystem.notify(
+                f"Workshop object created: {self.object_type}", 'INFO'
+            )
+            return {'FINISHED'}
+        except Exception as e:
+            self.report({'ERROR'}, f"Failed to create object: {str(e)}")
+            return {'CANCELLED'}
+    
+    def invoke(self, context, event):
+        return context.window_manager.invoke_props_dialog(self)
+
+
+class FO4_OT_CreateLightingPreset(Operator):
+    """Create lighting preset for scene"""
+    bl_idname = "fo4.create_lighting_preset"
+    bl_label = "Create Lighting Preset"
+    bl_options = {'REGISTER', 'UNDO'}
+    
+    preset: EnumProperty(
+        name="Preset",
+        items=[
+            ('INTERIOR', "Interior", "Standard interior lighting"),
+            ('VAULT', "Vault", "Cold vault lighting"),
+            ('WASTELAND', "Wasteland", "Harsh outdoor lighting"),
+        ]
+    )
+    
+    def execute(self, context):
+        try:
+            lights = world_building_helpers.LightingHelpers.create_light_preset(self.preset)
+            
+            self.report({'INFO'}, f"Created {self.preset} lighting preset ({len(lights)} lights)")
+            notification_system.FO4_NotificationSystem.notify(
+                f"Lighting preset: {self.preset}", 'INFO'
+            )
+            return {'FINISHED'}
+        except Exception as e:
+            self.report({'ERROR'}, f"Failed to create lighting: {str(e)}")
+            return {'CANCELLED'}
+    
+    def invoke(self, context, event):
+        return context.window_manager.invoke_props_dialog(self)
+
+
+# Item Creation Operators
+
+class FO4_OT_CreateWeaponItem(Operator):
+    """Create weapon item mesh"""
+    bl_idname = "fo4.create_weapon_item"
+    bl_label = "Create Weapon Item"
+    bl_options = {'REGISTER', 'UNDO'}
+    
+    weapon_category: EnumProperty(
+        name="Weapon Category",
+        items=[
+            ('PISTOL', "Pistol", "Pistol weapon"),
+            ('RIFLE', "Rifle", "Rifle weapon"),
+            ('MELEE', "Melee", "Melee weapon"),
+            ('HEAVY', "Heavy", "Heavy weapon"),
+        ]
+    )
+    
+    def execute(self, context):
+        try:
+            obj = item_helpers.ItemHelpers.create_weapon_base(self.weapon_category)
+            
+            self.report({'INFO'}, f"Created {self.weapon_category} weapon item")
+            notification_system.FO4_NotificationSystem.notify(
+                f"Weapon item: {self.weapon_category}", 'INFO'
+            )
+            return {'FINISHED'}
+        except Exception as e:
+            self.report({'ERROR'}, f"Failed to create weapon: {str(e)}")
+            return {'CANCELLED'}
+    
+    def invoke(self, context, event):
+        return context.window_manager.invoke_props_dialog(self)
+
+
+class FO4_OT_CreateArmorItem(Operator):
+    """Create armor item mesh"""
+    bl_idname = "fo4.create_armor_item"
+    bl_label = "Create Armor Item"
+    bl_options = {'REGISTER', 'UNDO'}
+    
+    armor_slot: EnumProperty(
+        name="Armor Slot",
+        items=[
+            ('HELMET', "Helmet", "Head armor"),
+            ('CHEST', "Chest", "Torso armor"),
+            ('ARMS', "Arms", "Arm armor"),
+            ('LEGS', "Legs", "Leg armor"),
+            ('OUTFIT', "Outfit", "Full body outfit"),
+        ]
+    )
+    
+    def execute(self, context):
+        try:
+            obj = item_helpers.ItemHelpers.create_armor_piece(self.armor_slot)
+            
+            self.report({'INFO'}, f"Created {self.armor_slot} armor item")
+            notification_system.FO4_NotificationSystem.notify(
+                f"Armor item: {self.armor_slot}", 'INFO'
+            )
+            return {'FINISHED'}
+        except Exception as e:
+            self.report({'ERROR'}, f"Failed to create armor: {str(e)}")
+            return {'CANCELLED'}
+    
+    def invoke(self, context, event):
+        return context.window_manager.invoke_props_dialog(self)
+
+
+class FO4_OT_CreatePowerArmorPiece(Operator):
+    """Create power armor piece"""
+    bl_idname = "fo4.create_power_armor_piece"
+    bl_label = "Create Power Armor Piece"
+    bl_options = {'REGISTER', 'UNDO'}
+    
+    piece: EnumProperty(
+        name="Piece",
+        items=[
+            ('TORSO', "Torso", "Chest/torso piece"),
+            ('HELMET', "Helmet", "Helmet piece"),
+            ('ARM_LEFT', "Left Arm", "Left arm piece"),
+            ('ARM_RIGHT', "Right Arm", "Right arm piece"),
+            ('LEG_LEFT', "Left Leg", "Left leg piece"),
+            ('LEG_RIGHT', "Right Leg", "Right leg piece"),
+        ]
+    )
+    
+    def execute(self, context):
+        try:
+            obj = item_helpers.ItemHelpers.create_power_armor_piece(self.piece)
+            
+            self.report({'INFO'}, f"Created power armor {self.piece}")
+            notification_system.FO4_NotificationSystem.notify(
+                f"Power armor piece: {self.piece}", 'INFO'
+            )
+            return {'FINISHED'}
+        except Exception as e:
+            self.report({'ERROR'}, f"Failed to create power armor: {str(e)}")
+            return {'CANCELLED'}
+    
+    def invoke(self, context, event):
+        return context.window_manager.invoke_props_dialog(self)
+
+
+class FO4_OT_CreateConsumable(Operator):
+    """Create consumable item"""
+    bl_idname = "fo4.create_consumable"
+    bl_label = "Create Consumable"
+    bl_options = {'REGISTER', 'UNDO'}
+    
+    item_type: EnumProperty(
+        name="Item Type",
+        items=[
+            ('STIMPAK', "Stimpak", "Healing item"),
+            ('BOTTLE', "Bottle", "Drink bottle"),
+            ('FOOD', "Food", "Food item"),
+            ('CHEM', "Chem", "Chemical/drug"),
+        ]
+    )
+    
+    def execute(self, context):
+        try:
+            obj = item_helpers.ItemHelpers.create_consumable(self.item_type)
+            
+            self.report({'INFO'}, f"Created {self.item_type} consumable")
+            notification_system.FO4_NotificationSystem.notify(
+                f"Consumable: {self.item_type}", 'INFO'
+            )
+            return {'FINISHED'}
+        except Exception as e:
+            self.report({'ERROR'}, f"Failed to create consumable: {str(e)}")
+            return {'CANCELLED'}
+    
+    def invoke(self, context, event):
+        return context.window_manager.invoke_props_dialog(self)
+
+
+class FO4_OT_CreateMiscItem(Operator):
+    """Create miscellaneous item"""
+    bl_idname = "fo4.create_misc_item"
+    bl_label = "Create Misc Item"
+    bl_options = {'REGISTER', 'UNDO'}
+    
+    item_type: EnumProperty(
+        name="Item Type",
+        items=[
+            ('TOOL', "Tool", "Tool item"),
+            ('COMPONENT', "Component", "Crafting component"),
+            ('JUNK', "Junk", "Junk item"),
+            ('KEY', "Key", "Key item"),
+            ('HOLOTAPE', "Holotape", "Holotape/data"),
+        ]
+    )
+    
+    def execute(self, context):
+        try:
+            obj = item_helpers.ItemHelpers.create_misc_item(self.item_type)
+            
+            self.report({'INFO'}, f"Created {self.item_type} misc item")
+            notification_system.FO4_NotificationSystem.notify(
+                f"Misc item: {self.item_type}", 'INFO'
+            )
+            return {'FINISHED'}
+        except Exception as e:
+            self.report({'ERROR'}, f"Failed to create misc item: {str(e)}")
+            return {'CANCELLED'}
+    
+    def invoke(self, context, event):
+        return context.window_manager.invoke_props_dialog(self)
+
+
+class FO4_OT_CreateClutterObject(Operator):
+    """Create clutter object for world decoration"""
+    bl_idname = "fo4.create_clutter_object"
+    bl_label = "Create Clutter Object"
+    bl_options = {'REGISTER', 'UNDO'}
+    
+    clutter_type: EnumProperty(
+        name="Clutter Type",
+        items=[
+            ('BOTTLE', "Bottle", "Empty bottle"),
+            ('CAN', "Can", "Empty can"),
+            ('PAPER', "Paper", "Paper/document"),
+            ('BOX', "Box", "Box/crate"),
+            ('TIRE', "Tire", "Tire/wheel"),
+        ]
+    )
+    
+    def execute(self, context):
+        try:
+            obj = item_helpers.ClutterHelpers.create_clutter_object(self.clutter_type)
+            
+            self.report({'INFO'}, f"Created {self.clutter_type} clutter object")
+            notification_system.FO4_NotificationSystem.notify(
+                f"Clutter: {self.clutter_type}", 'INFO'
+            )
+            return {'FINISHED'}
+        except Exception as e:
+            self.report({'ERROR'}, f"Failed to create clutter: {str(e)}")
+            return {'CANCELLED'}
+    
+    def invoke(self, context, event):
+        return context.window_manager.invoke_props_dialog(self)
+
+
 # Register all operators
 
 classes = (
@@ -4666,6 +5187,26 @@ classes = (
     FO4_OT_OptimizeVegetationForFPS,
     FO4_OT_CreateVegetationLODChain,
     FO4_OT_BakeVegetationAO,
+    # Quest and dialogue operators
+    FO4_OT_CreateQuestTemplate,
+    FO4_OT_ExportQuestData,
+    FO4_OT_GeneratePapyrusScript,
+    # NPC and creature operators
+    FO4_OT_CreateNPC,
+    FO4_OT_CreateCreature,
+    # World building operators
+    FO4_OT_CreateInteriorCell,
+    FO4_OT_CreateDoorFrame,
+    FO4_OT_CreateNavMesh,
+    FO4_OT_CreateWorkshopObject,
+    FO4_OT_CreateLightingPreset,
+    # Item creation operators
+    FO4_OT_CreateWeaponItem,
+    FO4_OT_CreateArmorItem,
+    FO4_OT_CreatePowerArmorPiece,
+    FO4_OT_CreateConsumable,
+    FO4_OT_CreateMiscItem,
+    FO4_OT_CreateClutterObject,
 )
 
 def register():

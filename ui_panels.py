@@ -401,6 +401,205 @@ class FO4_PT_ExportPanel(Panel):
         box.operator("fo4.export_all", text="Export Complete Mod", icon='PACKAGE')
         box.operator("fo4.validate_export", text="Validate Before Export", icon='CHECKMARK')
 
+
+class FO4_PT_BatchProcessingPanel(Panel):
+    """Batch processing panel for multiple objects"""
+    bl_label = "Batch Processing"
+    bl_idname = "FO4_PT_batch_processing_panel"
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'UI'
+    bl_category = 'Fallout 4'
+    bl_parent_id = "FO4_PT_main_panel"
+    bl_options = {'DEFAULT_CLOSED'}
+    
+    def draw(self, context):
+        layout = self.layout
+        
+        # Info box
+        info_box = layout.box()
+        info_box.label(text="Select multiple meshes", icon='INFO')
+        selected_meshes = [obj for obj in context.selected_objects if obj.type == 'MESH']
+        info_box.label(text=f"Selected: {len(selected_meshes)} meshes")
+        
+        # Batch operations
+        box = layout.box()
+        box.label(text="Batch Operations", icon='MODIFIER')
+        
+        row = box.row()
+        row.enabled = len(selected_meshes) > 0
+        row.operator("fo4.batch_optimize_meshes", text="Batch Optimize", icon='MOD_DECIM')
+        
+        row = box.row()
+        row.enabled = len(selected_meshes) > 0
+        row.operator("fo4.batch_validate_meshes", text="Batch Validate", icon='CHECKMARK')
+        
+        row = box.row()
+        row.enabled = len(selected_meshes) > 0
+        row.operator("fo4.batch_export_meshes", text="Batch Export", icon='EXPORT')
+        
+        # Tips
+        tips_box = layout.box()
+        tips_box.label(text="Tips:", icon='HELP')
+        tips_box.label(text="• Select meshes with Shift+Click")
+        tips_box.label(text="• Use Box Select (B key)")
+        tips_box.label(text="• Processing is sequential")
+
+
+class FO4_PT_PresetsPanel(Panel):
+    """Smart presets panel for quick object creation"""
+    bl_label = "Smart Presets"
+    bl_idname = "FO4_PT_presets_panel"
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'UI'
+    bl_category = 'Fallout 4'
+    bl_parent_id = "FO4_PT_main_panel"
+    bl_options = {'DEFAULT_CLOSED'}
+    
+    def draw(self, context):
+        layout = self.layout
+        
+        # Weapon presets
+        box = layout.box()
+        box.label(text="Weapon Presets", icon='MOD_ARMATURE')
+        box.operator("fo4.create_weapon_preset", text="Create Weapon", icon='MESH_CUBE')
+        
+        # Armor presets
+        box = layout.box()
+        box.label(text="Armor Presets", icon='MESH_UVSPHERE')
+        box.operator("fo4.create_armor_preset", text="Create Armor", icon='MESH_CUBE')
+        
+        # Prop presets
+        box = layout.box()
+        box.label(text="Prop Presets", icon='OBJECT_DATA')
+        box.operator("fo4.create_prop_preset", text="Create Prop", icon='MESH_CUBE')
+        
+        # Info
+        info_box = layout.box()
+        info_box.label(text="About Presets:", icon='INFO')
+        info_box.label(text="• Pre-configured for FO4")
+        info_box.label(text="• Optimal scale & settings")
+        info_box.label(text="• Materials already setup")
+        info_box.label(text="• Ready to customize")
+
+
+class FO4_PT_AutomationPanel(Panel):
+    """Automation and quick tools panel"""
+    bl_label = "Automation & Quick Tools"
+    bl_idname = "FO4_PT_automation_panel"
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'UI'
+    bl_category = 'Fallout 4'
+    bl_parent_id = "FO4_PT_main_panel"
+    bl_options = {'DEFAULT_CLOSED'}
+    
+    def draw(self, context):
+        layout = self.layout
+        obj = context.active_object
+        
+        # Quick prepare
+        box = layout.box()
+        box.label(text="One-Click Preparation", icon='TOOL_SETTINGS')
+        row = box.row()
+        row.enabled = obj and obj.type == 'MESH'
+        row.operator("fo4.quick_prepare_export", text="Quick Prepare for Export", icon='CHECKMARK')
+        row.scale_y = 1.5
+        
+        # Auto-fix
+        box = layout.box()
+        box.label(text="Auto-Fix Issues", icon='MODIFIER')
+        row = box.row()
+        row.enabled = obj and obj.type == 'MESH'
+        row.operator("fo4.auto_fix_issues", text="Auto-Fix Common Issues", icon='TOOL_SETTINGS')
+        
+        # Collision mesh
+        box = layout.box()
+        box.label(text="Collision Mesh", icon='MESH_ICOSPHERE')
+        row = box.row()
+        row.enabled = obj and obj.type == 'MESH'
+        row.operator("fo4.generate_collision_mesh", text="Generate Collision", icon='MESH_DATA')
+        
+        # Smart material
+        box = layout.box()
+        box.label(text="Smart Material", icon='MATERIAL')
+        row = box.row()
+        row.enabled = obj and obj.type == 'MESH'
+        row.operator("fo4.smart_material_setup", text="Auto-Load Textures", icon='FILE_FOLDER')
+        
+        # What it does
+        info_box = layout.box()
+        info_box.label(text="Quick Prepare includes:", icon='INFO')
+        info_box.label(text="1. Mesh optimization")
+        info_box.label(text="2. Material setup")
+        info_box.label(text="3. Validation checks")
+        info_box.label(text="4. Texture validation")
+
+
+class FO4_PT_VegetationPanel(Panel):
+    """Vegetation and landscaping panel"""
+    bl_label = "Vegetation & Landscaping"
+    bl_idname = "FO4_PT_vegetation_panel"
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'UI'
+    bl_category = 'Fallout 4'
+    bl_parent_id = "FO4_PT_main_panel"
+    bl_options = {'DEFAULT_CLOSED'}
+    
+    def draw(self, context):
+        layout = self.layout
+        obj = context.active_object
+        selected_meshes = [o for o in context.selected_objects if o.type == 'MESH']
+        
+        # Create vegetation
+        box = layout.box()
+        box.label(text="Create Vegetation", icon='OUTLINER_OB_FORCE_FIELD')
+        box.operator("fo4.create_vegetation_preset", text="Create Vegetation", icon='ADD')
+        
+        # Scatter vegetation
+        box = layout.box()
+        box.label(text="Scatter & Distribute", icon='PARTICLE_DATA')
+        row = box.row()
+        row.enabled = obj and obj.type == 'MESH'
+        row.operator("fo4.scatter_vegetation", text="Scatter Vegetation", icon='PARTICLES')
+        
+        # Combine meshes
+        box = layout.box()
+        box.label(text="Combine for Performance", icon='MESH_DATA')
+        box.label(text=f"Selected: {len(selected_meshes)} meshes")
+        row = box.row()
+        row.enabled = len(selected_meshes) >= 2
+        row.operator("fo4.combine_vegetation_meshes", text="Combine Selected", icon='AUTOMERGE_ON')
+        
+        # Optimization
+        box = layout.box()
+        box.label(text="FPS Optimization", icon='SORTTIME')
+        row = box.row()
+        row.enabled = obj and obj.type == 'MESH'
+        row.operator("fo4.optimize_vegetation_fps", text="Optimize for FPS", icon='TIME')
+        
+        # LOD generation
+        box = layout.box()
+        box.label(text="LOD System", icon='OUTLINER_OB_MESH')
+        row = box.row()
+        row.enabled = obj and obj.type == 'MESH'
+        row.operator("fo4.create_vegetation_lod_chain", text="Create LOD Chain", icon='MESH_GRID')
+        
+        # Baking
+        box = layout.box()
+        box.label(text="Baking", icon='RENDER_STILL')
+        row = box.row()
+        row.enabled = obj and obj.type == 'MESH'
+        row.operator("fo4.bake_vegetation_ao", text="Setup AO Bake", icon='SHADING_RENDERED')
+        
+        # Tips
+        tips_box = layout.box()
+        tips_box.label(text="Workflow Tips:", icon='INFO')
+        tips_box.label(text="1. Create vegetation types")
+        tips_box.label(text="2. Scatter across area")
+        tips_box.label(text="3. Combine for FPS boost")
+        tips_box.label(text="4. Generate LODs")
+        tips_box.label(text="5. Export as single mesh")
+
+
 classes = (
     FO4_PT_MainPanel,
     FO4_PT_MeshPanel,
@@ -411,6 +610,11 @@ classes = (
     FO4_PT_RigNetPanel,
     FO4_PT_NVTTPanel,
     FO4_PT_ExportPanel,
+    # New panels
+    FO4_PT_BatchProcessingPanel,
+    FO4_PT_PresetsPanel,
+    FO4_PT_AutomationPanel,
+    FO4_PT_VegetationPanel,
 )
 
 def register():

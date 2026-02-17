@@ -21,6 +21,11 @@ class FO4_OT_StartTutorial(Operator):
             ('basic_mesh', "Basic Mesh", "Learn to create basic meshes"),
             ('textures', "Textures", "Learn to setup textures"),
             ('animation', "Animation", "Learn to create animations"),
+            ('weapon', "Weapon Creation", "Complete weapon creation workflow"),
+            ('armor', "Armor Creation", "Complete armor creation workflow"),
+            ('batch_workflow', "Batch Processing", "Process multiple objects efficiently"),
+            ('troubleshooting', "Troubleshooting", "Diagnose and fix common issues"),
+            ('vegetation', "Vegetation & Landscaping", "Create optimized vegetation for FO4"),
         ]
     )
     
@@ -3612,6 +3617,947 @@ class FO4_OT_OptimizeUVs(Operator):
     def invoke(self, context, event):
         return context.window_manager.invoke_props_dialog(self)
 
+
+# Batch Processing Operators
+
+class FO4_OT_BatchOptimizeMeshes(Operator):
+    """Optimize all selected meshes for Fallout 4"""
+    bl_idname = "fo4.batch_optimize_meshes"
+    bl_label = "Batch Optimize Meshes"
+    bl_options = {'REGISTER', 'UNDO'}
+    
+    def execute(self, context):
+        selected_objects = [obj for obj in context.selected_objects if obj.type == 'MESH']
+        
+        if not selected_objects:
+            self.report({'ERROR'}, "No mesh objects selected")
+            return {'CANCELLED'}
+        
+        success_count = 0
+        failed_count = 0
+        
+        for obj in selected_objects:
+            context.view_layer.objects.active = obj
+            try:
+                success, message = mesh_helpers.MeshHelpers.optimize_mesh(obj)
+                if success:
+                    success_count += 1
+                else:
+                    failed_count += 1
+                    self.report({'WARNING'}, f"{obj.name}: {message}")
+            except Exception as e:
+                failed_count += 1
+                self.report({'WARNING'}, f"{obj.name}: {str(e)}")
+        
+        self.report({'INFO'}, f"Optimized {success_count} meshes, {failed_count} failed")
+        notification_system.FO4_NotificationSystem.notify(
+            f"Batch optimized {success_count} meshes", 'INFO'
+        )
+        return {'FINISHED'}
+
+
+class FO4_OT_BatchValidateMeshes(Operator):
+    """Validate all selected meshes for Fallout 4"""
+    bl_idname = "fo4.batch_validate_meshes"
+    bl_label = "Batch Validate Meshes"
+    bl_options = {'REGISTER'}
+    
+    def execute(self, context):
+        selected_objects = [obj for obj in context.selected_objects if obj.type == 'MESH']
+        
+        if not selected_objects:
+            self.report({'ERROR'}, "No mesh objects selected")
+            return {'CANCELLED'}
+        
+        all_valid = True
+        issues = []
+        
+        for obj in selected_objects:
+            context.view_layer.objects.active = obj
+            success, message = mesh_helpers.MeshHelpers.validate_mesh(obj)
+            if not success:
+                all_valid = False
+                issues.append(f"{obj.name}: {message}")
+        
+        if all_valid:
+            self.report({'INFO'}, f"All {len(selected_objects)} meshes are valid")
+        else:
+            self.report({'WARNING'}, f"Found issues in {len(issues)} meshes")
+            for issue in issues[:5]:  # Show first 5 issues
+                self.report({'WARNING'}, issue)
+        
+        return {'FINISHED'}
+
+
+class FO4_OT_BatchExportMeshes(Operator):
+    """Export all selected meshes to FBX"""
+    bl_idname = "fo4.batch_export_meshes"
+    bl_label = "Batch Export Meshes"
+    bl_options = {'REGISTER'}
+    
+    directory: StringProperty(
+        name="Export Directory",
+        description="Directory to export meshes to",
+        subtype='DIR_PATH'
+    )
+    
+    def execute(self, context):
+        if not self.directory:
+            self.report({'ERROR'}, "No export directory specified")
+            return {'CANCELLED'}
+        
+        selected_objects = [obj for obj in context.selected_objects if obj.type == 'MESH']
+        
+        if not selected_objects:
+            self.report({'ERROR'}, "No mesh objects selected")
+            return {'CANCELLED'}
+        
+        success_count = 0
+        
+        for obj in selected_objects:
+            try:
+                filepath = f"{self.directory}/{obj.name}.fbx"
+                success, message = export_helpers.ExportHelpers.export_mesh(obj, filepath)
+                if success:
+                    success_count += 1
+            except Exception as e:
+                self.report({'WARNING'}, f"{obj.name}: {str(e)}")
+        
+        self.report({'INFO'}, f"Exported {success_count} of {len(selected_objects)} meshes")
+        notification_system.FO4_NotificationSystem.notify(
+            f"Batch exported {success_count} meshes", 'INFO'
+        )
+        return {'FINISHED'}
+    
+    def invoke(self, context, event):
+        context.window_manager.fileselect_add(self)
+        return {'RUNNING_MODAL'}
+
+
+# Smart Preset Operators
+
+class FO4_OT_CreateWeaponPreset(Operator):
+    """Create a weapon mesh with optimal FO4 settings"""
+    bl_idname = "fo4.create_weapon_preset"
+    bl_label = "Create Weapon Preset"
+    bl_options = {'REGISTER', 'UNDO'}
+    
+    weapon_type: EnumProperty(
+        name="Weapon Type",
+        items=[
+            ('PISTOL', "Pistol", "Small handheld weapon"),
+            ('RIFLE', "Rifle", "Two-handed rifle"),
+            ('MELEE', "Melee", "Melee weapon"),
+            ('HEAVY', "Heavy", "Heavy weapon"),
+        ]
+    )
+    
+    def execute(self, context):
+        try:
+            # Create base mesh
+            obj = mesh_helpers.MeshHelpers.create_base_mesh()
+            obj.name = f"FO4_Weapon_{self.weapon_type}"
+            
+            # Apply weapon-specific settings
+            if self.weapon_type == 'PISTOL':
+                obj.scale = (0.3, 0.3, 0.3)
+            elif self.weapon_type == 'RIFLE':
+                obj.scale = (0.5, 0.5, 1.0)
+            elif self.weapon_type == 'MELEE':
+                obj.scale = (0.2, 0.2, 0.8)
+            else:  # HEAVY
+                obj.scale = (0.6, 0.6, 0.6)
+            
+            bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)
+            
+            # Setup FO4 material
+            texture_helpers.TextureHelpers.setup_fo4_material(obj)
+            
+            self.report({'INFO'}, f"Created {self.weapon_type} weapon preset")
+            notification_system.FO4_NotificationSystem.notify(
+                f"Created {self.weapon_type} weapon preset", 'INFO'
+            )
+            return {'FINISHED'}
+        except Exception as e:
+            self.report({'ERROR'}, f"Failed to create preset: {str(e)}")
+            return {'CANCELLED'}
+    
+    def invoke(self, context, event):
+        return context.window_manager.invoke_props_dialog(self)
+
+
+class FO4_OT_CreateArmorPreset(Operator):
+    """Create an armor mesh with optimal FO4 settings"""
+    bl_idname = "fo4.create_armor_preset"
+    bl_label = "Create Armor Preset"
+    bl_options = {'REGISTER', 'UNDO'}
+    
+    armor_type: EnumProperty(
+        name="Armor Type",
+        items=[
+            ('HELMET', "Helmet", "Head armor"),
+            ('CHEST', "Chest", "Torso armor"),
+            ('ARMS', "Arms", "Arm armor"),
+            ('LEGS', "Legs", "Leg armor"),
+        ]
+    )
+    
+    def execute(self, context):
+        try:
+            # Create base mesh
+            obj = mesh_helpers.MeshHelpers.create_base_mesh()
+            obj.name = f"FO4_Armor_{self.armor_type}"
+            
+            # Apply armor-specific settings
+            if self.armor_type == 'HELMET':
+                obj.scale = (0.4, 0.4, 0.5)
+            elif self.armor_type == 'CHEST':
+                obj.scale = (0.6, 0.3, 0.8)
+            elif self.armor_type == 'ARMS':
+                obj.scale = (0.3, 0.3, 0.6)
+            else:  # LEGS
+                obj.scale = (0.4, 0.3, 0.7)
+            
+            bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)
+            
+            # Setup FO4 material
+            texture_helpers.TextureHelpers.setup_fo4_material(obj)
+            
+            self.report({'INFO'}, f"Created {self.armor_type} armor preset")
+            notification_system.FO4_NotificationSystem.notify(
+                f"Created {self.armor_type} armor preset", 'INFO'
+            )
+            return {'FINISHED'}
+        except Exception as e:
+            self.report({'ERROR'}, f"Failed to create preset: {str(e)}")
+            return {'CANCELLED'}
+    
+    def invoke(self, context, event):
+        return context.window_manager.invoke_props_dialog(self)
+
+
+class FO4_OT_CreatePropPreset(Operator):
+    """Create a prop mesh with optimal FO4 settings"""
+    bl_idname = "fo4.create_prop_preset"
+    bl_label = "Create Prop Preset"
+    bl_options = {'REGISTER', 'UNDO'}
+    
+    prop_type: EnumProperty(
+        name="Prop Type",
+        items=[
+            ('SMALL', "Small", "Small prop (< 1m)"),
+            ('MEDIUM', "Medium", "Medium prop (1-3m)"),
+            ('LARGE', "Large", "Large prop (> 3m)"),
+            ('FURNITURE', "Furniture", "Furniture object"),
+        ]
+    )
+    
+    def execute(self, context):
+        try:
+            # Create base mesh
+            obj = mesh_helpers.MeshHelpers.create_base_mesh()
+            obj.name = f"FO4_Prop_{self.prop_type}"
+            
+            # Apply prop-specific settings
+            if self.prop_type == 'SMALL':
+                obj.scale = (0.3, 0.3, 0.3)
+            elif self.prop_type == 'MEDIUM':
+                obj.scale = (1.0, 1.0, 1.0)
+            elif self.prop_type == 'LARGE':
+                obj.scale = (3.0, 3.0, 3.0)
+            else:  # FURNITURE
+                obj.scale = (1.5, 1.5, 1.5)
+            
+            bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)
+            
+            # Setup FO4 material
+            texture_helpers.TextureHelpers.setup_fo4_material(obj)
+            
+            self.report({'INFO'}, f"Created {self.prop_type} prop preset")
+            notification_system.FO4_NotificationSystem.notify(
+                f"Created {self.prop_type} prop preset", 'INFO'
+            )
+            return {'FINISHED'}
+        except Exception as e:
+            self.report({'ERROR'}, f"Failed to create preset: {str(e)}")
+            return {'CANCELLED'}
+    
+    def invoke(self, context, event):
+        return context.window_manager.invoke_props_dialog(self)
+
+
+# Automation Operators
+
+class FO4_OT_QuickPrepareForExport(Operator):
+    """One-click preparation for export (optimize, validate, setup)"""
+    bl_idname = "fo4.quick_prepare_export"
+    bl_label = "Quick Prepare for Export"
+    bl_options = {'REGISTER', 'UNDO'}
+    
+    def execute(self, context):
+        obj = context.active_object
+        
+        if not obj or obj.type != 'MESH':
+            self.report({'ERROR'}, "No mesh object selected")
+            return {'CANCELLED'}
+        
+        try:
+            # Step 1: Optimize mesh
+            self.report({'INFO'}, "Step 1/4: Optimizing mesh...")
+            success, message = mesh_helpers.MeshHelpers.optimize_mesh(obj)
+            if not success:
+                self.report({'WARNING'}, f"Optimization warning: {message}")
+            
+            # Step 2: Setup materials if needed
+            self.report({'INFO'}, "Step 2/4: Checking materials...")
+            if not obj.data.materials:
+                texture_helpers.TextureHelpers.setup_fo4_material(obj)
+                self.report({'INFO'}, "Created FO4 material")
+            
+            # Step 3: Validate mesh
+            self.report({'INFO'}, "Step 3/4: Validating mesh...")
+            success, message = mesh_helpers.MeshHelpers.validate_mesh(obj)
+            if not success:
+                self.report({'WARNING'}, f"Validation warning: {message}")
+            
+            # Step 4: Validate textures
+            self.report({'INFO'}, "Step 4/4: Validating textures...")
+            success, message = texture_helpers.TextureHelpers.validate_textures(obj)
+            if not success:
+                self.report({'WARNING'}, f"Texture warning: {message}")
+            
+            self.report({'INFO'}, "Mesh prepared for export!")
+            notification_system.FO4_NotificationSystem.notify(
+                f"{obj.name} ready for export", 'INFO'
+            )
+            return {'FINISHED'}
+            
+        except Exception as e:
+            self.report({'ERROR'}, f"Preparation failed: {str(e)}")
+            return {'CANCELLED'}
+
+
+class FO4_OT_AutoFixCommonIssues(Operator):
+    """Automatically fix common Fallout 4 mesh issues"""
+    bl_idname = "fo4.auto_fix_issues"
+    bl_label = "Auto-Fix Common Issues"
+    bl_options = {'REGISTER', 'UNDO'}
+    
+    def execute(self, context):
+        obj = context.active_object
+        
+        if not obj or obj.type != 'MESH':
+            self.report({'ERROR'}, "No mesh object selected")
+            return {'CANCELLED'}
+        
+        fixes_applied = []
+        
+        try:
+            # Fix 1: Apply unapplied transformations
+            if any([s != 1.0 for s in obj.scale]):
+                bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)
+                fixes_applied.append("Applied scale")
+            
+            # Fix 2: Remove loose vertices
+            bpy.ops.object.mode_set(mode='EDIT')
+            bpy.ops.mesh.select_all(action='SELECT')
+            bpy.ops.mesh.delete_loose()
+            bpy.ops.object.mode_set(mode='OBJECT')
+            fixes_applied.append("Removed loose geometry")
+            
+            # Fix 3: Recalculate normals
+            bpy.ops.object.mode_set(mode='EDIT')
+            bpy.ops.mesh.select_all(action='SELECT')
+            bpy.ops.mesh.normals_make_consistent(inside=False)
+            bpy.ops.object.mode_set(mode='OBJECT')
+            fixes_applied.append("Fixed normals")
+            
+            # Fix 4: Create UV map if missing
+            if not obj.data.uv_layers:
+                bpy.ops.object.mode_set(mode='EDIT')
+                bpy.ops.mesh.select_all(action='SELECT')
+                bpy.ops.uv.smart_project()
+                bpy.ops.object.mode_set(mode='OBJECT')
+                fixes_applied.append("Created UV map")
+            
+            self.report({'INFO'}, f"Applied {len(fixes_applied)} fixes")
+            for fix in fixes_applied:
+                self.report({'INFO'}, f"  - {fix}")
+            
+            notification_system.FO4_NotificationSystem.notify(
+                f"Auto-fixed {len(fixes_applied)} issues", 'INFO'
+            )
+            return {'FINISHED'}
+            
+        except Exception as e:
+            self.report({'ERROR'}, f"Auto-fix failed: {str(e)}")
+            return {'CANCELLED'}
+
+
+class FO4_OT_GenerateCollisionMesh(Operator):
+    """Generate a collision mesh for the selected object"""
+    bl_idname = "fo4.generate_collision_mesh"
+    bl_label = "Generate Collision Mesh"
+    bl_options = {'REGISTER', 'UNDO'}
+    
+    simplify_ratio: FloatProperty(
+        name="Simplification",
+        description="How much to simplify the collision mesh",
+        default=0.25,
+        min=0.01,
+        max=1.0
+    )
+    
+    def execute(self, context):
+        obj = context.active_object
+        
+        if not obj or obj.type != 'MESH':
+            self.report({'ERROR'}, "No mesh object selected")
+            return {'CANCELLED'}
+        
+        try:
+            # Duplicate the object
+            bpy.ops.object.duplicate()
+            collision_obj = context.active_object
+            collision_obj.name = f"{obj.name}_COLLISION"
+            
+            # Simplify the mesh
+            modifier = collision_obj.modifiers.new(name="Decimate", type='DECIMATE')
+            modifier.ratio = self.simplify_ratio
+            bpy.ops.object.modifier_apply(modifier="Decimate")
+            
+            # Remove materials (collision meshes don't need them)
+            collision_obj.data.materials.clear()
+            
+            # Move slightly to the side
+            collision_obj.location.x += 2.0
+            
+            self.report({'INFO'}, f"Created collision mesh: {collision_obj.name}")
+            notification_system.FO4_NotificationSystem.notify(
+                "Collision mesh generated", 'INFO'
+            )
+            return {'FINISHED'}
+            
+        except Exception as e:
+            self.report({'ERROR'}, f"Failed to generate collision mesh: {str(e)}")
+            return {'CANCELLED'}
+    
+    def invoke(self, context, event):
+        return context.window_manager.invoke_props_dialog(self)
+
+
+class FO4_OT_SmartMaterialSetup(Operator):
+    """Intelligently setup materials based on available textures"""
+    bl_idname = "fo4.smart_material_setup"
+    bl_label = "Smart Material Setup"
+    bl_options = {'REGISTER', 'UNDO'}
+    
+    texture_directory: StringProperty(
+        name="Texture Directory",
+        description="Directory containing textures",
+        subtype='DIR_PATH'
+    )
+    
+    def execute(self, context):
+        obj = context.active_object
+        
+        if not obj or obj.type != 'MESH':
+            self.report({'ERROR'}, "No mesh object selected")
+            return {'CANCELLED'}
+        
+        if not self.texture_directory:
+            self.report({'ERROR'}, "No texture directory specified")
+            return {'CANCELLED'}
+        
+        try:
+            import os
+            
+            # Setup FO4 material
+            texture_helpers.TextureHelpers.setup_fo4_material(obj)
+            
+            # Look for common texture names
+            texture_files = os.listdir(self.texture_directory)
+            textures_found = []
+            
+            for filename in texture_files:
+                filepath = os.path.join(self.texture_directory, filename)
+                lower_name = filename.lower()
+                
+                # Try to identify texture type by name
+                if any(x in lower_name for x in ['diffuse', 'color', 'albedo', '_d.']):
+                    texture_helpers.TextureHelpers.install_texture(obj, filepath, 'Diffuse')
+                    textures_found.append("Diffuse")
+                elif any(x in lower_name for x in ['normal', 'norm', '_n.']):
+                    texture_helpers.TextureHelpers.install_texture(obj, filepath, 'Normal')
+                    textures_found.append("Normal")
+                elif any(x in lower_name for x in ['specular', 'spec', '_s.', 'rough']):
+                    texture_helpers.TextureHelpers.install_texture(obj, filepath, 'Specular')
+                    textures_found.append("Specular")
+            
+            if textures_found:
+                self.report({'INFO'}, f"Loaded textures: {', '.join(textures_found)}")
+                notification_system.FO4_NotificationSystem.notify(
+                    f"Loaded {len(textures_found)} textures", 'INFO'
+                )
+            else:
+                self.report({'WARNING'}, "No textures found in directory")
+            
+            return {'FINISHED'}
+            
+        except Exception as e:
+            self.report({'ERROR'}, f"Smart material setup failed: {str(e)}")
+            return {'CANCELLED'}
+    
+    def invoke(self, context, event):
+        context.window_manager.fileselect_add(self)
+        return {'RUNNING_MODAL'}
+
+
+# Landscaping and Vegetation Operators
+
+class FO4_OT_CreateVegetationPreset(Operator):
+    """Create vegetation preset for Fallout 4 landscaping"""
+    bl_idname = "fo4.create_vegetation_preset"
+    bl_label = "Create Vegetation"
+    bl_options = {'REGISTER', 'UNDO'}
+    
+    vegetation_type: EnumProperty(
+        name="Vegetation Type",
+        items=[
+            ('TREE', "Tree", "Create a tree base mesh"),
+            ('BUSH', "Bush", "Create a bush/shrub base mesh"),
+            ('GRASS', "Grass Clump", "Create a grass clump"),
+            ('FERN', "Fern", "Create a fern/plant"),
+            ('ROCK', "Rock", "Create a decorative rock"),
+            ('DEAD_TREE', "Dead Tree", "Create a dead/wasteland tree"),
+        ]
+    )
+    
+    def execute(self, context):
+        try:
+            import bmesh
+            
+            # Create base mesh based on type
+            if self.vegetation_type == 'TREE':
+                # Create a simple tree (cylinder trunk + cone canopy)
+                bpy.ops.mesh.primitive_cylinder_add(radius=0.3, depth=4, location=(0, 0, 2))
+                trunk = context.active_object
+                trunk.name = "FO4_Tree_Trunk"
+                
+                bpy.ops.mesh.primitive_ico_sphere_add(subdivisions=2, radius=2, location=(0, 0, 4.5))
+                canopy = context.active_object
+                canopy.name = "FO4_Tree_Canopy"
+                
+                # Join them
+                context.view_layer.objects.active = trunk
+                trunk.select_set(True)
+                canopy.select_set(True)
+                bpy.ops.object.join()
+                obj = context.active_object
+                obj.name = "FO4_Tree"
+                
+            elif self.vegetation_type == 'BUSH':
+                bpy.ops.mesh.primitive_ico_sphere_add(subdivisions=2, radius=1, location=(0, 0, 0.5))
+                obj = context.active_object
+                obj.name = "FO4_Bush"
+                obj.scale = (1.2, 1.0, 0.8)
+                
+            elif self.vegetation_type == 'GRASS':
+                # Create grass planes
+                bpy.ops.mesh.primitive_plane_add(size=0.5, location=(0, 0, 0.25))
+                obj = context.active_object
+                obj.name = "FO4_Grass"
+                obj.rotation_euler[0] = 0.3  # Slight tilt
+                
+            elif self.vegetation_type == 'FERN':
+                bpy.ops.mesh.primitive_cone_add(radius1=0.5, depth=1, location=(0, 0, 0.5))
+                obj = context.active_object
+                obj.name = "FO4_Fern"
+                obj.scale = (1.0, 1.0, 0.6)
+                
+            elif self.vegetation_type == 'ROCK':
+                bpy.ops.mesh.primitive_ico_sphere_add(subdivisions=1, radius=0.8, location=(0, 0, 0.4))
+                obj = context.active_object
+                obj.name = "FO4_Rock"
+                obj.scale = (1.2, 0.9, 0.7)
+                
+            elif self.vegetation_type == 'DEAD_TREE':
+                bpy.ops.mesh.primitive_cylinder_add(radius=0.25, depth=3.5, location=(0, 0, 1.75))
+                obj = context.active_object
+                obj.name = "FO4_DeadTree"
+                obj.rotation_euler[1] = 0.2  # Slight lean
+            
+            # Apply scale
+            bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)
+            
+            # Setup material
+            texture_helpers.TextureHelpers.setup_fo4_material(obj)
+            
+            self.report({'INFO'}, f"Created {self.vegetation_type} vegetation preset")
+            notification_system.FO4_NotificationSystem.notify(
+                f"Created {self.vegetation_type} preset", 'INFO'
+            )
+            return {'FINISHED'}
+            
+        except Exception as e:
+            self.report({'ERROR'}, f"Failed to create vegetation: {str(e)}")
+            return {'CANCELLED'}
+    
+    def invoke(self, context, event):
+        return context.window_manager.invoke_props_dialog(self)
+
+
+class FO4_OT_CombineVegetationMeshes(Operator):
+    """Combine selected vegetation meshes into one optimized mesh"""
+    bl_idname = "fo4.combine_vegetation_meshes"
+    bl_label = "Combine Vegetation"
+    bl_options = {'REGISTER', 'UNDO'}
+    
+    merge_materials: BoolProperty(
+        name="Merge Materials",
+        description="Combine materials into one (better performance)",
+        default=True
+    )
+    
+    generate_lod: BoolProperty(
+        name="Generate LOD",
+        description="Generate simplified LOD version",
+        default=True
+    )
+    
+    def execute(self, context):
+        selected_objects = [obj for obj in context.selected_objects if obj.type == 'MESH']
+        
+        if len(selected_objects) < 2:
+            self.report({'ERROR'}, "Select at least 2 mesh objects to combine")
+            return {'CANCELLED'}
+        
+        try:
+            # Store original selection
+            original_count = len(selected_objects)
+            
+            # Join all meshes
+            context.view_layer.objects.active = selected_objects[0]
+            bpy.ops.object.join()
+            combined_obj = context.active_object
+            combined_obj.name = "FO4_Vegetation_Combined"
+            
+            # Optimize the combined mesh
+            success, message = mesh_helpers.MeshHelpers.optimize_mesh(combined_obj)
+            
+            if self.merge_materials and len(combined_obj.data.materials) > 1:
+                # Keep only the first material for better performance
+                while len(combined_obj.data.materials) > 1:
+                    combined_obj.data.materials.pop()
+            
+            # Generate LOD if requested
+            if self.generate_lod:
+                bpy.ops.object.duplicate()
+                lod_obj = context.active_object
+                lod_obj.name = f"{combined_obj.name}_LOD"
+                
+                # Add decimate modifier for LOD
+                modifier = lod_obj.modifiers.new(name="Decimate_LOD", type='DECIMATE')
+                modifier.ratio = 0.3  # 30% of original poly count
+                bpy.ops.object.modifier_apply(modifier="Decimate_LOD")
+                
+                # Move LOD to the side
+                lod_obj.location.x += 5.0
+                
+                self.report({'INFO'}, f"Combined {original_count} meshes + generated LOD")
+            else:
+                self.report({'INFO'}, f"Combined {original_count} meshes into one")
+            
+            notification_system.FO4_NotificationSystem.notify(
+                f"Combined {original_count} vegetation meshes", 'INFO'
+            )
+            
+            return {'FINISHED'}
+            
+        except Exception as e:
+            self.report({'ERROR'}, f"Failed to combine meshes: {str(e)}")
+            return {'CANCELLED'}
+    
+    def invoke(self, context, event):
+        return context.window_manager.invoke_props_dialog(self)
+
+
+class FO4_OT_ScatterVegetation(Operator):
+    """Scatter vegetation objects across a surface"""
+    bl_idname = "fo4.scatter_vegetation"
+    bl_label = "Scatter Vegetation"
+    bl_options = {'REGISTER', 'UNDO'}
+    
+    count: IntProperty(
+        name="Count",
+        description="Number of vegetation instances to create",
+        default=20,
+        min=1,
+        max=500
+    )
+    
+    radius: FloatProperty(
+        name="Scatter Radius",
+        description="Radius to scatter objects within",
+        default=10.0,
+        min=1.0,
+        max=100.0
+    )
+    
+    random_scale: BoolProperty(
+        name="Random Scale",
+        description="Randomly scale each instance",
+        default=True
+    )
+    
+    random_rotation: BoolProperty(
+        name="Random Rotation",
+        description="Randomly rotate each instance",
+        default=True
+    )
+    
+    def execute(self, context):
+        source_obj = context.active_object
+        
+        if not source_obj or source_obj.type != 'MESH':
+            self.report({'ERROR'}, "Select a vegetation mesh to scatter")
+            return {'CANCELLED'}
+        
+        try:
+            import random
+            import math
+            
+            instances = []
+            
+            for i in range(self.count):
+                # Duplicate the object
+                new_obj = source_obj.copy()
+                new_obj.data = source_obj.data.copy()
+                context.collection.objects.link(new_obj)
+                
+                # Random position within radius
+                angle = random.uniform(0, 2 * math.pi)
+                distance = random.uniform(0, self.radius)
+                x = math.cos(angle) * distance
+                y = math.sin(angle) * distance
+                new_obj.location = (x, y, 0)
+                
+                # Random scale
+                if self.random_scale:
+                    scale_factor = random.uniform(0.7, 1.3)
+                    new_obj.scale = (scale_factor, scale_factor, scale_factor)
+                
+                # Random rotation (Z-axis)
+                if self.random_rotation:
+                    new_obj.rotation_euler[2] = random.uniform(0, 2 * math.pi)
+                
+                instances.append(new_obj)
+            
+            self.report({'INFO'}, f"Scattered {self.count} vegetation instances")
+            notification_system.FO4_NotificationSystem.notify(
+                f"Scattered {self.count} instances", 'INFO'
+            )
+            
+            return {'FINISHED'}
+            
+        except Exception as e:
+            self.report({'ERROR'}, f"Failed to scatter vegetation: {str(e)}")
+            return {'CANCELLED'}
+    
+    def invoke(self, context, event):
+        return context.window_manager.invoke_props_dialog(self)
+
+
+class FO4_OT_OptimizeVegetationForFPS(Operator):
+    """Optimize vegetation for better FPS in Fallout 4"""
+    bl_idname = "fo4.optimize_vegetation_fps"
+    bl_label = "Optimize for FPS"
+    bl_options = {'REGISTER', 'UNDO'}
+    
+    target_poly_count: IntProperty(
+        name="Target Poly Count",
+        description="Target polygon count for the mesh",
+        default=5000,
+        min=100,
+        max=65000
+    )
+    
+    remove_hidden_faces: BoolProperty(
+        name="Remove Hidden Faces",
+        description="Remove faces that won't be visible",
+        default=True
+    )
+    
+    def execute(self, context):
+        obj = context.active_object
+        
+        if not obj or obj.type != 'MESH':
+            self.report({'ERROR'}, "No mesh object selected")
+            return {'CANCELLED'}
+        
+        try:
+            import bmesh
+            
+            original_poly_count = len(obj.data.polygons)
+            
+            # Remove hidden faces (faces pointing down for vegetation)
+            if self.remove_hidden_faces:
+                bpy.ops.object.mode_set(mode='EDIT')
+                bpy.ops.mesh.select_all(action='DESELECT')
+                bpy.ops.object.mode_set(mode='OBJECT')
+                
+                # Select faces pointing downward (won't be visible from above)
+                for poly in obj.data.polygons:
+                    if poly.normal.z < -0.5:  # Facing down
+                        poly.select = True
+                
+                bpy.ops.object.mode_set(mode='EDIT')
+                bpy.ops.mesh.delete(type='FACE')
+                bpy.ops.object.mode_set(mode='OBJECT')
+            
+            # Decimate if needed
+            current_poly_count = len(obj.data.polygons)
+            if current_poly_count > self.target_poly_count:
+                ratio = self.target_poly_count / current_poly_count
+                modifier = obj.modifiers.new(name="Decimate_FPS", type='DECIMATE')
+                modifier.ratio = ratio
+                bpy.ops.object.modifier_apply(modifier="Decimate_FPS")
+            
+            # Optimize mesh
+            mesh_helpers.MeshHelpers.optimize_mesh(obj)
+            
+            final_poly_count = len(obj.data.polygons)
+            reduction = ((original_poly_count - final_poly_count) / original_poly_count) * 100
+            
+            self.report({'INFO'}, f"Reduced polys by {reduction:.1f}% ({original_poly_count} → {final_poly_count})")
+            notification_system.FO4_NotificationSystem.notify(
+                f"Optimized vegetation: {reduction:.1f}% reduction", 'INFO'
+            )
+            
+            return {'FINISHED'}
+            
+        except Exception as e:
+            self.report({'ERROR'}, f"Failed to optimize: {str(e)}")
+            return {'CANCELLED'}
+    
+    def invoke(self, context, event):
+        return context.window_manager.invoke_props_dialog(self)
+
+
+class FO4_OT_CreateVegetationLODChain(Operator):
+    """Create LOD chain for vegetation (LOD0, LOD1, LOD2)"""
+    bl_idname = "fo4.create_vegetation_lod_chain"
+    bl_label = "Create LOD Chain"
+    bl_options = {'REGISTER', 'UNDO'}
+    
+    def execute(self, context):
+        obj = context.active_object
+        
+        if not obj or obj.type != 'MESH':
+            self.report({'ERROR'}, "No mesh object selected")
+            return {'CANCELLED'}
+        
+        try:
+            lod_ratios = [1.0, 0.5, 0.25, 0.1]  # LOD0, LOD1, LOD2, LOD3
+            lod_names = ['LOD0', 'LOD1', 'LOD2', 'LOD3']
+            
+            original_name = obj.name
+            lod_objects = []
+            
+            for i, (ratio, name) in enumerate(zip(lod_ratios, lod_names)):
+                if i == 0:
+                    # LOD0 is the original
+                    obj.name = f"{original_name}_{name}"
+                    lod_objects.append(obj)
+                else:
+                    # Create duplicates for other LODs
+                    bpy.ops.object.duplicate()
+                    lod_obj = context.active_object
+                    lod_obj.name = f"{original_name}_{name}"
+                    
+                    # Apply decimation
+                    modifier = lod_obj.modifiers.new(name="Decimate", type='DECIMATE')
+                    modifier.ratio = ratio
+                    bpy.ops.object.modifier_apply(modifier="Decimate")
+                    
+                    # Move to the side for visibility
+                    lod_obj.location.x = obj.location.x + (i * 3.0)
+                    
+                    lod_objects.append(lod_obj)
+                    
+                    poly_count = len(lod_obj.data.polygons)
+                    self.report({'INFO'}, f"{name}: {poly_count} polygons")
+            
+            self.report({'INFO'}, f"Created LOD chain with {len(lod_objects)} levels")
+            notification_system.FO4_NotificationSystem.notify(
+                f"Created {len(lod_objects)} LOD levels", 'INFO'
+            )
+            
+            return {'FINISHED'}
+            
+        except Exception as e:
+            self.report({'ERROR'}, f"Failed to create LOD chain: {str(e)}")
+            return {'CANCELLED'}
+
+
+class FO4_OT_BakeVegetationAO(Operator):
+    """Bake ambient occlusion for vegetation"""
+    bl_idname = "fo4.bake_vegetation_ao"
+    bl_label = "Bake Ambient Occlusion"
+    bl_options = {'REGISTER', 'UNDO'}
+    
+    samples: IntProperty(
+        name="Samples",
+        description="Number of AO samples",
+        default=32,
+        min=1,
+        max=256
+    )
+    
+    def execute(self, context):
+        obj = context.active_object
+        
+        if not obj or obj.type != 'MESH':
+            self.report({'ERROR'}, "No mesh object selected")
+            return {'CANCELLED'}
+        
+        try:
+            # Create image for baking
+            if "AO_Bake" not in bpy.data.images:
+                bpy.data.images.new("AO_Bake", width=1024, height=1024)
+            
+            image = bpy.data.images["AO_Bake"]
+            
+            # Setup material for baking
+            if not obj.data.materials:
+                mat = bpy.data.materials.new(name="AO_Material")
+                obj.data.materials.append(mat)
+            
+            mat = obj.data.materials[0]
+            mat.use_nodes = True
+            nodes = mat.node_tree.nodes
+            
+            # Add image texture node for baking
+            if "AO_Bake_Node" not in nodes:
+                tex_node = nodes.new('ShaderNodeTexImage')
+                tex_node.name = "AO_Bake_Node"
+                tex_node.image = image
+                nodes.active = tex_node
+            
+            self.report({'INFO'}, "AO bake setup complete. Use Blender's Bake panel to bake.")
+            self.report({'INFO'}, "Set Bake Type to 'Ambient Occlusion' and click Bake.")
+            
+            notification_system.FO4_NotificationSystem.notify(
+                "AO bake ready - use Render > Bake", 'INFO'
+            )
+            
+            return {'FINISHED'}
+            
+        except Exception as e:
+            self.report({'ERROR'}, f"Failed to setup AO bake: {str(e)}")
+            return {'CANCELLED'}
+
+
 # Register all operators
 
 classes = (
@@ -3700,6 +4646,26 @@ classes = (
     FO4_OT_SmartDecimate,
     FO4_OT_GenerateLOD,
     FO4_OT_OptimizeUVs,
+    # New batch processing operators
+    FO4_OT_BatchOptimizeMeshes,
+    FO4_OT_BatchValidateMeshes,
+    FO4_OT_BatchExportMeshes,
+    # New smart preset operators
+    FO4_OT_CreateWeaponPreset,
+    FO4_OT_CreateArmorPreset,
+    FO4_OT_CreatePropPreset,
+    # New automation operators
+    FO4_OT_QuickPrepareForExport,
+    FO4_OT_AutoFixCommonIssues,
+    FO4_OT_GenerateCollisionMesh,
+    FO4_OT_SmartMaterialSetup,
+    # New vegetation/landscaping operators
+    FO4_OT_CreateVegetationPreset,
+    FO4_OT_CombineVegetationMeshes,
+    FO4_OT_ScatterVegetation,
+    FO4_OT_OptimizeVegetationForFPS,
+    FO4_OT_CreateVegetationLODChain,
+    FO4_OT_BakeVegetationAO,
 )
 
 def register():

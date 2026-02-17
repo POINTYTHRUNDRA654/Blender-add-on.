@@ -950,6 +950,80 @@ class FO4_PT_AddonIntegrationPanel(Panel):
         info_box.label(text="• Community integration packs")
 
 
+class FO4_PT_DesktopTutorialPanel(Panel):
+    """Desktop tutorial app connection panel"""
+    bl_label = "Desktop Tutorial App"
+    bl_idname = "FO4_PT_desktop_tutorial_panel"
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'UI'
+    bl_category = 'Fallout 4'
+    bl_parent_id = "FO4_PT_main_panel"
+    bl_options = {'DEFAULT_CLOSED'}
+    
+    def draw(self, context):
+        layout = self.layout
+        scene = context.scene
+        
+        # Connection status
+        status_box = layout.box()
+        status_box.label(text="Connection Status", icon='LINKED')
+        
+        if scene.fo4_desktop_connected:
+            status_box.label(text="✓ Connected", icon='CHECKMARK')
+            
+            # Server info
+            from . import desktop_tutorial_client
+            status = desktop_tutorial_client.DesktopTutorialClient.get_connection_status()
+            status_box.label(text=f"Server: {status['server_url']}")
+            
+            # Disconnect button
+            status_box.operator("fo4.disconnect_desktop_app", text="Disconnect", icon='UNLINKED')
+        else:
+            status_box.label(text="✗ Not Connected", icon='X')
+            
+            # Connection settings
+            status_box.prop(scene, "fo4_desktop_server_host", text="Host")
+            status_box.prop(scene, "fo4_desktop_server_port", text="Port")
+            
+            # Connect button
+            status_box.operator("fo4.connect_desktop_app", text="Connect", icon='LINKED')
+        
+        # Tutorial sync controls (only when connected)
+        if scene.fo4_desktop_connected:
+            layout.separator()
+            
+            sync_box = layout.box()
+            sync_box.label(text="Tutorial Synchronization", icon='FILE_REFRESH')
+            
+            # Current step info
+            if scene.fo4_desktop_current_step_title:
+                sync_box.label(text=f"Step: {scene.fo4_desktop_current_step_title}")
+                if scene.fo4_desktop_last_sync:
+                    sync_box.label(text=f"Synced: {scene.fo4_desktop_last_sync}")
+            
+            # Navigation buttons
+            row = sync_box.row(align=True)
+            row.operator("fo4.desktop_previous_step", text="", icon='TRIA_LEFT')
+            row.operator("fo4.sync_desktop_step", text="Sync Step", icon='FILE_REFRESH')
+            row.operator("fo4.desktop_next_step", text="", icon='TRIA_RIGHT')
+            
+            # Progress button
+            sync_box.operator("fo4.get_desktop_progress", text="Get Progress", icon='INFO')
+        
+        # Info
+        info_box = layout.box()
+        info_box.label(text="Desktop Tutorial App:", icon='INFO')
+        info_box.label(text="• Connect to external tutorial app")
+        info_box.label(text="• Synchronize tutorial steps")
+        info_box.label(text="• Bi-directional communication")
+        info_box.label(text="• Track tutorial progress")
+        
+        if not scene.fo4_desktop_connected:
+            info_box.separator()
+            info_box.label(text="Start the desktop server first:")
+            info_box.label(text="python example_tutorial_server.py")
+
+
 classes = (
     FO4_PT_MainPanel,
     FO4_PT_MeshPanel,
@@ -974,6 +1048,7 @@ classes = (
     FO4_PT_PresetLibraryPanel,
     FO4_PT_AutomationPanel,
     FO4_PT_AddonIntegrationPanel,
+    FO4_PT_DesktopTutorialPanel,
 )
 
 def register():

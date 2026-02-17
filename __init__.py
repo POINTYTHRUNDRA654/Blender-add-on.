@@ -46,6 +46,7 @@ from . import preset_library
 from . import automation_system
 from . import addon_integration
 from . import desktop_tutorial_client
+from . import shap_e_helpers
 
 modules = [
     tutorial_system,
@@ -64,6 +65,7 @@ modules = [
     automation_system,
     addon_integration,
     desktop_tutorial_client,
+    shap_e_helpers,
     export_helpers,
     image_to_mesh_helpers,
     hunyuan3d_helpers,

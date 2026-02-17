@@ -210,6 +210,36 @@ class FO4_PT_AIGenerationPanel(Panel):
             motion_box.label(text="Status: Not Installed ✗", icon='ERROR')
         
         motion_box.operator("fo4.show_hymotion_info", text="Motion Info", icon='INFO')
+        
+        # Shap-E section
+        layout.separator()
+        shap_e_box = layout.box()
+        shap_e_box.label(text="Shap-E (Text/Image to 3D)", icon='MESH_ICOSPHERE')
+        
+        from . import shap_e_helpers
+        shap_e_installed, _ = shap_e_helpers.ShapEHelpers.is_shap_e_installed()
+        
+        if shap_e_installed:
+            shap_e_box.label(text="Status: Installed ✓", icon='CHECKMARK')
+            
+            # Text-to-3D
+            text_box = shap_e_box.box()
+            text_box.label(text="Text to 3D:", icon='FILE_TEXT')
+            text_box.prop(scene, "fo4_shap_e_prompt", text="")
+            text_box.prop(scene, "fo4_shap_e_guidance_scale")
+            text_box.prop(scene, "fo4_shap_e_inference_steps")
+            text_box.operator("fo4.generate_shap_e_text", text="Generate from Text", icon='MESH_CUBE')
+            
+            # Image-to-3D
+            image_box = shap_e_box.box()
+            image_box.label(text="Image to 3D:", icon='IMAGE_DATA')
+            image_box.prop(scene, "fo4_shap_e_image_path", text="")
+            image_box.operator("fo4.generate_shap_e_image", text="Generate from Image", icon='TEXTURE')
+        else:
+            shap_e_box.label(text="Status: Not Installed ✗", icon='ERROR')
+            shap_e_box.operator("fo4.show_shap_e_info", text="Installation Instructions", icon='INFO')
+        
+        shap_e_box.operator("fo4.check_shap_e_installation", text="Check Installation", icon='SYSTEM')
 
 
 class FO4_PT_AnimationPanel(Panel):

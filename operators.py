@@ -5,7 +5,7 @@ Operators for the Fallout 4 Tutorial Add-on
 import bpy
 from bpy.types import Operator
 from bpy.props import StringProperty, EnumProperty, IntProperty, FloatProperty, BoolProperty
-from . import tutorial_system, mesh_helpers, texture_helpers, animation_helpers, export_helpers, notification_system, image_to_mesh_helpers, hunyuan3d_helpers, gradio_helpers, hymotion_helpers, nvtt_helpers, realesrgan_helpers, get3d_helpers, stylegan2_helpers, instantngp_helpers, imageto3d_helpers, advanced_mesh_helpers, rignet_helpers, motion_generation_helpers, quest_helpers, npc_helpers, world_building_helpers, item_helpers, preset_library, automation_system, desktop_tutorial_client
+from . import tutorial_system, mesh_helpers, texture_helpers, animation_helpers, export_helpers, notification_system, image_to_mesh_helpers, hunyuan3d_helpers, gradio_helpers, hymotion_helpers, nvtt_helpers, realesrgan_helpers, get3d_helpers, stylegan2_helpers, instantngp_helpers, imageto3d_helpers, advanced_mesh_helpers, rignet_helpers, motion_generation_helpers, quest_helpers, npc_helpers, world_building_helpers, item_helpers, preset_library, automation_system, desktop_tutorial_client, shap_e_helpers
 
 # Tutorial Operators
 
@@ -5647,6 +5647,179 @@ class FO4_OT_GetDesktopProgress(Operator):
         return {'FINISHED'} if progress else {'CANCELLED'}
 
 
+# Shap-E AI Generation Operators
+
+class FO4_OT_CheckShapEInstallation(Operator):
+    """Check if Shap-E is installed"""
+    bl_idname = "fo4.check_shap_e_installation"
+    bl_label = "Check Shap-E Installation"
+    bl_options = {'REGISTER'}
+    
+    def execute(self, context):
+        is_installed, message = shap_e_helpers.ShapEHelpers.is_shap_e_installed()
+        
+        if is_installed:
+            self.report({'INFO'}, message)
+            notification_system.FO4_NotificationSystem.notify(
+                "Shap-E is installed and ready", 'INFO'
+            )
+        else:
+            self.report({'WARNING'}, message)
+            notification_system.FO4_NotificationSystem.notify(
+                "Shap-E not installed", 'WARNING'
+            )
+        
+        return {'FINISHED'}
+
+
+class FO4_OT_ShowShapEInfo(Operator):
+    """Show Shap-E installation information"""
+    bl_idname = "fo4.show_shap_e_info"
+    bl_label = "Show Shap-E Info"
+    bl_options = {'REGISTER'}
+    
+    def execute(self, context):
+        instructions = shap_e_helpers.ShapEHelpers.get_installation_instructions()
+        
+        self.report({'INFO'}, "See console for Shap-E installation instructions")
+        print("\n" + "="*60)
+        print("SHAP-E INSTALLATION INSTRUCTIONS")
+        print("="*60)
+        print(instructions)
+        print("="*60 + "\n")
+        
+        return {'FINISHED'}
+
+
+class FO4_OT_GenerateShapEText(Operator):
+    """Generate 3D mesh from text using Shap-E"""
+    bl_idname = "fo4.generate_shap_e_text"
+    bl_label = "Generate from Text (Shap-E)"
+    bl_options = {'REGISTER', 'UNDO'}
+    
+    def execute(self, context):
+        scene = context.scene
+        
+        # Check if Shap-E is installed
+        is_installed, message = shap_e_helpers.ShapEHelpers.is_shap_e_installed()
+        if not is_installed:
+            self.report({'ERROR'}, "Shap-E not installed. Click 'Show Info' for instructions.")
+            notification_system.FO4_NotificationSystem.notify(
+                "Install Shap-E first", 'ERROR'
+            )
+            return {'CANCELLED'}
+        
+        prompt = scene.fo4_shap_e_prompt
+        if not prompt:
+            self.report({'ERROR'}, "Please enter a text prompt")
+            return {'CANCELLED'}
+        
+        guidance_scale = scene.fo4_shap_e_guidance_scale
+        inference_steps = scene.fo4_shap_e_inference_steps
+        
+        self.report({'INFO'}, f"Generating 3D mesh from: '{prompt}'...")
+        notification_system.FO4_NotificationSystem.notify(
+            f"Generating with Shap-E: {prompt}", 'INFO'
+        )
+        
+        # Generate mesh
+        success, result = shap_e_helpers.ShapEHelpers.generate_from_text(
+            prompt,
+            guidance_scale=guidance_scale,
+            num_inference_steps=inference_steps
+        )
+        
+        if success:
+            # Create Blender mesh
+            obj = shap_e_helpers.ShapEHelpers.create_mesh_from_data(
+                result,
+                name=f"ShapE_{prompt[:20]}"
+            )
+            
+            if obj:
+                self.report({'INFO'}, f"Generated mesh: {obj.name}")
+                notification_system.FO4_NotificationSystem.notify(
+                    f"Shap-E generation complete!", 'INFO'
+                )
+                return {'FINISHED'}
+            else:
+                self.report({'ERROR'}, "Failed to create mesh in Blender")
+                return {'CANCELLED'}
+        else:
+            self.report({'ERROR'}, f"Generation failed: {result}")
+            notification_system.FO4_NotificationSystem.notify(
+                f"Shap-E failed: {result}", 'ERROR'
+            )
+            return {'CANCELLED'}
+
+
+class FO4_OT_GenerateShapEImage(Operator):
+    """Generate 3D mesh from image using Shap-E"""
+    bl_idname = "fo4.generate_shap_e_image"
+    bl_label = "Generate from Image (Shap-E)"
+    bl_options = {'REGISTER', 'UNDO'}
+    
+    def execute(self, context):
+        scene = context.scene
+        
+        # Check if Shap-E is installed
+        is_installed, message = shap_e_helpers.ShapEHelpers.is_shap_e_installed()
+        if not is_installed:
+            self.report({'ERROR'}, "Shap-E not installed. Click 'Show Info' for instructions.")
+            notification_system.FO4_NotificationSystem.notify(
+                "Install Shap-E first", 'ERROR'
+            )
+            return {'CANCELLED'}
+        
+        image_path = scene.fo4_shap_e_image_path
+        if not image_path:
+            self.report({'ERROR'}, "Please select an image file")
+            return {'CANCELLED'}
+        
+        import os
+        if not os.path.exists(image_path):
+            self.report({'ERROR'}, f"Image file not found: {image_path}")
+            return {'CANCELLED'}
+        
+        guidance_scale = scene.fo4_shap_e_guidance_scale
+        inference_steps = scene.fo4_shap_e_inference_steps
+        
+        self.report({'INFO'}, f"Generating 3D mesh from image...")
+        notification_system.FO4_NotificationSystem.notify(
+            "Generating with Shap-E from image", 'INFO'
+        )
+        
+        # Generate mesh
+        success, result = shap_e_helpers.ShapEHelpers.generate_from_image(
+            image_path,
+            guidance_scale=guidance_scale,
+            num_inference_steps=inference_steps
+        )
+        
+        if success:
+            # Create Blender mesh
+            obj = shap_e_helpers.ShapEHelpers.create_mesh_from_data(
+                result,
+                name="ShapE_FromImage"
+            )
+            
+            if obj:
+                self.report({'INFO'}, f"Generated mesh: {obj.name}")
+                notification_system.FO4_NotificationSystem.notify(
+                    "Shap-E image generation complete!", 'INFO'
+                )
+                return {'FINISHED'}
+            else:
+                self.report({'ERROR'}, "Failed to create mesh in Blender")
+                return {'CANCELLED'}
+        else:
+            self.report({'ERROR'}, f"Generation failed: {result}")
+            notification_system.FO4_NotificationSystem.notify(
+                f"Shap-E failed: {result}", 'ERROR'
+            )
+            return {'CANCELLED'}
+
+
 # Register all operators
 
 classes = (
@@ -5796,6 +5969,11 @@ classes = (
     FO4_OT_DesktopPreviousStep,
     FO4_OT_SendEventToDesktop,
     FO4_OT_GetDesktopProgress,
+    # Shap-E AI generation operators
+    FO4_OT_CheckShapEInstallation,
+    FO4_OT_ShowShapEInfo,
+    FO4_OT_GenerateShapEText,
+    FO4_OT_GenerateShapEImage,
 )
 
 def register():

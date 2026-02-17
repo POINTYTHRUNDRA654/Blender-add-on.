@@ -5,7 +5,7 @@ Operators for the Fallout 4 Tutorial Add-on
 import bpy
 from bpy.types import Operator
 from bpy.props import StringProperty, EnumProperty, IntProperty, FloatProperty, BoolProperty
-from . import tutorial_system, mesh_helpers, texture_helpers, animation_helpers, export_helpers, notification_system, image_to_mesh_helpers, hunyuan3d_helpers, gradio_helpers, hymotion_helpers, nvtt_helpers, realesrgan_helpers, get3d_helpers, stylegan2_helpers, instantngp_helpers, imageto3d_helpers, advanced_mesh_helpers, rignet_helpers, motion_generation_helpers, quest_helpers, npc_helpers, world_building_helpers, item_helpers, preset_library, automation_system, desktop_tutorial_client, shap_e_helpers
+from . import tutorial_system, mesh_helpers, texture_helpers, animation_helpers, export_helpers, notification_system, image_to_mesh_helpers, hunyuan3d_helpers, gradio_helpers, hymotion_helpers, nvtt_helpers, realesrgan_helpers, get3d_helpers, stylegan2_helpers, instantngp_helpers, imageto3d_helpers, advanced_mesh_helpers, rignet_helpers, motion_generation_helpers, quest_helpers, npc_helpers, world_building_helpers, item_helpers, preset_library, automation_system, desktop_tutorial_client, shap_e_helpers, point_e_helpers
 
 # Tutorial Operators
 
@@ -5820,6 +5820,181 @@ class FO4_OT_GenerateShapEImage(Operator):
             return {'CANCELLED'}
 
 
+# Point-E AI Generation Operators
+
+class FO4_OT_CheckPointEInstallation(Operator):
+    """Check if Point-E is installed"""
+    bl_idname = "fo4.check_point_e_installation"
+    bl_label = "Check Point-E Installation"
+    bl_options = {'REGISTER'}
+    
+    def execute(self, context):
+        is_installed, message = point_e_helpers.PointEHelpers.is_point_e_installed()
+        
+        if is_installed:
+            self.report({'INFO'}, message)
+            notification_system.FO4_NotificationSystem.notify(
+                "Point-E is installed and ready", 'INFO'
+            )
+        else:
+            self.report({'WARNING'}, message)
+            notification_system.FO4_NotificationSystem.notify(
+                "Point-E not installed", 'WARNING'
+            )
+        
+        return {'FINISHED'}
+
+
+class FO4_OT_ShowPointEInfo(Operator):
+    """Show Point-E installation information"""
+    bl_idname = "fo4.show_point_e_info"
+    bl_label = "Show Point-E Info"
+    bl_options = {'REGISTER'}
+    
+    def execute(self, context):
+        instructions = point_e_helpers.PointEHelpers.get_installation_instructions()
+        
+        self.report({'INFO'}, "See console for Point-E installation instructions")
+        print("\n" + "="*60)
+        print("POINT-E INSTALLATION INSTRUCTIONS")
+        print("="*60)
+        print(instructions)
+        print("="*60 + "\n")
+        
+        return {'FINISHED'}
+
+
+class FO4_OT_GeneratePointEText(Operator):
+    """Generate 3D point cloud from text using Point-E"""
+    bl_idname = "fo4.generate_point_e_text"
+    bl_label = "Generate from Text (Point-E)"
+    bl_options = {'REGISTER', 'UNDO'}
+    
+    def execute(self, context):
+        scene = context.scene
+        
+        # Check if Point-E is installed
+        is_installed, message = point_e_helpers.PointEHelpers.is_point_e_installed()
+        if not is_installed:
+            self.report({'ERROR'}, "Point-E not installed. Click 'Show Info' for instructions.")
+            notification_system.FO4_NotificationSystem.notify(
+                "Install Point-E first", 'ERROR'
+            )
+            return {'CANCELLED'}
+        
+        prompt = scene.fo4_point_e_prompt
+        if not prompt:
+            self.report({'ERROR'}, "Please enter a text prompt")
+            return {'CANCELLED'}
+        
+        num_samples = scene.fo4_point_e_num_samples
+        grid_size = int(scene.fo4_point_e_grid_size)
+        
+        self.report({'INFO'}, f"Generating 3D point cloud from: '{prompt}'...")
+        notification_system.FO4_NotificationSystem.notify(
+            f"Generating with Point-E: {prompt}", 'INFO'
+        )
+        
+        # Generate point cloud
+        success, result = point_e_helpers.PointEHelpers.generate_from_text(
+            prompt,
+            num_samples=num_samples,
+            grid_size=grid_size
+        )
+        
+        if success:
+            # Convert to mesh
+            method = scene.fo4_point_e_reconstruction_method
+            obj = point_e_helpers.PointEHelpers.point_cloud_to_mesh(
+                result,
+                method=method,
+                name=f"PointE_{prompt[:20]}"
+            )
+            
+            if obj:
+                self.report({'INFO'}, f"Generated point cloud: {obj.name}")
+                notification_system.FO4_NotificationSystem.notify(
+                    f"Point-E generation complete!", 'INFO'
+                )
+                return {'FINISHED'}
+            else:
+                self.report({'ERROR'}, "Failed to create mesh in Blender")
+                return {'CANCELLED'}
+        else:
+            self.report({'ERROR'}, f"Generation failed: {result}")
+            notification_system.FO4_NotificationSystem.notify(
+                f"Point-E failed: {result}", 'ERROR'
+            )
+            return {'CANCELLED'}
+
+
+class FO4_OT_GeneratePointEImage(Operator):
+    """Generate 3D point cloud from image using Point-E"""
+    bl_idname = "fo4.generate_point_e_image"
+    bl_label = "Generate from Image (Point-E)"
+    bl_options = {'REGISTER', 'UNDO'}
+    
+    def execute(self, context):
+        scene = context.scene
+        
+        # Check if Point-E is installed
+        is_installed, message = point_e_helpers.PointEHelpers.is_point_e_installed()
+        if not is_installed:
+            self.report({'ERROR'}, "Point-E not installed. Click 'Show Info' for instructions.")
+            notification_system.FO4_NotificationSystem.notify(
+                "Install Point-E first", 'ERROR'
+            )
+            return {'CANCELLED'}
+        
+        image_path = scene.fo4_point_e_image_path
+        if not image_path:
+            self.report({'ERROR'}, "Please select an image file")
+            return {'CANCELLED'}
+        
+        import os
+        if not os.path.exists(image_path):
+            self.report({'ERROR'}, f"Image file not found: {image_path}")
+            return {'CANCELLED'}
+        
+        num_samples = scene.fo4_point_e_num_samples
+        
+        self.report({'INFO'}, f"Generating 3D point cloud from image...")
+        notification_system.FO4_NotificationSystem.notify(
+            "Generating with Point-E from image", 'INFO'
+        )
+        
+        # Generate point cloud
+        success, result = point_e_helpers.PointEHelpers.generate_from_image(
+            image_path,
+            num_samples=num_samples
+        )
+        
+        if success:
+            # Convert to mesh
+            method = scene.fo4_point_e_reconstruction_method
+            obj = point_e_helpers.PointEHelpers.point_cloud_to_mesh(
+                result,
+                method=method,
+                name="PointE_FromImage"
+            )
+            
+            if obj:
+                self.report({'INFO'}, f"Generated point cloud: {obj.name}")
+                notification_system.FO4_NotificationSystem.notify(
+                    "Point-E image generation complete!", 'INFO'
+                )
+                return {'FINISHED'}
+            else:
+                self.report({'ERROR'}, "Failed to create mesh in Blender")
+                return {'CANCELLED'}
+        else:
+            self.report({'ERROR'}, f"Generation failed: {result}")
+            notification_system.FO4_NotificationSystem.notify(
+                f"Point-E failed: {result}", 'ERROR'
+            )
+            return {'CANCELLED'}
+
+
 # Register all operators
 
 classes = (
@@ -5974,6 +6149,11 @@ classes = (
     FO4_OT_ShowShapEInfo,
     FO4_OT_GenerateShapEText,
     FO4_OT_GenerateShapEImage,
+    # Point-E AI generation operators
+    FO4_OT_CheckPointEInstallation,
+    FO4_OT_ShowPointEInfo,
+    FO4_OT_GeneratePointEText,
+    FO4_OT_GeneratePointEImage,
 )
 
 def register():

@@ -442,6 +442,76 @@ You'll need to download IPAdapter model files:
 - **Why**: Generate at low res, upscale for details
 - **Use Case**: Create 4K textures from 1K generations
 
+### Advanced Extensions
+
+#### T2I-Adapter ⭐⭐ (Efficient Control - Alternative to ControlNet)
+- **Purpose**: Lightweight control over image generation using depth, sketch, pose, etc.
+- **Why**: More efficient than ControlNet (smaller models, faster, less VRAM)
+- **Repository**: TencentARC on Hugging Face
+- **Key Features**:
+  - **Depth Control**: 3D-aware generation from depth maps
+  - **Sketch Control**: Line art and rough sketches
+  - **Canny Edge**: Precise edge-based control
+  - **OpenPose**: Character pose consistency
+  - **Smaller Models**: ~300MB vs ControlNet's 1-2GB
+  - **Faster**: 20-30% faster than ControlNet
+  - **Lower VRAM**: Works on 6GB+ GPUs
+
+**Installation:**
+```bash
+cd ComfyUI/models/t2i_adapter
+
+# Depth adapter for 3D-aware generation
+git clone https://huggingface.co/TencentARC/t2i-adapter-depth-midas-sdxl-1.0
+
+# Other adapters as needed
+git clone https://huggingface.co/TencentARC/t2i-adapter-sketch-sdxl-1.0
+git clone https://huggingface.co/TencentARC/t2i-adapter-canny-sdxl-1.0
+git clone https://huggingface.co/TencentARC/t2i-adapter-openpose-sdxl-1.0
+```
+
+**FO4 Use Cases:**
+- **3D-Aware Textures**: Export depth from Blender → Generate texture matching geometry
+- **Weapon Silhouette Control**: Sketch weapon shape → Generate detailed design
+- **Character Poses**: Use pose references for consistent NPC concepts
+- **Architecture Layout**: Control interior layout precisely
+
+**See**: T2I_ADAPTER_INTEGRATION.md for complete guide
+
+#### Hotshot-XL ⭐⭐ (Animated GIFs & Video Generation)
+- **Purpose**: Generate animated GIFs and short videos from text prompts
+- **Why**: Create animated holotape content, weapon effects, UI elements
+- **Repository**: https://huggingface.co/hotshotco/Hotshot-XL
+- **Key Features**:
+  - **Text-to-GIF**: Create animations from descriptions
+  - **Image-to-GIF**: Animate existing images
+  - **Temporal Consistency**: Smooth, flicker-free animations
+  - **High Resolution**: 512x512 to 1024x1024
+  - **Customizable Frames**: 1-16 frames (8 recommended)
+
+**Installation:**
+```bash
+# Install via diffusers
+pip install diffusers transformers accelerate
+
+# Clone model (optional, diffusers can auto-download)
+git clone https://huggingface.co/hotshotco/Hotshot-XL
+
+# For ComfyUI integration
+cd ComfyUI/custom_nodes
+git clone https://github.com/kijai/ComfyUI-HotshotXL.git
+```
+
+**FO4 Use Cases:**
+- **Animated Holotapes**: Looping screens for terminals (512x512)
+- **Weapon Effects**: Energy weapon glow, muzzle flash animations
+- **Environmental FX**: Fire, smoke, water animations for textures
+- **UI Elements**: Animated HUD elements, loading screens
+- **Marketing**: Mod showcase GIFs for social media
+- **Tutorial Content**: Animated feature demonstrations
+
+**See**: HOTSHOT_XL_INTEGRATION.md for complete guide
+
 ## Workflows for FO4 Modding
 
 ### Pre-made Workflow Ideas

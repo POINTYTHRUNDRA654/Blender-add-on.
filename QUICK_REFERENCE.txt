@@ -218,6 +218,14 @@ Essential Extensions:
   
   # IPAdapter_plus (image prompting & style transfer)
   git clone https://github.com/cubiq/ComfyUI_IPAdapter_plus.git
+  
+  # T2I-Adapter (efficient control: depth/sketch/pose)
+  cd ../models/t2i_adapter
+  git clone https://huggingface.co/TencentARC/t2i-adapter-depth-midas-sdxl-1.0
+  cd ../../custom_nodes
+  
+  # Hotshot-XL (animated GIFs & videos)
+  git clone https://github.com/kijai/ComfyUI-HotshotXL.git
 
 Benefits:
   - Manager: Install extensions from UI
@@ -225,6 +233,8 @@ Benefits:
   - Custom Scripts: Better UX, autocomplete, history
   - Z-Tipo: Better type handling, quality boost
   - IPAdapter: Image-based conditioning, style consistency
+  - T2I-Adapter: Efficient control (depth/sketch/pose), less VRAM than ControlNet
+  - Hotshot-XL: Generate animated GIFs for holotapes, UI elements, effects
 
 
 ═══════════════════════════════════════════════════════════════

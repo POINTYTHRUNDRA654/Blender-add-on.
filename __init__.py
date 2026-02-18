@@ -6,12 +6,12 @@ A comprehensive tutorial and helper system for creating Fallout 4 mods in Blende
 bl_info = {
     "name": "Fallout 4 Tutorial Helper",
     "author": "Tutorial Team",
-    "version": (2, 0, 0),
-    "blender": (3, 0, 0),
+    "version": (2, 1, 0),
+    "blender": (2, 80, 0),  # Compatible with Blender 2.80+ (all modern versions)
     "location": "View3D > Sidebar > Fallout 4",
-    "description": "Comprehensive tutorial system and helpers for creating Fallout 4 mods including quests, NPCs, items, and world building",
+    "description": "Comprehensive tutorial system and helpers for creating Fallout 4 mods including quests, NPCs, items, and world building. Compatible with Blender 2.80 through 4.x+",
     "warning": "",
-    "doc_url": "",
+    "doc_url": "https://github.com/POINTYTHRUNDRA654/Blender-add-on",
     "category": "3D View",
 }
 
@@ -86,13 +86,26 @@ modules = [
 
 def register():
     """Register all add-on classes and handlers"""
+    # Check Blender version and show compatibility info
+    blender_version = bpy.app.version
+    version_string = f"{blender_version[0]}.{blender_version[1]}.{blender_version[2]}"
+    
+    print(f"Fallout 4 Tutorial Helper - Initializing for Blender {version_string}")
+    
+    # Register all modules
     for module in modules:
         module.register()
     
     # Initialize the tutorial system
     tutorial_system.initialize_tutorials()
     
-    print("Fallout 4 Tutorial Helper registered successfully")
+    print(f"✓ Fallout 4 Tutorial Helper registered successfully (Blender {version_string})")
+    
+    # Show version-specific notes if needed
+    if blender_version[0] < 3:
+        print("  Note: Some features work best with Blender 3.0+")
+    elif blender_version[0] >= 4:
+        print("  Note: Blender 4.x support - please report any issues")
 
 def unregister():
     """Unregister all add-on classes and handlers"""

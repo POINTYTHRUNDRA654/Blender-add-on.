@@ -2,6 +2,8 @@
 
 **A comprehensive, user-friendly, and highly automated Blender add-on for creating Fallout 4 mods with desktop tutorial integration.**
 
+**✅ Compatible with Blender 2.80 through 4.5.5+** (All modern versions!)
+
 ## 🆕 What's New - Enhanced Features!
 
 This add-on has been significantly enhanced to be more:

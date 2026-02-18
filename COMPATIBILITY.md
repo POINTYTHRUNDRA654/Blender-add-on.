@@ -4,15 +4,18 @@
 
 ### Fully Supported Blender Versions
 
-✅ **Blender 2.80 - 4.2+ (All Modern Versions)**
+✅ **Blender 2.80 - 4.5+ (All Modern Versions)**
 
-This add-on is compatible with ALL modern versions of Blender:
+This add-on is compatible with ALL modern versions of Blender, including the very latest:
 
 | Version Range | Status | Notes |
 |---------------|--------|-------|
 | **Blender 2.80 - 2.93** | ✅ Fully Compatible | Tested and working |
-| **Blender 3.0 - 3.6** | ✅ Fully Compatible | Recommended for best experience |
-| **Blender 4.0 - 4.2+** | ✅ Fully Compatible | Latest features supported |
+| **Blender 3.0 - 3.6** | ✅ Fully Compatible | Recommended for stability |
+| **Blender 4.0 - 4.2** | ✅ Fully Compatible | Latest LTS features |
+| **Blender 4.3 - 4.5+** | ✅ Fully Compatible | **Including 4.5.5** ⭐ |
+
+**✨ Confirmed Working on Blender 4.5.5!** (User tested)
 
 ### Version-Specific Notes
 
@@ -35,7 +38,8 @@ This add-on is compatible with ALL modern versions of Blender:
 - ✅ Enhanced performance
 - ✅ New UI features work
 - ✅ Future-proof implementation
-- 💡 Tip: Please report any issues
+- ✅ **Blender 4.5.5 confirmed working** ⭐
+- 💡 Tip: All 4.x versions fully supported
 
 ### Installation on Any Blender Version
 

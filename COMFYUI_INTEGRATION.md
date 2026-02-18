@@ -78,36 +78,68 @@ cd ComfyUI
 
 ### Step 3: Install ComfyUI-GGUF Extension (Recommended)
 
-The GGUF extension allows you to use quantized models for better performance:
+The GGUF extension allows you to use quantized models for better performance with significantly reduced VRAM usage.
 
-```bash
-# Navigate to custom_nodes directory
-cd custom_nodes
+**Why ComfyUI-GGUF?**
+- ✅ Reduced VRAM usage (up to 75% less)
+- ✅ Smaller model sizes (easier storage)
+- ✅ Faster loading times
+- ✅ Minimal quality loss
+- ✅ Perfect for FLUX models
 
-# Clone GGUF extension
-git clone https://github.com/city96/ComfyUI-GGUF.git
-```
-
-**Install dependencies:**
+**Installation:**
 
 **For Standard Python Installation:**
 ```bash
-cd ComfyUI-GGUF
+# Clone directly to correct location (one command)
+git clone https://github.com/city96/ComfyUI-GGUF ComfyUI/custom_nodes/ComfyUI-GGUF
+
+# Install dependencies
+cd ComfyUI/custom_nodes/ComfyUI-GGUF
 pip install -r requirements.txt
 ```
 
 **For Portable/Embedded Python (Windows):**
 ```cmd
-# If ComfyUI has embedded Python (portable version)
+# Clone to correct location
+git clone https://github.com/city96/ComfyUI-GGUF ComfyUI/custom_nodes/ComfyUI-GGUF
+
+# Install dependencies with embedded Python (from ComfyUI root)
 cd ComfyUI
 .\python_embeded\python.exe -s -m pip install -r .\custom_nodes\ComfyUI-GGUF\requirements.txt
 ```
 
 **For System Python (Windows):**
 ```cmd
+# Clone to correct location
+git clone https://github.com/city96/ComfyUI-GGUF ComfyUI\custom_nodes\ComfyUI-GGUF
+
+# Install dependencies
 cd ComfyUI\custom_nodes\ComfyUI-GGUF
 python -m pip install -r requirements.txt
 ```
+
+### Step 3.5: Download T5 Text Encoder (GGUF Format)
+
+For FLUX models with GGUF support, you'll need the T5 text encoder in GGUF format:
+
+```bash
+# Clone T5 encoder (place in ComfyUI models directory)
+git clone https://huggingface.co/city96/t5-v1_1-xxl-encoder-gguf
+
+# Move to correct location
+# Linux/Mac:
+mv t5-v1_1-xxl-encoder-gguf ComfyUI/models/text_encoders/
+
+# Windows:
+move t5-v1_1-xxl-encoder-gguf ComfyUI\models\text_encoders\
+```
+
+**What is T5?**
+- Text encoder used by FLUX models
+- GGUF version is much smaller (~4GB vs ~10GB)
+- Required for FLUX.1 with ComfyUI-GGUF
+- Quantized for efficiency without quality loss
 
 ### Step 4: Install Additional Useful Extensions (Optional)
 
@@ -290,24 +322,22 @@ http://localhost:8188
 Install in `custom_nodes/` directory:
 
 ```bash
-cd ComfyUI/custom_nodes
-
 # 1. ComfyUI Manager (highly recommended - must-have!)
-git clone https://github.com/ltdrdata/ComfyUI-Manager.git
+git clone https://github.com/ltdrdata/ComfyUI-Manager.git ComfyUI/custom_nodes/ComfyUI-Manager
 
-# 2. ComfyUI-GGUF (efficient model loading)
-git clone https://github.com/city96/ComfyUI-GGUF.git
-cd ComfyUI-GGUF && pip install -r requirements.txt
-cd ..
+# 2. ComfyUI-GGUF (efficient model loading) ⭐ Essential for FLUX
+git clone https://github.com/city96/ComfyUI-GGUF ComfyUI/custom_nodes/ComfyUI-GGUF
+# Install dependencies:
+cd ComfyUI/custom_nodes/ComfyUI-GGUF && pip install -r requirements.txt && cd ../../..
 
 # 3. ComfyUI-Custom-Scripts (quality of life improvements)
-git clone https://github.com/pythongosssss/ComfyUI-Custom-Scripts.git
+git clone https://github.com/pythongosssss/ComfyUI-Custom-Scripts.git ComfyUI/custom_nodes/ComfyUI-Custom-Scripts
 
 # 4. Z-Tipo Extension (quality improvements & type handling)
-git clone https://github.com/KohakuBlueleaf/z-tipo-extension.git
+git clone https://github.com/KohakuBlueleaf/z-tipo-extension.git ComfyUI/custom_nodes/z-tipo-extension
 
 # 5. IPAdapter_plus (image conditioning & style transfer)
-git clone https://github.com/cubiq/ComfyUI_IPAdapter_plus.git
+git clone https://github.com/cubiq/ComfyUI_IPAdapter_plus.git ComfyUI/custom_nodes/ComfyUI_IPAdapter_plus
 
 # 6. ControlNet Auxiliary Preprocessors
 git clone https://github.com/Fannovel16/comfyui_controlnet_aux.git

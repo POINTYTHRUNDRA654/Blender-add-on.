@@ -49,6 +49,13 @@ ComfyUI-GGUF (Efficient Models):
   cd ComfyUI
   .\python_embeded\python.exe -s -m pip install -r .\custom_nodes\ComfyUI-GGUF\requirements.txt
 
+  # Or clone directly to correct location (one command):
+  git clone https://github.com/city96/ComfyUI-GGUF ComfyUI/custom_nodes/ComfyUI-GGUF
+
+T5 Text Encoder (GGUF - for FLUX models):
+  git clone https://huggingface.co/city96/t5-v1_1-xxl-encoder-gguf
+  # Place in ComfyUI/models/text_encoders/
+
 ═══════════════════════════════════════════════════════════════
 🔧 EMBEDDED PYTHON (Windows Portable ComfyUI)
 ═══════════════════════════════════════════════════════════════

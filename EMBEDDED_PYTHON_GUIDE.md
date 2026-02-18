@@ -65,8 +65,22 @@ python_embeded\python.exe --version
 
 **For ComfyUI-GGUF:**
 ```cmd
+# First clone to correct location
+git clone https://github.com/city96/ComfyUI-GGUF ComfyUI\custom_nodes\ComfyUI-GGUF
+
+# Then install requirements from ComfyUI root
 cd ComfyUI
 .\python_embeded\python.exe -s -m pip install -r .\custom_nodes\ComfyUI-GGUF\requirements.txt
+```
+
+**For other custom nodes (general pattern):**
+```cmd
+# Clone extension
+git clone <repo_url> ComfyUI\custom_nodes\<node_name>
+
+# Install requirements
+cd ComfyUI
+.\python_embeded\python.exe -s -m pip install -r .\custom_nodes\<node_name>\requirements.txt
 ```
 
 **Explanation of flags:**

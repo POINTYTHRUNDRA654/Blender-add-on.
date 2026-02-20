@@ -185,9 +185,6 @@ def register():
             except Exception:
                 pass
             return None  # only run once
-            except Exception:
-                pass
-            return None  # only run once
         bpy.app.timers.register(_post_register, first_interval=1.0)
     except Exception:
         pass

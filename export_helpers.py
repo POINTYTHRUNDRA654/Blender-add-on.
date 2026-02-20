@@ -36,12 +36,62 @@ class ExportHelpers:
                 issues.extend(anim_issues)
         
         return len(issues) == 0, issues
+
+    @staticmethod
+    def nif_exporter_available():
+        """Check if the Niftools exporter operator is registered."""
+        blender_version = bpy.app.version
+        version_str = f"{blender_version[0]}.{blender_version[1]}"
+        export_scene = getattr(bpy.ops, "export_scene", None)
+        if not export_scene:
+            return False, f"bpy.ops.export_scene missing (Blender {version_str})"
+
+        if not hasattr(export_scene, "nif"):
+            if blender_version >= (4, 0, 0):
+                return False, "Niftools exporter not registered; official v0.1.1 targets Blender ≤3.6. Install a 4.x-compatible fork or use 3.6 for export."
+            return False, "Niftools exporter not registered"
+
+        if blender_version >= (4, 0, 0):
+            return True, "Niftools exporter detected on Blender 4.x (ensure compatibility; experimental)"
+
+        return True, "Niftools exporter available"
+
+    @staticmethod
+    def _build_nif_export_kwargs(filepath):
+        """Assemble kwargs for the NIF exporter, adapting to available properties."""
+        kwargs = {
+            "filepath": filepath,
+            "use_selection": True,
+        }
+
+        try:
+            props = bpy.ops.export_scene.nif.get_rna_type().properties
+            prop_keys = props.keys()
+
+            # Prefer FO4 game profile when available
+            if "game" in prop_keys:
+                kwargs["game"] = "FALLOUT_4"
+
+            # Keep smoothing consistent; fallback is exporter default
+            if "smoothing" in prop_keys:
+                kwargs["smoothing"] = "SMOOTH"
+
+            # Avoid unintended scale changes
+            if "scale_correction" in prop_keys:
+                kwargs["scale_correction"] = 1.0
+
+            # Some builds expose apply modifiers flag
+            if "apply_modifiers" in prop_keys:
+                kwargs["apply_modifiers"] = True
+        except Exception:
+            # If anything goes wrong, fall back to minimal args
+            pass
+
+        return kwargs
     
     @staticmethod
     def export_mesh_to_nif(obj, filepath):
-        """Export mesh to NIF format (placeholder - requires PyNifly)"""
-        # Note: This is a placeholder. Real NIF export requires PyNifly or similar library
-        # For now, we'll export to FBX which can be converted
+        """Export mesh to NIF format using Niftools when available, else fall back to FBX."""
         
         if obj.type != 'MESH':
             return False, "Object is not a mesh"
@@ -50,26 +100,47 @@ class ExportHelpers:
         success, issues = ExportHelpers.validate_before_export(obj)
         if not success:
             return False, f"Validation failed: {', '.join(issues)}"
-        
-        # Export to FBX (temporary solution)
+
+        nif_available, nif_message = ExportHelpers.nif_exporter_available()
+
+        # Try native NIF export first when available
+        if nif_available:
+            try:
+                bpy.ops.object.select_all(action='DESELECT')
+                obj.select_set(True)
+                bpy.context.view_layer.objects.active = obj
+
+                kwargs = ExportHelpers._build_nif_export_kwargs(filepath)
+                result = bpy.ops.export_scene.nif(**kwargs)
+
+                if isinstance(result, set) and 'FINISHED' in result:
+                    return True, f"Exported NIF: {filepath}"
+
+                # If operator returns without FINISHED, fall back to FBX
+                fallback_msg = f"NIF export did not finish ({result}); falling back to FBX."
+            except Exception as e:
+                # Fall back to FBX if NIF export fails
+                fallback_msg = f"NIF export failed ({e}); falling back to FBX."
+        else:
+            fallback_msg = f"{nif_message}; exporting FBX for external conversion."
+
+        # Export to FBX as a compatibility fallback
         try:
             base_path = os.path.splitext(filepath)[0]
             fbx_path = base_path + '.fbx'
-            
-            # Select only this object
+
             bpy.ops.object.select_all(action='DESELECT')
             obj.select_set(True)
             bpy.context.view_layer.objects.active = obj
-            
-            # Export
+
             bpy.ops.export_scene.fbx(
                 filepath=fbx_path,
                 use_selection=True,
                 apply_scale_options='FBX_SCALE_ALL',
                 mesh_smooth_type='FACE'
             )
-            
-            return True, f"Exported to FBX: {fbx_path} (Convert to NIF with external tool)"
+
+            return True, f"{fallback_msg} Exported FBX: {fbx_path}"
         except Exception as e:
             return False, f"Export failed: {str(e)}"
     

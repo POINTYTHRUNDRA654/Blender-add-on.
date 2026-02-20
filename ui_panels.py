@@ -400,33 +400,42 @@ class FO4_PT_NVTTPanel(Panel):
     def draw(self, context):
         layout = self.layout
         
-        # Check if NVTT is available
-        is_available = nvtt_helpers.NVTTHelpers.is_nvtt_available()
+        # Check converters
+        nvtt_available = nvtt_helpers.NVTTHelpers.is_nvtt_available()
+        texconv_available = nvtt_helpers.NVTTHelpers.is_texconv_available()
+        nvtt_path = nvtt_helpers.NVTTHelpers.get_nvtt_path()
+        texconv_path = nvtt_helpers.NVTTHelpers.get_texconv_path()
         
         # Status box
         status_box = layout.box()
-        if is_available:
-            status_box.label(text="NVTT: Available ✓", icon='CHECKMARK')
-            nvtt_path = nvtt_helpers.NVTTHelpers.get_nvtt_path()
+        status_box.label(text="Converters", icon='INFO')
+        if nvtt_available:
+            status_box.label(text="NVTT: Available", icon='CHECKMARK')
             if nvtt_path:
-                # Show just the filename, not full path
-                import os
-                status_box.label(text=f"Path: {os.path.dirname(nvtt_path)}", icon='FILE_FOLDER')
+                status_box.label(text=f"nvcompress: {nvtt_path}", icon='FILE')
         else:
-            status_box.label(text="NVTT: Not Installed ✗", icon='ERROR')
-        
-        status_box.operator("fo4.check_nvtt_installation", text="Check Installation", icon='INFO')
+            status_box.label(text="NVTT: Not found", icon='ERROR')
+
+        if texconv_available:
+            status_box.label(text="texconv: Available", icon='CHECKMARK')
+            if texconv_path:
+                status_box.label(text=f"texconv: {texconv_path}", icon='FILE')
+        else:
+            status_box.label(text="texconv: Not found", icon='ERROR')
+
+        status_box.operator("fo4.check_nvtt_installation", text="Check NVTT", icon='INFO')
+        status_box.operator("fo4.test_dds_converters", text="Self-Test Converters", icon='CHECKMARK')
         
         # Conversion operators
         box = layout.box()
         box.label(text="Convert to DDS for FO4", icon='FILE_IMAGE')
         
         row = box.row()
-        row.enabled = is_available
+        row.enabled = nvtt_available or texconv_available
         row.operator("fo4.convert_texture_to_dds", text="Convert Single Texture", icon='IMAGE_DATA')
         
         row = box.row()
-        row.enabled = is_available
+        row.enabled = nvtt_available or texconv_available
         row.operator("fo4.convert_object_textures_to_dds", text="Convert Object Textures", icon='MATERIAL')
         
         # Info box
@@ -436,12 +445,104 @@ class FO4_PT_NVTTPanel(Panel):
         info_box.label(text="• BC1 (DXT1): Diffuse textures")
         info_box.label(text="• BC5 (ATI2): Normal maps")
         info_box.label(text="• BC3 (DXT5): Alpha textures")
+        info_box.label(text="• BC7: optional high quality", icon='BLANK1')
         
-        if not is_available:
+        if not (nvtt_available or texconv_available):
             info_box.separator()
-            info_box.label(text="Install NVTT:", icon='DOWNLOAD')
-            info_box.label(text="gh repo clone castano/")
-            info_box.label(text="  nvidia-texture-tools")
+            info_box.label(text="Install converters:", icon='DOWNLOAD')
+            info_box.label(text="NVTT (nvcompress) or texconv")
+
+
+class FO4_PT_AdvisorPanel(Panel):
+    """AI/Advisor panel for export readiness."""
+    bl_label = "Advisor"
+    bl_idname = "FO4_PT_advisor_panel"
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'UI'
+    bl_category = 'Fallout 4'
+    bl_parent_id = "FO4_PT_main_panel"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    def draw(self, context):
+        layout = self.layout
+        prefs = context.preferences.addons.get(__package__.split('.')[0]).preferences if context.preferences else None
+        llm_enabled = prefs.llm_enabled if prefs else False
+
+        box = layout.box()
+        box.label(text="Analyze", icon='INFO')
+        row = box.row(align=True)
+        op = row.operator("fo4.advisor_analyze", text="Analyze (Local)", icon='SHADERFX')
+        op.use_llm = False
+        row = box.row(align=True)
+        row.enabled = llm_enabled
+        op = row.operator("fo4.advisor_analyze", text="Analyze (LLM)", icon='LIGHT_HEMI')
+        op.use_llm = True
+        if not llm_enabled:
+            box.label(text="LLM disabled (set in Preferences)", icon='ERROR')
+
+        fixes = layout.box()
+        fixes.label(text="Quick Fixes", icon='MODIFIER')
+        row = fixes.row()
+        op = row.operator("fo4.advisor_quick_fix", text="Apply Transforms", icon='ORIENTATION_VIEW')
+        op.action = 'APPLY_TRANSFORMS'
+        row = fixes.row()
+        op = row.operator("fo4.advisor_quick_fix", text="Auto Smooth + Shade", icon='SHADING_RENDERED')
+        op.action = 'SHADE_SMOOTH_AUTOSMOOTH'
+        row = fixes.row()
+        op = row.operator("fo4.advisor_quick_fix", text="Validate Export", icon='CHECKMARK')
+        op.action = 'VALIDATE_EXPORT'
+
+        info = layout.box()
+        info.label(text="Advisor focuses on:", icon='HELP')
+        info.label(text="• Export readiness (scale, transforms, normals)")
+        info.label(text="• Texture prep (DDS BC1/3/5/7)")
+        info.label(text="• Unity/UE imports: scale/material hints")
+
+        kb_status = knowledge_helpers.describe_kb()
+        info.label(text=kb_status, icon='BOOKMARKS')
+
+        tools = layout.box()
+        tools.label(text="KB Tools", icon='CONSOLE')
+        tools.operator("fo4.check_kb_tools", text="Check KB Tools", icon='INFO')
+
+
+class FO4_PT_ToolsLinks(Panel):
+    """Quick links to external tools"""
+    bl_label = "External Tools"
+    bl_idname = "FO4_PT_tools_links"
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'UI'
+    bl_category = 'Fallout 4'
+    bl_parent_id = "FO4_PT_main_panel"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    def draw(self, context):
+        layout = self.layout
+
+        box = layout.box()
+        box.label(text="Core", icon='URL')
+        op = box.operator("wm.url_open", text="Blender Niftools Add-on")
+        op.url = "https://github.com/niftools/blender_niftools_addon/releases"
+
+        op = box.operator("wm.url_open", text="DirectXTex texconv")
+        op.url = "https://github.com/microsoft/DirectXTex/releases"
+
+        op = box.operator("wm.url_open", text="NVIDIA Texture Tools")
+        op.url = "https://github.com/castano/nvidia-texture-tools"
+
+        box = layout.box()
+        box.label(text="Unity extraction", icon='URL')
+        op = box.operator("wm.url_open", text="AssetRipper")
+        op.url = "https://github.com/AssetRipper/AssetRipper"
+        op = box.operator("wm.url_open", text="AssetStudio")
+        op.url = "https://github.com/Perfare/AssetStudio"
+
+        box = layout.box()
+        box.label(text="Unreal extraction", icon='URL')
+        op = box.operator("wm.url_open", text="UModel (UE Viewer)")
+        op.url = "https://www.gildor.org/en/projects/umodel"
+        op = box.operator("wm.url_open", text="Unreal CLI exporters")
+        op.url = "https://docs.unrealengine.com/5.0/en-US/command-line-arguments-in-unreal-engine/"
 
 class FO4_PT_ExportPanel(Panel):
     """Export panel for Fallout 4"""
@@ -455,6 +556,14 @@ class FO4_PT_ExportPanel(Panel):
     
     def draw(self, context):
         layout = self.layout
+        
+        status_box = layout.box()
+        available, message = export_helpers.ExportHelpers.nif_exporter_available()
+        icon = 'CHECKMARK' if available else 'ERROR'
+        status_box.label(text=f"NIF Exporter: {'Available' if available else 'Not detected'}", icon=icon)
+        status_box.label(text=message, icon='INFO')
+        if not available:
+            status_box.label(text="Fallback: FBX export enabled", icon='EXPORT')
         
         box = layout.box()
         box.label(text="Export Options", icon='EXPORT')
@@ -1165,6 +1274,8 @@ classes = (
     FO4_PT_AnimationPanel,
     FO4_PT_RigNetPanel,
     FO4_PT_NVTTPanel,
+    FO4_PT_AdvisorPanel,
+    FO4_PT_ToolsLinks,
     FO4_PT_ExportPanel,
     # New panels for enhancements
     FO4_PT_BatchProcessingPanel,

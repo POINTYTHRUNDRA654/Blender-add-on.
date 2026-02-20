@@ -9,43 +9,98 @@ import subprocess
 import shutil
 from pathlib import Path
 
+from . import preferences
+
 class NVTTHelpers:
     """Helper functions for NVIDIA Texture Tools integration"""
     
     @staticmethod
     def is_nvtt_available():
-        """Check if NVIDIA Texture Tools (nvcompress) is available in PATH"""
-        return shutil.which('nvcompress') is not None
+        """Check if NVIDIA Texture Tools (nvcompress) is available in PATH or prefs."""
+        return NVTTHelpers.get_nvtt_path() is not None
     
     @staticmethod
     def get_nvtt_path():
-        """Get the path to nvcompress executable"""
+        """Get the path to nvcompress executable (pref override or PATH)."""
+        configured = preferences.get_configured_nvcompress_path()
+        if configured:
+            return configured
         nvcompress_path = shutil.which('nvcompress')
         return nvcompress_path if nvcompress_path else None
+
+    @staticmethod
+    def is_texconv_available():
+        """Check if texconv is available in PATH or prefs."""
+        return NVTTHelpers.get_texconv_path() is not None
+
+    @staticmethod
+    def get_texconv_path():
+        """Get path to texconv executable (pref override or PATH)."""
+        configured = preferences.get_configured_texconv_path()
+        if configured:
+            return configured
+        texconv_path = shutil.which('texconv')
+        return texconv_path if texconv_path else None
     
     @staticmethod
     def check_nvtt_installation():
-        """
-        Check NVTT installation and return status message
-        Returns: (bool success, str message)
-        """
+        """Check NVTT installation and return status message."""
         if NVTTHelpers.is_nvtt_available():
             nvtt_path = NVTTHelpers.get_nvtt_path()
             return True, f"NVIDIA Texture Tools found at: {nvtt_path}"
-        else:
-            install_msg = (
-                "NVIDIA Texture Tools not found. To install:\n"
-                "1. Clone: gh repo clone castano/nvidia-texture-tools\n"
-                "2. Build following repository instructions\n"
-                "3. Add nvcompress to your PATH\n"
-                "See NVIDIA_RESOURCES.md for details"
-            )
-            return False, install_msg
+        install_msg = (
+            "NVIDIA Texture Tools not found. To install:\n"
+            "- Preferred: set nvcompress in add-on preferences (path or folder)\n"
+            "- Or put nvcompress in PATH. Source: gh repo clone castano/nvidia-texture-tools\n"
+            "- Or use DirectXTex texconv (add path in preferences)"
+        )
+        return False, install_msg
+
+    @staticmethod
+    def check_texconv_installation():
+        """Check texconv installation and return status message."""
+        if NVTTHelpers.is_texconv_available():
+            return True, f"texconv found at: {NVTTHelpers.get_texconv_path()}"
+        return False, "texconv not found. Run tools/install_texconv.ps1 or set path in preferences."
+
+    @staticmethod
+    def _find_converter(preferred: str | None):
+        """Pick available converter. Returns (tool, path, message)."""
+        preferred = (preferred or "auto").lower()
+
+        nv_path = NVTTHelpers.get_nvtt_path()
+        tex_path = NVTTHelpers.get_texconv_path()
+
+        if preferred == "nvtt" and nv_path:
+            return "nvtt", nv_path, None
+        if preferred == "texconv" and tex_path:
+            return "texconv", tex_path, None
+
+        # Auto: prefer nvtt if available, else texconv
+        if nv_path:
+            return "nvtt", nv_path, None
+        if tex_path:
+            return "texconv", tex_path, None
+
+        return None, None, "No converter found (nvcompress or texconv). Configure paths in preferences."
+
+    @staticmethod
+    def _texconv_format(format_lower: str) -> str:
+        mapping = {
+            "bc1": "BC1_UNORM",
+            "bc3": "BC3_UNORM",
+            "bc5": "BC5_UNORM",
+            "bc7": "BC7_UNORM",
+            "dxt1": "BC1_UNORM",
+            "dxt5": "BC3_UNORM",
+            "ati2": "BC5_UNORM",
+        }
+        return mapping.get(format_lower)
     
     @staticmethod
-    def convert_to_dds(input_path, output_path=None, compression_format='bc1', quality='production'):
+    def convert_to_dds(input_path, output_path=None, compression_format='bc1', quality='production', preferred_tool=None):
         """
-        Convert an image to DDS format using NVIDIA Texture Tools
+        Convert an image to DDS format using nvcompress or texconv
         
         Args:
             input_path: Path to input image (PNG, JPG, TGA, etc.)
@@ -58,69 +113,83 @@ class NVTTHelpers:
         
         Returns: (bool success, str message)
         """
-        if not NVTTHelpers.is_nvtt_available():
-            return False, "NVIDIA Texture Tools (nvcompress) not found in PATH"
-        
         if not os.path.exists(input_path):
             return False, f"Input file not found: {input_path}"
-        
-        # Determine output path
+
         if output_path is None:
             output_path = os.path.splitext(input_path)[0] + '.dds'
-        
-        # Validate compression format
+
         valid_formats = {
             'bc1': 'DXT1',
             'bc3': 'DXT5',
             'bc5': 'ATI2',
+            'bc7': 'BC7',
             'dxt1': 'DXT1',
             'dxt5': 'DXT5',
             'ati2': 'ATI2'
         }
-        
+
         format_lower = compression_format.lower()
         if format_lower not in valid_formats:
-            return False, f"Invalid compression format: {compression_format}. Use bc1, bc3, or bc5"
-        
-        # Build nvcompress command
+            return False, f"Invalid compression format: {compression_format}. Use bc1, bc3, bc5, or bc7"
+
+        tool, tool_path, tool_message = NVTTHelpers._find_converter(preferred_tool)
+        if not tool:
+            return False, tool_message
+
         try:
-            nvcompress_path = NVTTHelpers.get_nvtt_path()
-            
-            # Command structure: nvcompress -format <format> -quality <quality> input output
-            cmd = [
-                nvcompress_path,
-                f'-{format_lower}',
-                f'-{quality}',
-                input_path,
-                output_path
-            ]
-            
-            # Run conversion
+            if tool == "nvtt":
+                cmd = [
+                    tool_path,
+                    f'-{format_lower}',
+                    f'-{quality}',
+                    input_path,
+                    output_path
+                ]
+            else:  # texconv
+                texconv_format = NVTTHelpers._texconv_format(format_lower)
+                if not texconv_format:
+                    return False, f"texconv does not support format: {compression_format}"
+
+                out_dir = os.path.dirname(output_path) or os.getcwd()
+                os.makedirs(out_dir, exist_ok=True)
+                cmd = [
+                    tool_path,
+                    "-y",
+                    "-f", texconv_format,
+                    "-o", out_dir,
+                    input_path,
+                ]
+
             result = subprocess.run(
                 cmd,
                 capture_output=True,
                 text=True,
-                timeout=60
+                timeout=90
             )
-            
+
             if result.returncode == 0:
-                if os.path.exists(output_path):
-                    file_size = os.path.getsize(output_path)
+                expected = output_path
+                if not os.path.exists(expected):
+                    # texconv may uppercase extension
+                    alt = os.path.splitext(output_path)[0] + '.DDS'
+                    expected = alt if os.path.exists(alt) else output_path
+                if os.path.exists(expected):
+                    file_size = os.path.getsize(expected)
                     size_kb = file_size / 1024
-                    return True, f"Successfully converted to DDS ({compression_format.upper()}): {output_path} ({size_kb:.1f} KB)"
-                else:
-                    return False, f"Conversion completed but output file not found: {output_path}"
-            else:
-                error_msg = result.stderr if result.stderr else result.stdout
-                return False, f"nvcompress failed: {error_msg}"
-        
+                    return True, f"Converted ({tool}) to DDS ({compression_format.upper()}): {expected} ({size_kb:.1f} KB)"
+                return False, f"Conversion completed but output file not found: {expected}"
+
+            error_msg = result.stderr if result.stderr else result.stdout
+            return False, f"{tool} failed: {error_msg}"
+
         except subprocess.TimeoutExpired:
-            return False, "Texture conversion timed out (60 seconds)"
+            return False, "Texture conversion timed out (90 seconds)"
         except Exception as e:
             return False, f"Failed to convert texture: {str(e)}"
     
     @staticmethod
-    def batch_convert_textures(texture_list, output_dir=None, compression_map=None):
+    def batch_convert_textures(texture_list, output_dir=None, compression_map=None, preferred_tool=None):
         """
         Convert multiple textures to DDS format
         
@@ -159,7 +228,8 @@ class NVTTHelpers:
             success, message = NVTTHelpers.convert_to_dds(
                 input_path,
                 output_path,
-                compression
+                compression,
+                preferred_tool=preferred_tool,
             )
             
             results.append({
@@ -194,7 +264,7 @@ class NVTTHelpers:
             return 'DIFFUSE'  # Default
     
     @staticmethod
-    def convert_object_textures(obj, output_dir):
+    def convert_object_textures(obj, output_dir, preferred_tool=None):
         """
         Convert all textures used by an object to DDS format
         
@@ -210,8 +280,9 @@ class NVTTHelpers:
         if not obj.data.materials:
             return False, "Object has no materials", []
         
-        if not NVTTHelpers.is_nvtt_available():
-            return False, "NVIDIA Texture Tools not installed", []
+        tool, path, msg = NVTTHelpers._find_converter(preferred_tool)
+        if not tool:
+            return False, msg, []
         
         # Create output directory
         os.makedirs(output_dir, exist_ok=True)
@@ -240,7 +311,8 @@ class NVTTHelpers:
         # Convert textures
         success_count, results = NVTTHelpers.batch_convert_textures(
             texture_list,
-            output_dir
+            output_dir,
+            preferred_tool=tool,
         )
         
         # Collect converted file paths

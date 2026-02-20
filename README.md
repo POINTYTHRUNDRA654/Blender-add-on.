@@ -45,6 +45,7 @@ See [NEW_FEATURES.md](NEW_FEATURES.md) for detailed information about all enhanc
 5. Navigate to the `__init__.py` file in this repository
 6. Select it and click `Install Add-on`
 7. Enable the add-on by checking the checkbox next to "Desktop Tutorial Integration"
+8. For Fallout 4 NIF export, install the Blender Niftools add-on (see [NIFTOOLS_SETUP.md](NIFTOOLS_SETUP.md) and [TOOLS_SETUP.md](TOOLS_SETUP.md) for automated and manual steps)
 
 ## Configuration
 

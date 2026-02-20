@@ -49,6 +49,8 @@ from . import addon_integration
 from . import desktop_tutorial_client
 from . import shap_e_helpers
 from . import point_e_helpers
+from . import advisor_helpers
+from . import knowledge_helpers
 
 modules = [
     preferences,
@@ -70,6 +72,8 @@ modules = [
     desktop_tutorial_client,
     shap_e_helpers,
     point_e_helpers,
+    advisor_helpers,
+    knowledge_helpers,
     export_helpers,
     image_to_mesh_helpers,
     hunyuan3d_helpers,
@@ -97,6 +101,12 @@ def register():
     # Register all modules
     for module in modules:
         module.register()
+
+    # Start advisor auto-monitor (opt-out in preferences)
+    try:
+        advisor_helpers.start_auto_monitor()
+    except Exception as e:
+        print(f"Advisor auto-monitor failed to start: {e}")
     
     # Initialize the tutorial system
     tutorial_system.initialize_tutorials()
@@ -111,6 +121,10 @@ def register():
 
 def unregister():
     """Unregister all add-on classes and handlers"""
+    try:
+        advisor_helpers.stop_auto_monitor()
+    except Exception:
+        pass
     for module in reversed(modules):
         module.unregister()
     

@@ -5,7 +5,8 @@ Operators for the Fallout 4 Tutorial Add-on
 import bpy
 from bpy.types import Operator
 from bpy.props import StringProperty, EnumProperty, IntProperty, FloatProperty, BoolProperty
-from . import tutorial_system, mesh_helpers, texture_helpers, animation_helpers, export_helpers, notification_system, image_to_mesh_helpers, hunyuan3d_helpers, gradio_helpers, hymotion_helpers, nvtt_helpers, realesrgan_helpers, get3d_helpers, stylegan2_helpers, instantngp_helpers, imageto3d_helpers, advanced_mesh_helpers, rignet_helpers, motion_generation_helpers, quest_helpers, npc_helpers, world_building_helpers, item_helpers, preset_library, automation_system, desktop_tutorial_client, shap_e_helpers, point_e_helpers
+from . import tutorial_system, mesh_helpers, texture_helpers, animation_helpers, export_helpers, notification_system, image_to_mesh_helpers, hunyuan3d_helpers, gradio_helpers, hymotion_helpers, nvtt_helpers, realesrgan_helpers, get3d_helpers, stylegan2_helpers, instantngp_helpers, imageto3d_helpers, advanced_mesh_helpers, rignet_helpers, motion_generation_helpers, quest_helpers, npc_helpers, world_building_helpers, item_helpers, preset_library, automation_system, desktop_tutorial_client, shap_e_helpers, point_e_helpers, advisor_helpers
+from . import knowledge_helpers
 
 # Tutorial Operators
 
@@ -1398,22 +1399,19 @@ class FO4_OT_ConvertTextureToDDS(Operator):
         ],
         default='production'
     )
+
+    converter: EnumProperty(
+        name="Converter",
+        description="Select converter binary",
+        items=[
+            ('auto', "Auto (prefer NVTT)", "Use nvcompress if available, else texconv"),
+            ('nvtt', "NVTT (nvcompress)", "Use NVIDIA Texture Tools"),
+            ('texconv', "texconv (DirectXTex)", "Use Microsoft texconv"),
+        ],
+        default='auto'
+    )
     
     def execute(self, context):
-        # Check if NVTT is available
-        if not nvtt_helpers.NVTTHelpers.is_nvtt_available():
-            success, message = nvtt_helpers.NVTTHelpers.check_nvtt_installation()
-            self.report({'ERROR'}, "NVIDIA Texture Tools not found")
-            print("\n" + "="*70)
-            print("NVIDIA TEXTURE TOOLS INSTALLATION")
-            print("="*70)
-            print(message)
-            print("="*70 + "\n")
-            notification_system.FO4_NotificationSystem.notify(
-                "NVIDIA Texture Tools not installed", 'ERROR'
-            )
-            return {'CANCELLED'}
-        
         if not self.filepath:
             self.report({'ERROR'}, "No texture file selected")
             return {'CANCELLED'}
@@ -1424,7 +1422,8 @@ class FO4_OT_ConvertTextureToDDS(Operator):
             self.filepath,
             output,
             self.compression,
-            self.quality
+            self.quality,
+            preferred_tool=self.converter
         )
         
         if success:
@@ -1455,22 +1454,19 @@ class FO4_OT_ConvertObjectTexturesToDDS(Operator):
         description="Directory to save converted DDS files",
         subtype='DIR_PATH'
     )
+
+    converter: EnumProperty(
+        name="Converter",
+        description="Select converter binary",
+        items=[
+            ('auto', "Auto (prefer NVTT)", "Use nvcompress if available, else texconv"),
+            ('nvtt', "NVTT (nvcompress)", "Use NVIDIA Texture Tools"),
+            ('texconv', "texconv (DirectXTex)", "Use Microsoft texconv"),
+        ],
+        default='auto'
+    )
     
     def execute(self, context):
-        # Check if NVTT is available
-        if not nvtt_helpers.NVTTHelpers.is_nvtt_available():
-            success, message = nvtt_helpers.NVTTHelpers.check_nvtt_installation()
-            self.report({'ERROR'}, "NVIDIA Texture Tools not found")
-            print("\n" + "="*70)
-            print("NVIDIA TEXTURE TOOLS INSTALLATION")
-            print("="*70)
-            print(message)
-            print("="*70 + "\n")
-            notification_system.FO4_NotificationSystem.notify(
-                "NVIDIA Texture Tools not installed", 'ERROR'
-            )
-            return {'CANCELLED'}
-        
         obj = context.active_object
         if not obj:
             self.report({'ERROR'}, "No object selected")
@@ -1483,7 +1479,8 @@ class FO4_OT_ConvertObjectTexturesToDDS(Operator):
         # Convert textures
         success, message, converted_files = nvtt_helpers.NVTTHelpers.convert_object_textures(
             obj,
-            self.output_dir
+            self.output_dir,
+            preferred_tool=self.converter
         )
         
         if success:
@@ -1511,6 +1508,53 @@ class FO4_OT_ConvertObjectTexturesToDDS(Operator):
         return {'RUNNING_MODAL'}
 
 
+class FO4_OT_TestDDSConverters(Operator):
+    """Self-test nvcompress/texconv by converting a tiny PNG to DDS"""
+    bl_idname = "fo4.test_dds_converters"
+    bl_label = "Self-Test DDS Converters"
+
+    def execute(self, context):
+        # Pick converter
+        tool, tool_path, msg = nvtt_helpers.NVTTHelpers._find_converter("auto")
+        if not tool:
+            self.report({'ERROR'}, msg)
+            notification_system.FO4_NotificationSystem.notify(msg, 'ERROR')
+            return {'CANCELLED'}
+
+        import tempfile
+        import base64
+        import os
+
+        # Minimal 2x2 PNG (opaque magenta/cyan checker)
+        png_bytes = base64.b64decode(
+            b"iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAIAAAD91JpzAAAAE0lEQVQI12NgYGD4z0AEYBxVSgBf3AHb8QeUkwAAAABJRU5ErkJggg=="
+        )
+
+        with tempfile.TemporaryDirectory() as tmp:
+            src = os.path.join(tmp, "test.png")
+            dst = os.path.join(tmp, "test.dds")
+            with open(src, "wb") as f:
+                f.write(png_bytes)
+
+            success, message = nvtt_helpers.NVTTHelpers.convert_to_dds(
+                src,
+                dst,
+                compression_format='bc1',
+                preferred_tool=tool,
+            )
+
+            if success and os.path.exists(dst):
+                size_kb = os.path.getsize(dst) / 1024
+                detail = f"DDS wrote {size_kb:.1f} KB via {tool_path}"
+                self.report({'INFO'}, detail)
+                notification_system.FO4_NotificationSystem.notify(detail, 'INFO')
+                return {'FINISHED'}
+
+            self.report({'ERROR'}, message)
+            notification_system.FO4_NotificationSystem.notify(message, 'ERROR')
+            return {'CANCELLED'}
+
+
 class FO4_OT_CheckNVTTInstallation(Operator):
     """Check if NVIDIA Texture Tools is installed"""
     bl_idname = "fo4.check_nvtt_installation"
@@ -1518,6 +1562,7 @@ class FO4_OT_CheckNVTTInstallation(Operator):
     
     def execute(self, context):
         success, message = nvtt_helpers.NVTTHelpers.check_nvtt_installation()
+        tex_success, tex_message = nvtt_helpers.NVTTHelpers.check_texconv_installation()
         
         if success:
             self.report({'INFO'}, message)
@@ -1536,7 +1581,104 @@ class FO4_OT_CheckNVTTInstallation(Operator):
             print(message)
             print("\nFor detailed instructions, see NVIDIA_RESOURCES.md")
             print("="*70 + "\n")
+
+        if tex_success:
+            print("texconv detected:")
+            print(tex_message)
+        else:
+            print(tex_message)
         
+        return {'FINISHED'}
+
+
+# Advisor Operators
+
+class FO4_OT_AdvisorAnalyze(Operator):
+    """Analyze selected objects and suggest fixes."""
+    bl_idname = "fo4.advisor_analyze"
+    bl_label = "Analyze Export Readiness"
+
+    use_llm: bpy.props.BoolProperty(
+        name="Use LLM (if enabled)",
+        default=False,
+    )
+
+    def execute(self, context):
+        report = advisor_helpers.AdvisorHelpers.analyze_scene(context, use_llm=self.use_llm)
+
+        if not report["issues"]:
+            self.report({'INFO'}, "No issues found")
+            notification_system.FO4_NotificationSystem.notify("No issues found", 'INFO')
+            return {'FINISHED'}
+
+        print("\n" + "="*70)
+        print("ADVISOR REPORT")
+        print("="*70)
+        for issue in report["issues"]:
+            print(f"- {issue}")
+        if report.get("suggestions"):
+            print("Suggestions:")
+            for s in report["suggestions"]:
+                print(f"  • {s}")
+        if report.get("llm"):
+            print("LLM:")
+            print(report["llm"])
+        print("="*70 + "\n")
+
+        self.report({'WARNING'}, f"Found {len(report['issues'])} issues. See console for details.")
+        notification_system.FO4_NotificationSystem.notify(
+            f"Advisor: {len(report['issues'])} issues, {len(report.get('suggestions', []))} suggestions.", 'WARNING'
+        )
+        return {'FINISHED'}
+
+
+class FO4_OT_AdvisorQuickFix(Operator):
+    """Apply a quick fix to selected meshes."""
+    bl_idname = "fo4.advisor_quick_fix"
+    bl_label = "Apply Advisor Fix"
+
+    action: bpy.props.EnumProperty(
+        name="Action",
+        items=[
+            ('APPLY_TRANSFORMS', "Apply Transforms", "Apply location/rotation/scale to meshes"),
+            ('SHADE_SMOOTH_AUTOSMOOTH', "Enable Auto Smooth + Shade Smooth", "Enable Auto Smooth and shade smooth"),
+            ('VALIDATE_EXPORT', "Validate Export", "Run export validation on active mesh"),
+        ],
+        default='APPLY_TRANSFORMS'
+    )
+
+    def execute(self, context):
+        success, message = advisor_helpers.AdvisorHelpers.apply_quick_fix(context, self.action)
+        level = 'INFO' if success else 'ERROR'
+        self.report({level}, message)
+        notification_system.FO4_NotificationSystem.notify(message, level)
+        return {'FINISHED'}
+
+
+class FO4_OT_CheckKBTools(Operator):
+    """Check knowledge-base tooling (PyPDF2, ffmpeg, whisper)"""
+    bl_idname = "fo4.check_kb_tools"
+    bl_label = "Check KB Tools"
+
+    def execute(self, context):
+        status = knowledge_helpers.tool_status()
+        lines = []
+        for key, label in (
+            ("pypdf2", "PyPDF2 (PDF parsing)"),
+            ("ffmpeg", "ffmpeg (audio extract)"),
+            ("whisper", "whisper CLI (transcription)"),
+        ):
+            ok = status.get(key, False)
+            mark = "✓" if ok else "✗"
+            lines.append(f"{mark} {label}")
+
+        summary = "; ".join(lines)
+        self.report({'INFO'}, summary)
+        notification_system.FO4_NotificationSystem.notify(summary, 'INFO')
+        print("\nKB TOOLS STATUS")
+        for line in lines:
+            print(line)
+        print("Use tools/pdf_to_md.py and tools/video_to_txt.ps1 for bulk conversion.")
         return {'FINISHED'}
 
 # Real-ESRGAN Operators
@@ -6037,7 +6179,11 @@ classes = (
     FO4_OT_GenerateMotionAuto,
     FO4_OT_ConvertTextureToDDS,
     FO4_OT_ConvertObjectTexturesToDDS,
+    FO4_OT_TestDDSConverters,
     FO4_OT_CheckNVTTInstallation,
+    FO4_OT_AdvisorAnalyze,
+    FO4_OT_AdvisorQuickFix,
+    FO4_OT_CheckKBTools,
     FO4_OT_UpscaleTexture,
     FO4_OT_UpscaleObjectTextures,
     FO4_OT_CheckRealESRGANInstallation,

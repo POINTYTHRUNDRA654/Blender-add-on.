@@ -4,6 +4,8 @@ Provides a single path field for the Havok2FBX toolkit so users can point to an
 existing install instead of duplicating binaries.
 """
 
+from __future__ import annotations
+
 import os
 import bpy
 

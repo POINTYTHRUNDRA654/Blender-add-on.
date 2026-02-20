@@ -4,7 +4,7 @@ UI Panels for the Fallout 4 Tutorial Add-on
 
 import bpy
 from bpy.types import Panel
-from . import hunyuan3d_helpers, gradio_helpers, hymotion_helpers, nvtt_helpers, rignet_helpers, preferences
+from . import hunyuan3d_helpers, gradio_helpers, hymotion_helpers, nvtt_helpers, rignet_helpers, preferences, ue_importer_helpers, umodel_tools_helpers, unity_fbx_importer_helpers, knowledge_helpers
 
 class FO4_PT_MainPanel(Panel):
     """Main tutorial panel in the 3D View sidebar"""
@@ -23,6 +23,14 @@ class FO4_PT_MainPanel(Panel):
         box.label(text="Tutorial System", icon='HELP')
         box.operator("fo4.start_tutorial", text="Start Tutorial", icon='PLAY')
         box.operator("fo4.show_help", text="Show Help", icon='QUESTION')
+
+        # New-user setup hints
+        hint = layout.box()
+        hint.label(text="Setup / First-time Use", icon='INFO')
+        hint.label(text="1. Open the 'External Tools' tab below.")
+        hint.label(text="2. Click 'Check/Install' buttons to fetch required tools.")
+        hint.label(text="3. Use 'Install Python Requirements' if prompted.")
+        hint.label(text="4. Restart Blender after installing add‑ons/tools.")
         
         # Notifications
         if hasattr(scene, 'fo4_notifications') and scene.fo4_notifications:
@@ -519,10 +527,25 @@ class FO4_PT_ToolsLinks(Panel):
     def draw(self, context):
         layout = self.layout
 
+        # quick tool availability summary
+        status = knowledge_helpers.tool_status()
+        sum_box = layout.box()
+        sum_box.label(text="Tool Status", icon='INFO')
+        for key, label in (
+            ("ffmpeg", "ffmpeg"),
+            ("whisper", "whisper CLI"),
+            ("nvcompress", "nvcompress"),
+            ("texconv", "texconv"),
+        ):
+            ok = status.get(key, False)
+            sum_box.label(text=f"{label}: {'Available' if ok else 'Missing'}", icon='CHECKMARK' if ok else 'ERROR')
+
         box = layout.box()
         box.label(text="Core", icon='URL')
         op = box.operator("wm.url_open", text="Blender Niftools Add-on")
         op.url = "https://github.com/niftools/blender_niftools_addon/releases"
+        op = box.operator("wm.url_open", text="Quick Reference")
+        op.url = "file://" + bpy.path.abspath('//QUICK_REFERENCE.txt')
 
         op = box.operator("wm.url_open", text="DirectXTex texconv")
         op.url = "https://github.com/microsoft/DirectXTex/releases"
@@ -536,6 +559,15 @@ class FO4_PT_ToolsLinks(Panel):
         op.url = "https://github.com/AssetRipper/AssetRipper"
         op = box.operator("wm.url_open", text="AssetStudio")
         op.url = "https://github.com/Perfare/AssetStudio"
+        op = box.operator("wm.url_open", text="UnityFBX-To-Blender-Importer")
+        op.url = "https://github.com/Varneon/UnityFBX-To-Blender-Importer"
+
+        ub_ready, ub_message = unity_fbx_importer_helpers.status()
+        ub_icon = 'CHECKMARK' if ub_ready else 'ERROR'
+        box.label(text=ub_message, icon=ub_icon)
+        box.label(text=f"Repo: {unity_fbx_importer_helpers.repo_path()}", icon='FILE_FOLDER')
+        box.label(text=f"Pkg: {unity_fbx_importer_helpers.package_path()}", icon='PACKAGE')
+        box.operator("fo4.check_unity_fbx_importer", text="Check/Install Unity FBX Importer", icon='FILE_REFRESH')
 
         box = layout.box()
         box.label(text="Unreal extraction", icon='URL')
@@ -543,6 +575,37 @@ class FO4_PT_ToolsLinks(Panel):
         op.url = "https://www.gildor.org/en/projects/umodel"
         op = box.operator("wm.url_open", text="Unreal CLI exporters")
         op.url = "https://docs.unrealengine.com/5.0/en-US/command-line-arguments-in-unreal-engine/"
+
+        box = layout.box()
+        box.label(text="UE Importer", icon='IMPORT')
+        ready, message = ue_importer_helpers.status()
+        status_icon = 'CHECKMARK' if ready else 'ERROR'
+        box.label(text=message, icon=status_icon)
+        box.label(text=f"Path: {ue_importer_helpers.importer_path()}", icon='FILE_FOLDER')
+        box.operator("fo4.check_ue_importer", text="Check/Install UE Importer", icon='FILE_REFRESH')
+
+        box = layout.box()
+        box.label(text="UModel Tools", icon='IMPORT')
+        ut_ready, ut_message = umodel_tools_helpers.status()
+        ut_icon = 'CHECKMARK' if ut_ready else 'ERROR'
+        box.label(text=ut_message, icon=ut_icon)
+        box.label(text=f"Path: {umodel_tools_helpers.addon_path()}", icon='FILE_FOLDER')
+        box.operator("fo4.check_umodel_tools", text="Check/Install UModel Tools", icon='FILE_REFRESH')
+
+        # Automated installers for external utilities
+        box = layout.box()
+        box.label(text="Install External Tools", icon='TOOL_SETTINGS')
+        box.operator("fo4.install_ffmpeg", text="Install FFmpeg", icon='FILE_REFRESH')
+        box.operator("fo4.install_nvtt", text="Install NVTT (nvcompress)", icon='FILE_REFRESH')
+        box.operator("fo4.install_texconv", text="Install texconv", icon='FILE_REFRESH')
+        box.operator("fo4.install_whisper", text="Install Whisper CLI", icon='FILE_REFRESH')
+        box.operator("fo4.install_niftools", text="Install Niftools Add-on", icon='FILE_REFRESH')
+        # Python requirements
+        box.operator("fo4.install_python_deps", text="Install Python Requirements", icon='FILE_REFRESH').optional = False
+        op = box.operator("fo4.install_python_deps", text="Install Python Req (optional)", icon='FILE_REFRESH')
+        op.optional = True
+        box.operator("fo4.install_all_tools", text="Install All Tools", icon='PACKAGE')
+        box.operator("fo4.self_test", text="Run Environment Self-Test", icon='CHECKMARK')
 
 class FO4_PT_ExportPanel(Panel):
     """Export panel for Fallout 4"""

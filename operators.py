@@ -5,7 +5,7 @@ Operators for the Fallout 4 Tutorial Add-on
 import bpy
 from bpy.types import Operator
 from bpy.props import StringProperty, EnumProperty, IntProperty, FloatProperty, BoolProperty
-from . import tutorial_system, mesh_helpers, texture_helpers, animation_helpers, export_helpers, notification_system, image_to_mesh_helpers, hunyuan3d_helpers, gradio_helpers, hymotion_helpers, nvtt_helpers, realesrgan_helpers, get3d_helpers, stylegan2_helpers, instantngp_helpers, imageto3d_helpers, advanced_mesh_helpers, rignet_helpers, motion_generation_helpers, quest_helpers, npc_helpers, world_building_helpers, item_helpers, preset_library, automation_system, desktop_tutorial_client, shap_e_helpers, point_e_helpers, advisor_helpers
+from . import tutorial_system, mesh_helpers, texture_helpers, animation_helpers, export_helpers, notification_system, image_to_mesh_helpers, hunyuan3d_helpers, gradio_helpers, hymotion_helpers, nvtt_helpers, realesrgan_helpers, get3d_helpers, stylegan2_helpers, instantngp_helpers, imageto3d_helpers, advanced_mesh_helpers, rignet_helpers, motion_generation_helpers, quest_helpers, npc_helpers, world_building_helpers, item_helpers, preset_library, automation_system, desktop_tutorial_client, shap_e_helpers, point_e_helpers, advisor_helpers, ue_importer_helpers, umodel_tools_helpers, unity_fbx_importer_helpers
 from . import knowledge_helpers
 
 # Tutorial Operators
@@ -1679,6 +1679,278 @@ class FO4_OT_CheckKBTools(Operator):
         for line in lines:
             print(line)
         print("Use tools/pdf_to_md.py and tools/video_to_txt.ps1 for bulk conversion.")
+        return {'FINISHED'}
+
+
+class FO4_OT_CheckUEImporter(Operator):
+    """Check and (if missing) download/register the UE importer."""
+    bl_idname = "fo4.check_ue_importer"
+    bl_label = "Check UE Importer"
+
+    def execute(self, context):
+        actions = []
+
+        ready, message = ue_importer_helpers.status()
+
+        if not ready and "missing" in message.lower():
+            ok, msg = ue_importer_helpers.download_latest()
+            actions.append(msg)
+            if ok:
+                ue_importer_helpers.register()
+                ready, message = ue_importer_helpers.status()
+
+        # If present but not registered, attempt to register
+        elif not ready:
+            ue_importer_helpers.register()
+            ready, message = ue_importer_helpers.status()
+
+        status_lines = [message] + actions
+        status_text = "; ".join([s for s in status_lines if s])
+        level = 'INFO' if ready else 'ERROR'
+        self.report({level}, status_text)
+        notification_system.FO4_NotificationSystem.notify(status_text, level)
+        print("UE IMPORTER STATUS")
+        print(status_text)
+        print(f"Path: {ue_importer_helpers.importer_path()}")
+        return {'FINISHED'}
+
+
+class FO4_OT_CheckUModelTools(Operator):
+    """Check and (if missing) download/register UModel Tools add-on."""
+    bl_idname = "fo4.check_umodel_tools"
+    bl_label = "Check UModel Tools"
+
+    def execute(self, context):
+        actions = []
+
+        ready, message = umodel_tools_helpers.status()
+
+        missing_modules = []
+        for mod_name in ("ordered_set", "lark", "tqdm"):
+            try:
+                __import__(mod_name)
+            except ImportError:
+                missing_modules.append(mod_name)
+
+        if not ready and "missing" in message.lower():
+            ok, msg = umodel_tools_helpers.download_latest()
+            actions.append(msg)
+            if ok:
+                umodel_tools_helpers.register()
+                ready, message = umodel_tools_helpers.status()
+
+        elif not ready:
+            umodel_tools_helpers.register()
+            ready, message = umodel_tools_helpers.status()
+
+        if missing_modules:
+            actions.append(
+                f"Missing python deps: {', '.join(missing_modules)} (pip install -r tools/umodel_tools/requirements.txt)"
+            )
+
+        status_lines = [message] + actions
+        status_text = "; ".join([s for s in status_lines if s])
+        level = 'INFO' if ready else 'ERROR'
+        self.report({level}, status_text)
+        notification_system.FO4_NotificationSystem.notify(status_text, level)
+        print("UMODEL TOOLS STATUS")
+        print(status_text)
+        print(f"Path: {umodel_tools_helpers.addon_path()}")
+        return {'FINISHED'}
+
+
+class FO4_OT_CheckUnityFBXImporter(Operator):
+    """Check and (if missing) download UnityFBX-To-Blender-Importer repo."""
+    bl_idname = "fo4.check_unity_fbx_importer"
+    bl_label = "Check Unity FBX Importer"
+
+    def execute(self, context):
+        ready, message = unity_fbx_importer_helpers.status()
+        actions = []
+
+        if not ready:
+            ok, msg = unity_fbx_importer_helpers.download_latest()
+            actions.append(msg)
+            ready, message = unity_fbx_importer_helpers.status()
+
+        status_lines = [message] + actions
+        status_text = "; ".join([s for s in status_lines if s])
+        level = 'INFO' if ready else 'ERROR'
+        self.report({level}, status_text)
+        notification_system.FO4_NotificationSystem.notify(status_text, level)
+        print("UNITY FBX IMPORTER STATUS")
+        print(status_text)
+        print(f"Repo: {unity_fbx_importer_helpers.repo_path()}")
+        print(f"Unity package: {unity_fbx_importer_helpers.package_path()}")
+        return {'FINISHED'}
+
+
+# Installation Operators ----------------------------------------------------
+class FO4_OT_InstallFFmpeg(Operator):
+    """Download and install FFmpeg to the workspace."""
+    bl_idname = "fo4.install_ffmpeg"
+    bl_label = "Install FFmpeg"
+
+    def execute(self, context):
+        from . import tool_installers, preferences
+        ok, msg = tool_installers.install_ffmpeg()
+        level = 'INFO' if ok else 'ERROR'
+        self.report({level}, msg)
+        notification_system.FO4_NotificationSystem.notify(msg, level)
+        print("FFMPEG INSTALL", msg)
+        if ok:
+            # attempt to configure preference to point at downloaded exe
+            prefs = preferences.get_preferences()
+            if prefs:
+                # search for ffmpeg.exe under tools/ffmpeg
+                from pathlib import Path
+                base = Path(__file__).resolve().parent / "tools" / "ffmpeg"
+                for exe in base.rglob("ffmpeg.exe"):
+                    prefs.ffmpeg_path = str(exe)
+                    break
+        return {'FINISHED'}
+
+
+class FO4_OT_InstallNVTT(Operator):
+    """Download and install NVIDIA Texture Tools (nvcompress)."""
+    bl_idname = "fo4.install_nvtt"
+    bl_label = "Install NVTT"
+
+    def execute(self, context):
+        from . import tool_installers, preferences
+        ok, msg = tool_installers.install_nvtt()
+        level = 'INFO' if ok else 'ERROR'
+        self.report({level}, msg)
+        notification_system.FO4_NotificationSystem.notify(msg, level)
+        print("NVTT INSTALL", msg)
+        if ok:
+            prefs = preferences.get_preferences()
+            if prefs:
+                base = Path(__file__).resolve().parent / "tools" / "nvtt"
+                for exe in base.rglob("nvcompress.exe"):
+                    prefs.nvtt_path = str(exe)
+                    break
+        return {'FINISHED'}
+
+
+class FO4_OT_InstallTexconv(Operator):
+    """Download and install DirectXTex texconv.exe."""
+    bl_idname = "fo4.install_texconv"
+    bl_label = "Install texconv"
+
+    def execute(self, context):
+        from . import tool_installers, preferences
+        ok, msg = tool_installers.install_texconv()
+        level = 'INFO' if ok else 'ERROR'
+        self.report({level}, msg)
+        notification_system.FO4_NotificationSystem.notify(msg, level)
+        print("TEXCONV INSTALL", msg)
+        if ok:
+            prefs = preferences.get_preferences()
+            if prefs:
+                base = Path(__file__).resolve().parent / "tools" / "texconv"
+                for exe in base.rglob("texconv.exe"):
+                    prefs.texconv_path = str(exe)
+                    break
+        return {'FINISHED'}
+
+
+class FO4_OT_InstallWhisper(Operator):
+    """Install whisper Python package for transcription."""
+    bl_idname = "fo4.install_whisper"
+    bl_label = "Install Whisper"
+
+    def execute(self, context):
+        from . import tool_installers
+        ok, msg = tool_installers.install_whisper()
+        level = 'INFO' if ok else 'ERROR'
+        self.report({level}, msg)
+        notification_system.FO4_NotificationSystem.notify(msg, level)
+        print("WHISPER INSTALL", msg)
+        return {'FINISHED'}
+
+
+class FO4_OT_InstallNiftools(Operator):
+    """Run the PowerShell script to install Niftools Blender add-on."""
+    bl_idname = "fo4.install_niftools"
+    bl_label = "Install Niftools"
+
+    blender_version: bpy.props.StringProperty(
+        name="Blender Version",
+        default="3.6",
+    )
+
+    def execute(self, context):
+        from . import tool_installers
+        ok, msg = tool_installers.install_niftools(self.blender_version)
+        level = 'INFO' if ok else 'ERROR'
+        self.report({level}, msg)
+        notification_system.FO4_NotificationSystem.notify(msg, level)
+        print("NIFTOOLS INSTALL", msg)
+        return {'FINISHED'}
+
+
+class FO4_OT_InstallPythonDeps(Operator):
+    """Install required Python dependencies for the add-on."""
+    bl_idname = "fo4.install_python_deps"
+    bl_label = "Install Python Requirements"
+
+    optional: bpy.props.BoolProperty(
+        name="Include Optional",
+        default=False,
+    )
+
+    def execute(self, context):
+        from . import tool_installers
+        ok, msg = tool_installers.install_python_requirements(self.optional)
+        level = 'INFO' if ok else 'ERROR'
+        self.report({level}, msg)
+        notification_system.FO4_NotificationSystem.notify(msg, level)
+        print("PYTHON DEPS", msg)
+        return {'FINISHED'}
+
+
+class FO4_OT_RunAllInstallers(Operator):
+    """Run all available installers sequentially."""
+    bl_idname = "fo4.install_all_tools"
+    bl_label = "Install All Tools"
+
+    def execute(self, context):
+        from . import tool_installers
+        results = []
+        for func in (
+            tool_installers.install_ffmpeg,
+            tool_installers.install_nvtt,
+            tool_installers.install_texconv,
+            tool_installers.install_whisper,
+        ):
+            ok, msg = func()
+            results.append(msg)
+        summary = "; ".join(results)
+        self.report({'INFO'}, summary)
+        notification_system.FO4_NotificationSystem.notify(summary, 'INFO')
+        print("ALL TOOL INSTALL RESULTS", summary)
+        return {'FINISHED'}
+
+
+class FO4_OT_SelfTest(Operator):
+    """Run a comprehensive environment self-test and log results."""
+    bl_idname = "fo4.self_test"
+    bl_label = "Environment Self-Test"
+
+    def execute(self, context):
+        import knowledge_helpers, ue_importer_helpers, umodel_tools_helpers, unity_fbx_importer_helpers
+        lines = []
+        lines.append("Tool status: " + str(knowledge_helpers.tool_status()))
+        lines.append("UE importer: " + str(ue_importer_helpers.status()))
+        lines.append("UModel Tools: " + str(umodel_tools_helpers.status()))
+        lines.append("Unity FBX importer: " + str(unity_fbx_importer_helpers.status()))
+        summary = "\n".join(lines)
+        print("=== ENVIRONMENT SELF-TEST ===")
+        print(summary)
+        print("=== END SELF-TEST ===")
+        self.report({'INFO'}, "Self-test completed; see console for details")
+        notification_system.FO4_NotificationSystem.notify("Environment self-test complete", 'INFO')
         return {'FINISHED'}
 
 # Real-ESRGAN Operators
@@ -6184,6 +6456,17 @@ classes = (
     FO4_OT_AdvisorAnalyze,
     FO4_OT_AdvisorQuickFix,
     FO4_OT_CheckKBTools,
+    FO4_OT_CheckUEImporter,
+    FO4_OT_CheckUModelTools,
+    FO4_OT_CheckUnityFBXImporter,
+    FO4_OT_InstallFFmpeg,
+    FO4_OT_InstallNVTT,
+    FO4_OT_InstallTexconv,
+    FO4_OT_InstallWhisper,
+    FO4_OT_InstallNiftools,
+    FO4_OT_InstallPythonDeps,
+    FO4_OT_RunAllInstallers,
+    FO4_OT_SelfTest,
     FO4_OT_UpscaleTexture,
     FO4_OT_UpscaleObjectTextures,
     FO4_OT_CheckRealESRGANInstallation,

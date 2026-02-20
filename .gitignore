@@ -62,3 +62,12 @@ temp/
 /tmp/
 *.tmp
 *.bak
+
+# External tool repositories/downloads
+/tools/ffmpeg/
+/tools/whisper/
+/tools/umodel_tools/
+/tools/Blender-UE4-Importer/
+/tools/UnityFBX-To-Blender-Importer/
+/tools/nvtt/
+/tools/texconv/

@@ -136,6 +136,30 @@ cd /path/to/Blender-add-on
 pip3 install -r requirements.txt
 ```
 
+### Step 5: Install External Command-Line Tools (ffmpeg, NVTT, texconv, whisper)
+
+These utilities are required for video transcription, DDS texture conversion,
+and other helper features. You can:
+
+1. Use the provided Python script from the workspace:
+
+```bash
+python tools/install_all_tools.py
+```
+
+2. Alternatively, install them manually by downloading from the following
+   locations:
+   - ffmpeg: https://www.gyan.dev/ffmpeg/builds/
+   - NVTT (nvcompress): https://github.com/castano/nvidia-texture-tools/releases
+   - DirectXTex (texconv): https://github.com/microsoft/DirectXTex/releases
+   - whisper CLI: `pip install openai-whisper`
+
+3. In Blender, open the *Fallout 4* sidebar tab and click the **External Tools**
+   panel.  A set of **Check/Install** buttons will automatically fetch and
+   configure the tools for you.  The add-on also includes an *Environment
+   Self-Test* to verify everything is working.
+
+
 Core dependencies include:
 - Pillow (image processing)
 - numpy (numerical operations)

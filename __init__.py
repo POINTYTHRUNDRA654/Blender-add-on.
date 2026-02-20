@@ -6,7 +6,7 @@ A comprehensive tutorial and helper system for creating Fallout 4 mods in Blende
 bl_info = {
     "name": "Fallout 4 Tutorial Helper",
     "author": "Tutorial Team",
-    "version": (2, 1, 0),
+    "version": (2, 1, 1),
     "blender": (2, 80, 0),  # Compatible with Blender 2.80+ (all modern versions)
     "location": "View3D > Sidebar > Fallout 4",
     "description": "Comprehensive tutorial system and helpers for creating Fallout 4 mods including quests, NPCs, items, and world building. Compatible with Blender 2.80 through 4.x+",
@@ -16,6 +16,7 @@ bl_info = {
 }
 
 import bpy
+from . import preferences
 from . import ui_panels
 from . import operators
 from . import tutorial_system
@@ -50,6 +51,7 @@ from . import shap_e_helpers
 from . import point_e_helpers
 
 modules = [
+    preferences,
     tutorial_system,
     notification_system,
     mesh_helpers,

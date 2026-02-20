@@ -134,7 +134,8 @@ def register():
 
     # schedule a quick environment check once Blender is ready
     try:
-        import bpy
+        # 'bpy' is already imported at module level; avoid re-import here or
+        # Python will treat it as a local variable and raise UnboundLocalError
         def _post_register():
             try:
                 bpy.ops.fo4.check_kb_tools()

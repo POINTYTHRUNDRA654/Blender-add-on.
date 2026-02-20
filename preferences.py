@@ -72,18 +72,19 @@ def _resolve_executable(path_value: str, exe_names: tuple[str, ...]) -> str | No
 
 
 def get_configured_ffmpeg_path() -> str | None:
-        """Return ffmpeg path from preferences if set and executable."""
-        prefs = get_preferences()
-        if not prefs:
-            return None
-        return _resolve_executable(prefs.ffmpeg_path, ("ffmpeg.exe", "ffmpeg"))
+    """Return ffmpeg path from preferences if set and executable."""
+    prefs = get_preferences()
+    if not prefs:
+        return None
+    return _resolve_executable(prefs.ffmpeg_path, ("ffmpeg.exe", "ffmpeg"))
 
-    def get_configured_nvcompress_path() -> str | None:
-        """Return nvcompress path from preferences if set and executable."""
-        prefs = get_preferences()
-        if not prefs:
-            return None
-        return _resolve_executable(prefs.nvtt_path, ("nvcompress.exe", "nvcompress"))
+
+def get_configured_nvcompress_path() -> str | None:
+    """Return nvcompress path from preferences if set and executable."""
+    prefs = get_preferences()
+    if not prefs:
+        return None
+    return _resolve_executable(prefs.nvtt_path, ("nvcompress.exe", "nvcompress"))
 
 
 def get_configured_texconv_path() -> str | None:

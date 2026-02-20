@@ -5,6 +5,17 @@ All notable changes to the Fallout 4 Tutorial Add-on will be documented in this 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.1] - 2026-02-19
+
+### Added
+- Add-on preferences field for Havok2FBX folder with sidebar panel status so users can point to an existing install and avoid duplicate binaries.
+- Export panel shows Havok2FBX configured/not-found status alongside current FBX-first workflow note.
+- Placeholder Batch Processing panel to keep registration stable until batch actions land.
+
+### Fixed
+- Verified clean register/unregister in Blender 4.5.x after panel additions; optional deps (Hunyuan3D-2, HY-Motion) continue to warn as expected.
+- Bump add-on version to 2.1.1 for this drop.
+
 ## [1.0.0] - 2026-02-12
 
 ### Added

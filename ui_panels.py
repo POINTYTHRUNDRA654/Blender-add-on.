@@ -4,7 +4,7 @@ UI Panels for the Fallout 4 Tutorial Add-on
 
 import bpy
 from bpy.types import Panel
-from . import hunyuan3d_helpers, gradio_helpers, hymotion_helpers, nvtt_helpers, rignet_helpers
+from . import hunyuan3d_helpers, gradio_helpers, hymotion_helpers, nvtt_helpers, rignet_helpers, preferences
 
 class FO4_PT_MainPanel(Panel):
     """Main tutorial panel in the 3D View sidebar"""
@@ -543,10 +543,10 @@ class FO4_PT_PresetsPanel(Panel):
         info_box.label(text="• Ready to customize")
 
 
-class FO4_PT_AutomationPanel(Panel):
+class FO4_PT_AutomationQuickPanel(Panel):
     """Automation and quick tools panel"""
     bl_label = "Automation & Quick Tools"
-    bl_idname = "FO4_PT_automation_panel"
+    bl_idname = "FO4_PT_automation_quick_panel"
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
     bl_category = 'Fallout 4'
@@ -593,6 +593,77 @@ class FO4_PT_AutomationPanel(Panel):
         info_box.label(text="2. Material setup")
         info_box.label(text="3. Validation checks")
         info_box.label(text="4. Texture validation")
+
+
+class FO4_PT_BatchProcessingPanel(Panel):
+    """Placeholder batch processing panel to keep registration stable."""
+    bl_label = "Batch Processing"
+    bl_idname = "FO4_PT_batch_processing_panel"
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'UI'
+    bl_category = 'Fallout 4'
+    bl_parent_id = "FO4_PT_main_panel"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    def draw(self, context):
+        layout = self.layout
+        box = layout.box()
+        box.label(text="Batch actions coming soon", icon='TIME')
+        box.label(text="You can queue exports once available.")
+
+
+class FO4_PT_Havok2FBXPanel(Panel):
+    """Expose Havok2FBX path from add-on preferences."""
+    bl_label = "Havok2FBX"
+    bl_idname = "FO4_PT_havok2fbx_panel"
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'UI'
+    bl_category = 'Fallout 4'
+    bl_parent_id = "FO4_PT_main_panel"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    def draw(self, context):
+        layout = self.layout
+        prefs = preferences.get_preferences()
+        path = preferences.get_havok2fbx_path()
+
+        box = layout.box()
+        box.label(text="Configure Havok2FBX", icon='FILE_FOLDER')
+
+        if prefs:
+            box.prop(prefs, "havok2fbx_path", text="Folder")
+        else:
+            box.label(text="Preferences not available (addon not registered)", icon='ERROR')
+
+        status_box = layout.box()
+        if path:
+            status_box.label(text=f"Configured: {path}", icon='CHECKMARK')
+        else:
+            status_box.label(text="Path not found. Set the folder above.", icon='ERROR')
+
+
+class FO4_PT_ExportPanel(Panel):
+    """Export helpers and Havok2FBX status."""
+    bl_label = "Export Helpers"
+    bl_idname = "FO4_PT_export_panel"
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'UI'
+    bl_category = 'Fallout 4'
+    bl_parent_id = "FO4_PT_main_panel"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    def draw(self, context):
+        layout = self.layout
+        path = preferences.get_havok2fbx_path()
+
+        box = layout.box()
+        box.label(text="Havok2FBX Path", icon='FILE_FOLDER')
+        box.label(text=path if path else "Not configured", icon='CHECKMARK' if path else 'ERROR')
+
+        info = layout.box()
+        info.label(text="Exports currently route through FBX.", icon='INFO')
+        info.label(text="Use Havok2FBX externally to convert FBX to HKX.")
+
 
 
 class FO4_PT_VegetationPanel(Panel):
@@ -881,10 +952,10 @@ class FO4_PT_PresetLibraryPanel(Panel):
         info_box.label(text="• Track usage statistics")
 
 
-class FO4_PT_AutomationPanel(Panel):
+class FO4_PT_AutomationMacrosPanel(Panel):
     """Automation and macro system panel"""
     bl_label = "Automation & Macros"
-    bl_idname = "FO4_PT_automation_panel"
+    bl_idname = "FO4_PT_automation_macros_panel"
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
     bl_category = 'Fallout 4'
@@ -1098,7 +1169,8 @@ classes = (
     # New panels for enhancements
     FO4_PT_BatchProcessingPanel,
     FO4_PT_PresetsPanel,
-    FO4_PT_AutomationPanel,
+    FO4_PT_AutomationQuickPanel,
+    FO4_PT_Havok2FBXPanel,
     FO4_PT_VegetationPanel,
     # New panels for comprehensive mod creation
     FO4_PT_QuestPanel,
@@ -1107,7 +1179,7 @@ classes = (
     FO4_PT_ItemCreationPanel,
     # New panels for productivity
     FO4_PT_PresetLibraryPanel,
-    FO4_PT_AutomationPanel,
+    FO4_PT_AutomationMacrosPanel,
     FO4_PT_AddonIntegrationPanel,
     FO4_PT_DesktopTutorialPanel,
 )

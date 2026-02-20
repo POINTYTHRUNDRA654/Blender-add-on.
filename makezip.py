@@ -17,7 +17,7 @@ def read_version() -> str:
 
 def should_skip(rel: pathlib.Path) -> bool:
     """Skip development, cache, and virtual env paths from the ZIP."""
-    skip_roots = {".git", "tools"}
+    skip_roots = {".git"}
     cache_dirs = {"__pycache__", ".mypy_cache", ".pytest_cache", ".idea", ".vscode"}
     if rel.parts and (rel.parts[0] in skip_roots or rel.parts[0].startswith(".venv")):
         return True
@@ -29,7 +29,8 @@ def main() -> None:
     addon_name = root.name
     zip_path = root.parent / f"{addon_name}-v{version}.zip"
 
-    with zipfile.ZipFile(zip_path, "w", compression=zipfile.ZIP_DEFLATED, compresslevel=9) as zf:
+    # Use a low compression level to keep packaging fast for large bundled tools like ffmpeg
+    with zipfile.ZipFile(zip_path, "w", compression=zipfile.ZIP_DEFLATED, compresslevel=1) as zf:
         for path in root.rglob("*"):
             if not path.is_file():
                 continue

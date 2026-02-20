@@ -457,7 +457,7 @@ class FO4_PT_NVTTPanel(Panel):
         
         if not (nvtt_available or texconv_available):
             info_box.separator()
-            info_box.label(text="Install converters:", icon='DOWNLOAD')
+            info_box.label(text="Install converters:", icon='IMPORT')
             info_box.label(text="NVTT (nvcompress) or texconv")
 
 

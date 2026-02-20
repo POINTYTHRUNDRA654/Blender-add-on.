@@ -71,12 +71,19 @@ def _resolve_executable(path_value: str, exe_names: tuple[str, ...]) -> str | No
     return None
 
 
-def get_configured_nvcompress_path() -> str | None:
-    """Return nvcompress path from preferences if set and executable."""
-    prefs = get_preferences()
-    if not prefs:
-        return None
-    return _resolve_executable(prefs.nvtt_path, ("nvcompress.exe", "nvcompress"))
+def get_configured_ffmpeg_path() -> str | None:
+        """Return ffmpeg path from preferences if set and executable."""
+        prefs = get_preferences()
+        if not prefs:
+            return None
+        return _resolve_executable(prefs.ffmpeg_path, ("ffmpeg.exe", "ffmpeg"))
+
+    def get_configured_nvcompress_path() -> str | None:
+        """Return nvcompress path from preferences if set and executable."""
+        prefs = get_preferences()
+        if not prefs:
+            return None
+        return _resolve_executable(prefs.nvtt_path, ("nvcompress.exe", "nvcompress"))
 
 
 def get_configured_texconv_path() -> str | None:
@@ -104,6 +111,13 @@ class FO4AddonPreferences(bpy.types.AddonPreferences):
         subtype="FILE_PATH",
         default=_DEFAULT_NVTT_PATH,
         description="Path to nvcompress.exe or its folder (NVIDIA Texture Tools)",
+    )
+
+    ffmpeg_path: bpy.props.StringProperty(
+        name="ffmpeg Path",
+        subtype="FILE_PATH",
+        default="",
+        description="Path to ffmpeg.exe or its folder (optional, installer will place binaries under tools/ffmpeg)",
     )
 
     texconv_path: bpy.props.StringProperty(
@@ -177,6 +191,18 @@ class FO4AddonPreferences(bpy.types.AddonPreferences):
         description="Folder with txt/md docs to feed the advisor; defaults to bundled knowledge_base/",
     )
 
+    auto_install_tools: bpy.props.BoolProperty(
+        name="Auto Install Tools",
+        default=False,
+        description="If enabled, missing CLI tools will be downloaded automatically on startup",
+    )
+
+    auto_install_python: bpy.props.BoolProperty(
+        name="Auto Install Python",
+        default=False,
+        description="If enabled, core Python dependencies will be installed on startup",
+    )
+
     def draw(self, context):
         layout = self.layout
 
@@ -194,6 +220,10 @@ class FO4AddonPreferences(bpy.types.AddonPreferences):
         tex_box.label(text="Texture Converters", icon="IMAGE_DATA")
         tex_box.prop(self, "nvtt_path", text="nvcompress or folder")
         tex_box.prop(self, "texconv_path", text="texconv or folder")
+
+        ff_box = layout.box()
+        ff_box.label(text="Video & Audio Tools", icon="SOUND")
+        ff_box.prop(self, "ffmpeg_path", text="ffmpeg or folder")
 
         nvcompress = get_configured_nvcompress_path()
         texconv = get_configured_texconv_path()
@@ -226,6 +256,11 @@ class FO4AddonPreferences(bpy.types.AddonPreferences):
         kb_box.label(text="Advisor Knowledge Base", icon="BOOKMARKS")
         kb_box.prop(self, "knowledge_base_enabled", text="Use bundled/user KB")
         kb_box.prop(self, "knowledge_base_path", text="KB folder (txt/md)")
+
+        auto_box = layout.box()
+        auto_box.label(text="Automatic Tool Installation", icon="FILE_REFRESH")
+        auto_box.prop(self, "auto_install_tools", text="Auto-install missing CLI tools at startup")
+        auto_box.prop(self, "auto_install_python", text="Auto-install Python deps at startup")
 
 
 def register():

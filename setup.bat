@@ -98,6 +98,11 @@ if /i "%INSTALL_AI%"=="y" (
 )
 echo.
 
+REM Optional: install external CLI tools (ffmpeg, nvtt, texconv, whisper)
+python "%~dp0\tools\install_all_tools.py"
+
+echo.
+
 REM Installation summary
 echo ================================================
 echo Setup Complete!

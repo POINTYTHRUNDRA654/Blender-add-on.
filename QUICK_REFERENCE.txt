@@ -22,6 +22,18 @@ macOS/Linux - Run setup script:
 Windows - Run setup script:
   setup.bat
 
+External command-line tools (ffmpeg, NVTT, texconv, whisper) are required
+for video transcription, DDS conversion, etc.  They can be installed via the
+add-on's "External Tools" panel (see next section), or downloaded manually:
+
+  • ffmpeg: https://www.gyan.dev/ffmpeg/builds/
+  • NVTT (nvcompress): https://github.com/castano/nvidia-texture-tools/releases
+  • DirectXTex (texconv): https://github.com/microsoft/DirectXTex/releases
+  • whisper CLI: pip install openai-whisper
+
+Within Blender, open the sidebar → Fallout 4 → External Tools and click
+"Install"/"Check" buttons to automatically fetch these utilities.
+
 ═══════════════════════════════════════════════════════════════
 🤖 AI MODELS SETUP
 ═══════════════════════════════════════════════════════════════

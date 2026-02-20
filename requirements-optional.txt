@@ -17,6 +17,9 @@ trimesh>=3.20.0
 # HTTP/API interactions
 requests>=2.27.0
 
+# PDF parsing for advisor knowledge ingestion (optional)
+PyPDF2>=3.0.0
+
 # Gradio for web interfaces (optional)
 gradio>=3.35.0
 

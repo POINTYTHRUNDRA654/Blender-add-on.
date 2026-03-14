@@ -44,13 +44,25 @@ if not TORCH_AVAILABLE:
 # It will be imported dynamically when needed
 
 
+def clear_cache():
+    """Force-expire the availability TTL cache.
+
+    Call this after a successful install or after the user sets the manual
+    path in preferences so the next UI redraw reflects the new state
+    without waiting for the 5-second TTL to expire.
+    """
+    global _availability_cache, _availability_cache_time
+    _availability_cache = None
+    _availability_cache_time = 0.0
+
+
 def check_zoedepth_availability():
     """
     Check if ZoeDepth is installed and available.
 
     Results are cached for _CACHE_TTL seconds so that repeated calls from
     Blender's UI draw() loop do not hammer the filesystem on every redraw.
-    
+
     Returns:
         tuple: (available: bool, message: str)
     """
@@ -74,33 +86,44 @@ def _check_zoedepth_availability_uncached():
             "(regedit → HKLM\\SYSTEM\\CurrentControlSet\\Control\\FileSystem → "
             "LongPathsEnabled=1) or reinstall PyTorch to a shorter path."
         )
-    
+
     # Check if ZoeDepth repository is cloned
-    # Common locations to check
-    possible_paths = [
+    # Common locations to check (including the tool_installers managed directory)
+    possible_paths = []
+
+    # First check the tool_installers managed directory
+    try:
+        from . import tool_installers
+        tools_root_zoedepth = tool_installers.TOOLS_ROOT / "ZoeDepth"
+        possible_paths.append(str(tools_root_zoedepth))
+    except Exception:
+        pass
+
+    # Then check common manual installation paths
+    possible_paths.extend([
         os.path.expanduser("~/ZoeDepth"),
         os.path.expanduser("~/Projects/ZoeDepth"),
         "/opt/ZoeDepth",
         os.path.join(os.path.dirname(__file__), "..", "ZoeDepth"),
-    ]
-    
+    ])
+
     zoedepth_path = None
     for path in possible_paths:
         if os.path.exists(path) and os.path.isdir(path):
             zoedepth_path = path
             break
-    
+
     if zoedepth_path is None:
         return False, (
             "ZoeDepth not found. Clone it with:\n"
             "gh repo clone isl-org/ZoeDepth\n"
             "Or: git clone https://github.com/isl-org/ZoeDepth.git"
         )
-    
+
     # Check if the main module exists
     if not os.path.exists(os.path.join(zoedepth_path, "zoedepth")):
         return False, f"ZoeDepth found at {zoedepth_path} but zoedepth module not found"
-    
+
     return True, f"ZoeDepth available at: {zoedepth_path}"
 
 
@@ -128,12 +151,23 @@ def estimate_depth_from_image(image_path, output_path=None, model_type="ZoeD_N")
         from PIL import Image as _PIL_Image
 
         # Locate the ZoeDepth installation directory
-        possible_paths = [
+        possible_paths = []
+
+        # First check the tool_installers managed directory
+        try:
+            from . import tool_installers
+            tools_root_zoedepth = tool_installers.TOOLS_ROOT / "ZoeDepth"
+            possible_paths.append(str(tools_root_zoedepth))
+        except Exception:
+            pass
+
+        # Then check common manual installation paths
+        possible_paths.extend([
             os.path.expanduser("~/ZoeDepth"),
             os.path.expanduser("~/Projects/ZoeDepth"),
             "/opt/ZoeDepth",
             os.path.join(os.path.dirname(__file__), "..", "ZoeDepth"),
-        ]
+        ])
         zoedepth_path = None
         for p in possible_paths:
             if os.path.exists(p) and os.path.isdir(p):

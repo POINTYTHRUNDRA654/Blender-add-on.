@@ -19,9 +19,20 @@ class ImageTo3DHelpers:
     _triposr_cache = None
     _triposr_cache_time = 0.0
     _CACHE_TTL = 5.0  # seconds
-    
+
     # ==================== TripoSR ====================
-    
+
+    @staticmethod
+    def clear_triposr_cache():
+        """Force-expire the TripoSR availability TTL cache.
+
+        Call this after a successful install or after the user sets the manual
+        path in preferences so the next UI redraw reflects the new state
+        without waiting for the 5-second TTL to expire.
+        """
+        ImageTo3DHelpers._triposr_cache = None
+        ImageTo3DHelpers._triposr_cache_time = 0.0
+
     @staticmethod
     def is_triposr_available():
         """Check if TripoSR is available (result cached for 5 s)."""

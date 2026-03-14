@@ -4462,30 +4462,35 @@ class FO4_OT_ImportInstantNGPMesh(Operator):
     filepath: StringProperty(
         name="Instant-NGP Mesh File",
         description="Path to .obj file reconstructed by Instant-NGP",
-        subtype='FILE_PATH'
+        subtype='FILE_PATH',
+        default=""
     )
-    
+
+    directory: StringProperty(
+        subtype='DIR_PATH',
+    )
+
     filter_glob: StringProperty(
         default="*.obj",
         options={'HIDDEN'}
     )
-    
+
     def execute(self, context):
         if not self.filepath:
             self.report({'ERROR'}, "No file selected")
             return {'CANCELLED'}
-        
+
         # Import Instant-NGP mesh
         success, message, imported_obj = instantngp_helpers.InstantNGPHelpers.import_instantngp_mesh(
             self.filepath
         )
-        
+
         if success:
             self.report({'INFO'}, message)
             notification_system.FO4_NotificationSystem.notify(
                 f"Instant-NGP mesh imported: {imported_obj.name}", 'INFO'
             )
-            
+
             print("\n" + "="*70)
             print("INSTANT-NGP MESH IMPORTED")
             print("="*70)
@@ -4502,10 +4507,21 @@ class FO4_OT_ImportInstantNGPMesh(Operator):
             self.report({'ERROR'}, message)
             notification_system.FO4_NotificationSystem.notify(message, 'ERROR')
             return {'CANCELLED'}
-        
+
         return {'FINISHED'}
-    
+
     def invoke(self, context, event):
+        # Set a better default directory if Instant-NGP is installed
+        if not self.filepath and not self.directory:
+            try:
+                from . import tool_installers
+                ngp_dir = tool_installers.get_instantngp_dir()
+                if ngp_dir.exists():
+                    # Default to the instant-ngp directory where users typically save meshes
+                    self.directory = str(ngp_dir)
+            except Exception:
+                pass
+
         context.window_manager.fileselect_add(self)
         return {'RUNNING_MODAL'}
 

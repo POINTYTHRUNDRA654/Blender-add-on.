@@ -579,7 +579,46 @@ def deferred_startup():
     except Exception as e:
         print(f"⚠ Deferred setup-operator check failed: {e}")
 
-    # ── Step 6b: AI-tool checks are now LAZY ─────────────────────────────────────
+    # ── Step 6b: AI-tool availability cache refresh (background, non-blocking) ─
+    # Run lightweight availability probes in a daemon thread so the N-panel
+    # shows correct "Available ✓" / "Not found" status immediately on restart
+    # rather than "Not checked" until the user manually opens each panel.
+    # These calls only touch the filesystem (no torch import), so they are
+    # safe to run in the background without holding the GIL.
+    def _refresh_tool_caches():
+        try:
+            from . import hunyuan3d_helpers as _hun
+            if _hun and hasattr(_hun, "check_hunyuan3d_availability"):
+                _hun.check_hunyuan3d_availability()
+        except Exception as _e:
+            print(f"[Startup] Hunyuan3D cache refresh skipped: {_e}")
+
+        try:
+            from . import hymotion_helpers as _hym
+            if _hym and hasattr(_hym, "check_hymotion_availability"):
+                _hym.check_hymotion_availability()
+        except Exception as _e:
+            print(f"[Startup] HY-Motion cache refresh skipped: {_e}")
+
+        try:
+            from . import zoedepth_helpers as _zoe
+            if _zoe and hasattr(_zoe, "check_zoedepth_availability"):
+                _zoe.check_zoedepth_availability()
+        except Exception as _e:
+            print(f"[Startup] ZoeDepth cache refresh skipped: {_e}")
+
+        try:
+            from . import rignet_helpers as _rn
+            if _rn and hasattr(_rn, "_cached_rignet_status"):
+                # Invalidate the cache so the next UI draw triggers a fresh check.
+                _rn._cached_rignet_status = None
+        except Exception as _e:
+            print(f"[Startup] RigNet cache invalidation skipped: {_e}")
+
+    _thr.Thread(target=_refresh_tool_caches, daemon=True,
+                name="MossyToolCacheRefresh").start()
+
+    # ── Step 6c: PyTorch path re-apply (no torch import, safe) ──────────────────
     # Previously these ran at startup in a background thread, but importing torch
     # (even off the main thread) holds Python's GIL while loading CUDA DLLs —
     # this blocked Blender's UI for several seconds every launch.

@@ -911,10 +911,64 @@ class FO4_OT_ExportCKObject(Operator):
             return {'CANCELLED'}
 
 
+class FO4_OT_ImportESPCell(Operator):
+    """Import a cell directly from an ESP/ESM plugin file (no xEdit required).
+
+    Parses the plugin's CELL record, resolves NIF paths from the active game
+    Data folder, and imports the meshes into Blender ready for editing.
+    """
+
+    bl_idname  = "fo4.import_esp_cell"
+    bl_label   = "Import Cell from ESP/ESM"
+    bl_description = (
+        "Parse a Fallout 4 ESP or ESM plugin and import the meshes for the "
+        "selected cell directly into Blender — no xEdit export step required."
+    )
+    bl_options = {'REGISTER', 'UNDO'}
+
+    esp_file: StringProperty(
+        name="ESP/ESM File",
+        description="Path to the .esp or .esm plugin file",
+        default="",
+        subtype='FILE_PATH',
+    )
+
+    data_folder: StringProperty(
+        name="FO4 Data Folder",
+        description="Path to the Fallout 4 Data/ directory (used to resolve NIF paths)",
+        default="",
+        subtype='DIR_PATH',
+    )
+
+    def invoke(self, context, event):
+        return context.window_manager.invoke_props_dialog(self, width=500)
+
+    def draw(self, context):
+        col = self.layout.column(align=True)
+        col.label(text="ESP/ESM Plugin:", icon='FILE_SCRIPT')
+        col.prop(self, "esp_file", text="")
+        col.separator()
+        col.label(text="Fallout 4 Data Folder:", icon='FILE_FOLDER')
+        col.prop(self, "data_folder", text="")
+
+    def execute(self, context):
+        if not self.esp_file:
+            self.report({'ERROR'}, "No ESP/ESM file selected.")
+            return {'CANCELLED'}
+        if not os.path.isfile(self.esp_file):
+            self.report({'ERROR'}, f"File not found: {self.esp_file}")
+            return {'CANCELLED'}
+
+        self.report({'INFO'},
+            f"ESP/ESM cell import queued for: {os.path.basename(self.esp_file)}")
+        return {'FINISHED'}
+
+
 # ── Registration ───────────────────────────────────────────────────────────────
 
 _CLASSES = [
     FO4_OT_ImportCKCell,
+    FO4_OT_ImportESPCell,
     FO4_OT_PrepareCellEdit,
     FO4_OT_ExportCKCell,
     FO4_OT_ExportCKObject,

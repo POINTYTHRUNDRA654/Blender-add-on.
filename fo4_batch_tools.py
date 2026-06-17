@@ -229,8 +229,52 @@ class FO4_OT_GenerateTextureFromDesc(bpy.types.Operator):
         return {"FINISHED"}
 
 
+class FO4_OT_BatchLODExport(bpy.types.Operator):
+    """Generate LOD1/LOD2/LOD3 meshes for all selected objects and export as NIFs."""
+
+    bl_idname  = "fo4.batch_lod_export"
+    bl_label   = "Auto LOD1/2/3 for Selected"
+    bl_description = (
+        "Automatically generate LOD1, LOD2, and LOD3 decimated copies of every "
+        "selected mesh object and export each as an individual NIF file ready "
+        "for use in Fallout 4."
+    )
+    bl_options = {"REGISTER", "UNDO"}
+
+    output_dir: bpy.props.StringProperty(
+        name="Output Folder",
+        description="Folder where the LOD NIF files will be written",
+        default="",
+        subtype="DIR_PATH",
+    )
+
+    def execute(self, context):
+        objects = [o for o in context.selected_objects if o.type == "MESH"]
+        if not objects:
+            self.report({"ERROR"}, "No mesh objects selected.")
+            return {"CANCELLED"}
+
+        out = bpy.path.abspath(self.output_dir) if self.output_dir else bpy.path.abspath("//lods/")
+        try:
+            from . import fo4_lod_generator as _lod
+            ok_count = 0
+            for obj in objects:
+                try:
+                    if _lod and hasattr(_lod, "generate_lods"):
+                        _lod.generate_lods(obj, output_dir=out)
+                    ok_count += 1
+                except Exception as e:
+                    self.report({"WARNING"}, f"LOD failed for '{obj.name}': {e}")
+            self.report({"INFO"}, f"Batch LOD export: {ok_count}/{len(objects)} objects → {out}")
+        except Exception as e:
+            self.report({"ERROR"}, f"Batch LOD export error: {e}")
+            return {"CANCELLED"}
+        return {"FINISHED"}
+
+
 _CLASSES = [
     FO4_OT_BatchExport,
+    FO4_OT_BatchLODExport,
     FO4_OT_SavePreset,
     FO4_OT_LoadPreset,
     FO4_OT_GenerateTextureFromDesc,

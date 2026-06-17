@@ -34,6 +34,11 @@ try:
 except ImportError:
     _ti = None  # type: ignore[assignment]
 
+# Module-level status cache.  Set to None at startup (and by deferred_startup()
+# in startup_helpers.py) so the first UI draw triggers a fresh availability
+# check rather than showing a stale "cache invalidated" message.
+_cached_rignet_status = None
+
 class RigNetHelpers:
     """Helper functions for RigNet automatic rigging integration"""
 
